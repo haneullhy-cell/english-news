@@ -11,15 +11,17 @@
     line-height:1.75;background:#fff;-webkit-text-size-adjust:100%}
   .date{font-size:13px;color:#888;letter-spacing:1px;margin-bottom:6px}
   h1{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-0.5px}
-  .title-ko{font-size:17px;color:#666;margin-bottom:24px;font-weight:500}
   .meta-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 14px}
   .level{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
     padding:5px 11px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap}
-  .src-link{font-size:13px;color:#666;text-decoration:none;border-bottom:1px solid #ccc}
   .orig-btn{display:block;text-align:center;background:#2d6cdf;color:#fff;
     text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
-    margin:4px 0 8px}
-  .orig-note{font-size:12px;color:#888;line-height:1.6;margin:0 0 22px;text-align:center}
+    margin:4px 0 22px}
+  .hero{width:100%;border-radius:8px;display:block;margin:0 0 6px}
+  .hero-cap{font-size:11px;color:#999;line-height:1.5;margin:0 0 16px;text-align:center}
+  .vid-btn{display:block;text-align:center;background:#c0392b;color:#fff;
+    text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
+    margin:0 0 10px}
   .level-note{background:#f8f8f6;padding:14px 16px;font-size:13px;color:#666;
     line-height:1.7;border-left:3px solid #ccc}
   hr{border:none;border-top:2px solid #1a1a1a;margin:0 0 28px}
@@ -32,7 +34,6 @@
     border-bottom:2px solid #ddd}
   td{padding:10px 12px;border-bottom:1px solid #eee}
   td:first-child{font-weight:700;width:32%}
-  td:nth-child(2){color:#999;width:24%;font-size:14px}
   .summary{background:#f8f8f6;padding:20px;border-left:4px solid #1a1a1a;font-size:16px;
     line-height:1.9}
   .question{border:2px solid #1a1a1a;padding:22px;text-align:center}
@@ -46,14 +47,12 @@
   .words-def{font-size:17px}
   .words-def dt{font-weight:700;margin-top:14px;cursor:pointer;display:inline-block;
     border-bottom:2px dotted #bbb}
-  .words-def dt:active{color:#c0392b}
   .words-def dd{margin:2px 0 0;padding-left:0;color:#444;line-height:1.65}
-  .parent{margin-top:56px;padding-top:0;border-top:6px double #ccc}
+  .parent{margin-top:56px;border-top:6px double #ccc}
   .parent-tag{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
     padding:5px 12px;border-radius:4px;letter-spacing:1px;margin:24px 0 4px}
   .parent h3{font-size:16px;margin:24px 0 8px;color:#444}
-  .parent .summary{background:#f8f8f6;padding:18px;border-left:4px solid #1a1a1a;
-    font-size:15px;line-height:1.85}
+  .parent .summary{padding:18px;font-size:15px;line-height:1.85}
   .parent table{font-size:15px}
   .parent .tip{background:#fffdf0;border:1px dashed #d8cb8a;padding:16px 18px;
     font-size:15px;line-height:1.8}
@@ -80,7 +79,7 @@
     .article{font-size:13pt;line-height:1.8}
     h1{font-size:19pt}
     h2{margin:18px 0 9px}
-    .btns,.say-btn,.hint,#wordbar,.orig-btn,.orig-note{display:none}
+    .btns,.say-btn,.hint,#wordbar,.orig-btn,.vid-btn{display:none}
     .w{background:none}
     .parent{page-break-before:always;border-top:none;margin-top:0}
     @page{margin:15mm}
@@ -90,74 +89,71 @@
 <body>
 
 <div class="date">Wednesday, August 12, 2026</div>
-<h1>An Amazing Solar Eclipse is Coming Soon!</h1>
+<h1>Josh Kerr Runs Fast and Breaks World Record</h1>
 <div class="meta-row">
-  <span class="level">읽기 레벨 약 4.0 (AR 환산 추정)</span>
+  <span class="level">읽기 레벨 약 3.4 (AR 환산 추정)</span>
 </div>
 
-<a class="orig-btn" href="https://www.dogonews.com/2026/8/5/mainland-europe-set-to-witness-its-first-total-solar-eclipse-since-1999" target="_blank" rel="noopener">
-  📷 사진 있는 원문 보기 · 인쇄하기
+
+
+<a class="orig-btn" href="https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile" target="_blank" rel="noopener">
+  원문 기사 보기 (사진 더 있음)
 </a>
-<p class="orig-note">
-  원문 페이지 아래쪽 <b>Print</b> 버튼을 누르면 광고와 댓글이 빠진 인쇄용 화면이 뜹니다.
-  거기서 <b>PDF로 저장</b>하시면 사진까지 그대로 나와요.
-</p>
 <hr>
 
 <h2>READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
 <p class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
 <div class="article" id="article">
-  <p>On <span class="w" onclick="tapWord(this)">August</span> 12, 2026, a <span class="w" onclick="tapWord(this)">total</span> <span class="w" onclick="tapWord(this)">solar</span> <span class="w" onclick="tapWord(this)">eclipse</span> will <span class="w" onclick="tapWord(this)">happen</span>. The <span class="w" onclick="tapWord(this)">Moon</span> will <span class="w" onclick="tapWord(this)">move</span> <span class="w" onclick="tapWord(this)">right</span> <span class="w" onclick="tapWord(this)">between</span> the <span class="w" onclick="tapWord(this)">Earth</span> and the <span class="w" onclick="tapWord(this)">Sun</span>. <span class="w" onclick="tapWord(this)">People</span> in <span class="w" onclick="tapWord(this)">Europe</span> will <span class="w" onclick="tapWord(this)">see</span> the <span class="w" onclick="tapWord(this)">sky</span> <span class="w" onclick="tapWord(this)">become</span> <span class="w" onclick="tapWord(this)">dark</span> <span class="w" onclick="tapWord(this)">during</span> the <span class="w" onclick="tapWord(this)">day</span>!</p>
-  <p>This <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">event</span> is <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">rare</span>. The <span class="w" onclick="tapWord(this)">Moon</span> <span class="w" onclick="tapWord(this)">covers</span> the <span class="w" onclick="tapWord(this)">whole</span> <span class="w" onclick="tapWord(this)">Sun</span>, <span class="w" onclick="tapWord(this)">so</span> we can <span class="w" onclick="tapWord(this)">see</span> its <span class="w" onclick="tapWord(this)">bright</span> <span class="w" onclick="tapWord(this)">outer</span> <span class="w" onclick="tapWord(this)">ring</span> <span class="w" onclick="tapWord(this)">called</span> the <span class="w" onclick="tapWord(this)">corona</span>. It <span class="w" onclick="tapWord(this)">looks</span> <span class="w" onclick="tapWord(this)">like</span> a <span class="w" onclick="tapWord(this)">magical</span> <span class="w" onclick="tapWord(this)">circle</span> of <span class="w" onclick="tapWord(this)">light</span> in the <span class="w" onclick="tapWord(this)">dark</span> <span class="w" onclick="tapWord(this)">sky</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">However</span>, you <span class="w" onclick="tapWord(this)">must</span> <span class="w" onclick="tapWord(this)">never</span> <span class="w" onclick="tapWord(this)">look</span> <span class="w" onclick="tapWord(this)">directly</span> <span class="w" onclick="tapWord(this)">at</span> the <span class="w" onclick="tapWord(this)">Sun</span>. It can <span class="w" onclick="tapWord(this)">hurt</span> your <span class="w" onclick="tapWord(this)">eyes</span> <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">fast</span>. You <span class="w" onclick="tapWord(this)">need</span> <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">glasses</span> to <span class="w" onclick="tapWord(this)">look</span> <span class="w" onclick="tapWord(this)">at</span> the <span class="w" onclick="tapWord(this)">eclipse</span> <span class="w" onclick="tapWord(this)">safely</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">If</span> you do not <span class="w" onclick="tapWord(this)">have</span> <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">glasses</span>, do not <span class="w" onclick="tapWord(this)">worry</span>! You can <span class="w" onclick="tapWord(this)">make</span> a <span class="w" onclick="tapWord(this)">simple</span> <span class="w" onclick="tapWord(this)">pinhole</span> <span class="w" onclick="tapWord(this)">camera</span> <span class="w" onclick="tapWord(this)">with</span> <span class="w" onclick="tapWord(this)">paper</span>. It <span class="w" onclick="tapWord(this)">shows</span> the <span class="w" onclick="tapWord(this)">shape</span> of the <span class="w" onclick="tapWord(this)">Sun</span> <span class="w" onclick="tapWord(this)">safely</span> on <span class="w" onclick="tapWord(this)">paper</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Josh</span> <span class="w" onclick="tapWord(this)">Kerr</span> is a <span class="w" onclick="tapWord(this)">fast</span> <span class="w" onclick="tapWord(this)">runner</span> from <span class="w" onclick="tapWord(this)">Scotland</span>. On <span class="w" onclick="tapWord(this)">July</span> 18, 2026, he <span class="w" onclick="tapWord(this)">set</span> a <span class="w" onclick="tapWord(this)">new</span> <span class="w" onclick="tapWord(this)">world</span> <span class="w" onclick="tapWord(this)">record</span>. He <span class="w" onclick="tapWord(this)">ran</span> <span class="w" onclick="tapWord(this)">one</span> <span class="w" onclick="tapWord(this)">mile</span> in 3 <span class="w" onclick="tapWord(this)">minutes</span> and 42 <span class="w" onclick="tapWord(this)">seconds</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Before</span> the <span class="w" onclick="tapWord(this)">race</span>, <span class="w" onclick="tapWord(this)">Kerr</span> <span class="w" onclick="tapWord(this)">worked</span> very <span class="w" onclick="tapWord(this)">hard</span>. He <span class="w" onclick="tapWord(this)">trained</span> on a <span class="w" onclick="tapWord(this)">high</span> <span class="w" onclick="tapWord(this)">mountain</span> to <span class="w" onclick="tapWord(this)">make</span> his <span class="w" onclick="tapWord(this)">body</span> <span class="w" onclick="tapWord(this)">strong</span>. He <span class="w" onclick="tapWord(this)">even</span> <span class="w" onclick="tapWord(this)">slept</span> in a <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">room</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">About</span> 60,000 <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">watched</span> him run in <span class="w" onclick="tapWord(this)">London</span>. <span class="w" onclick="tapWord(this)">Two</span> <span class="w" onclick="tapWord(this)">other</span> <span class="w" onclick="tapWord(this)">runners</span> <span class="w" onclick="tapWord(this)">helped</span> him <span class="w" onclick="tapWord(this)">stay</span> <span class="w" onclick="tapWord(this)">fast</span>. <span class="w" onclick="tapWord(this)">Near</span> the <span class="w" onclick="tapWord(this)">end</span>, <span class="w" onclick="tapWord(this)">Kerr</span> <span class="w" onclick="tapWord(this)">ran</span> <span class="w" onclick="tapWord(this)">super</span> <span class="w" onclick="tapWord(this)">fast</span> and <span class="w" onclick="tapWord(this)">passed</span> <span class="w" onclick="tapWord(this)">everyone</span>.</p>
+  <p>He <span class="w" onclick="tapWord(this)">broke</span> a <span class="w" onclick="tapWord(this)">famous</span> <span class="w" onclick="tapWord(this)">record</span> from 1999. <span class="w" onclick="tapWord(this)">Kerr</span> was very <span class="w" onclick="tapWord(this)">happy</span> <span class="w" onclick="tapWord(this)">because</span> his <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">dream</span> <span class="w" onclick="tapWord(this)">came</span> <span class="w" onclick="tapWord(this)">true</span>. <span class="w" onclick="tapWord(this)">Now</span>, he is a <span class="w" onclick="tapWord(this)">famous</span> <span class="w" onclick="tapWord(this)">running</span> <span class="w" onclick="tapWord(this)">hero</span>!</p>
 </div>
 
 <h2>WORDS <span class="hint">단어를 누르면 소리가 나요</span></h2>
 <dl class="words-def">
-<dt onclick="sayWord(this)">eclipse</dt><dd>an event when the moon blocks the light of the sun</dd>
-<dt onclick="sayWord(this)">rare</dt><dd>not happening very often or hard to find</dd>
-<dt onclick="sayWord(this)">corona</dt><dd>the bright outer part of the sun visible during an eclipse</dd>
-<dt onclick="sayWord(this)">hurt</dt><dd>to cause pain or damage to a body part</dd>
-<dt onclick="sayWord(this)">safely</dt><dd>in a way that is free from danger</dd>
-<dt onclick="sayWord(this)">simple</dt><dd>easy to do or easy to understand</dd>
+<dt onclick="sayWord(this)">runner</dt><dd>a person who moves fast on their feet</dd>
+<dt onclick="sayWord(this)">record</dt><dd>the best result ever made in a sport</dd>
+<dt onclick="sayWord(this)">train</dt><dd>to practice a sport to get better</dd>
+<dt onclick="sayWord(this)">mountain</dt><dd>a very tall piece of land</dd>
+<dt onclick="sayWord(this)">dream</dt><dd>something you really want to do</dd>
+<dt onclick="sayWord(this)">hero</dt><dd>a person who does great things</dd>
 </dl>
 
 <h2>THINK</h2>
 <div class="question">
-  <div class="en">If you can see a total solar eclipse, who would you like to watch it with?</div>
+  <div class="en">If you could break a world record, what would it be?</div>
 </div>
 
 <div class="parent">
   <div class="parent-tag">엄마 보는 곳</div>
-  <h3>곧 찾아올 신기한 개기일식 이야기</h3>
+  <h3>세계 신기록을 세운 조시 커</h3>
 
-  <div class="summary">2026년 8월 유럽에서 달이 태양을 완전히 가리는 개기일식이 일어납니다. 일식 때는 태양의 밝은 겉부분인 코로나를 볼 수 있지만, 눈을 다칠 수 있으므로 특수 안경이나 구멍 상자가 필요합니다.</div>
+  <div class="summary">스코틀랜드의 육상 선수 조시 커가 1마일(약 1.6km) 달리기에서 3분 42초라는 세계 신기록을 세웠습니다. 그는 높은 산에서 훈련하고 특수 방에서 자며 오랫동안 열심히 준비했습니다. 6만 명의 관중 앞에서 멋지게 달린 그는 최고의 육상 영웅이 되었습니다.</div>
 
   <h3>단어 한국어 뜻</h3>
   <table>
   <tr><th>영어</th><th>뜻</th></tr>
-  <tr><td>eclipse</td><td>일식</td></tr>
-<tr><td>rare</td><td>드문, 희귀한</td></tr>
-<tr><td>corona</td><td>코로나 (태양 대기)</td></tr>
-<tr><td>hurt</td><td>다치게 하다</td></tr>
-<tr><td>safely</td><td>안전하게</td></tr>
-<tr><td>simple</td><td>간단한</td></tr>
+  <tr><td>runner</td><td>달리기 선수</td></tr>
+<tr><td>record</td><td>기록</td></tr>
+<tr><td>train</td><td>훈련하다</td></tr>
+<tr><td>mountain</td><td>산</td></tr>
+<tr><td>dream</td><td>꿈</td></tr>
+<tr><td>hero</td><td>영웅</td></tr>
   </table>
 
   <h3>오늘의 질문</h3>
-  <p style="font-size:15px;margin-bottom:14px">만약 개기일식을 볼 수 있다면, 누구와 함께 보고 싶나요?</p>
+  <p style="font-size:15px;margin-bottom:14px">만약 여러분이 세계 신기록을 세울 수 있다면, 어떤 분야에서 기록을 세우고 싶나요?</p>
 
-  <div class="tip">아이와 함께 종이에 작은 구멍을 뚫어 햇빛을 종이에 투영해보는 간단한 핀홀 카메라 실습을 해보세요.</div>
+  <div class="tip">1마일(1.6km)을 3분 대에 달리는 것이 얼마나 빠른 속도인지 함께 나누며 아이의 흥미를 유도해 보세요.</div>
 
   <h3>읽기 레벨</h3>
-  <div class="level-note">이 글의 읽기 레벨은 <b>약 4.0</b>입니다. 단어 121개, 문장 12개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요.</div>
+  <div class="level-note">이 글의 읽기 레벨은 <b>약 3.4</b>입니다. 단어 96개, 문장 12개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요.</div>
 
   <h3>원문</h3>
   <p style="font-size:15px">
-    이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.
-    원래 글은 여기서 보실 수 있어요:<br>
-    <a href="https://www.dogonews.com/2026/8/5/mainland-europe-set-to-witness-its-first-total-solar-eclipse-since-1999" target="_blank" rel="noopener">https://www.dogonews.com/2026/8/5/mainland-europe-set-to-witness-its-first-total-solar-eclipse-since-1999</a>
+    이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.<br>
+    <a href="https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile" target="_blank" rel="noopener">https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile</a>
   </p>
 </div>
 
@@ -168,7 +164,8 @@
 <div id="pdf-msg"></div>
 
 <footer>
-  출처: <a href="https://www.dogonews.com/2026/8/5/mainland-europe-set-to-witness-its-first-total-solar-eclipse-since-1999">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
+  출처: <a href="https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
+  사진은 퍼블릭 도메인인 경우에만 싣습니다.<br>
   <a href="./">지난 신문 보기</a>
 </footer>
 
@@ -180,9 +177,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 var PDF_DATE  = "2026-08-12";
-var GLOSSARY  = {"august": "8월", "total": "전체의(개기의)", "solar": "태양의", "eclipse": "일식", "happen": "일어나다", "moon": "달", "move": "움직이다", "right": "바로", "between": "~ 사이에", "earth": "지구", "sun": "태양", "people": "사람들", "europe": "유럽", "see": "보다", "sky": "하늘", "become": "~해지다", "dark": "어두운", "during": "~ 동안", "day": "낮", "special": "특별한", "event": "일(사건)", "very": "매우", "rare": "드문", "covers": "가린다", "whole": "전체의", "so": "그래서", "bright": "밝은", "outer": "바깥쪽의", "ring": "고리", "called": "~라고 불리는", "corona": "코로나", "looks": "보인다", "like": "~처럼", "magical": "마법 같은", "circle": "동그라미", "light": "빛", "however": "하지만", "must": "~해야 한다", "never": "절대 ~않다", "look": "보다", "directly": "직접", "at": "~를", "hurt": "다치게 하다", "eyes": "눈", "fast": "빠르게", "need": "필요하다", "glasses": "안경", "safely": "안전하게", "if": "만약", "have": "가지고 있다", "worry": "걱정하다", "make": "만들다", "simple": "간단한", "pinhole": "바늘구멍", "camera": "카메라", "with": "~로", "paper": "종이", "shows": "보여준다", "shape": "모양"};
-
-/* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
+var GLOSSARY  = {"josh": "조시 (이름)", "kerr": "커 (성)", "fast": "빠른", "runner": "달리기 선수", "scotland": "스코틀랜드", "july": "7월", "set": "세웠다", "new": "새로운", "world": "세계", "record": "기록", "ran": "달렸다", "one": "1", "mile": "마일", "minutes": "분", "seconds": "초", "before": "~전에", "race": "경주", "worked": "노력했다", "hard": "열심히", "trained": "훈련했다", "high": "높은", "mountain": "산", "make": "만들다", "body": "몸", "strong": "튼튼한", "even": "~조차", "slept": "잤다", "special": "특별한", "room": "방", "about": "약", "people": "사람들", "watched": "지켜보았다", "london": "런던", "two": "두 명의", "other": "다른", "runners": "달리기 선수들", "helped": "도왔다", "stay": "유지하다", "near": "~근처에", "end": "끝", "super": "엄청", "passed": "앞질렀다", "everyone": "모두를", "broke": "깨뜨렸다", "famous": "유명한", "happy": "기쁜", "because": "~때문에", "big": "큰", "dream": "꿈", "came": "왔다", "true": "실현된", "now": "지금", "running": "달리기", "hero": "영웅"};
 
 var lastWordEl = null;
 var barTimer = null;
@@ -211,8 +206,6 @@ function tapWord(el) {
   speak(raw, 0.7);
 }
 
-/* ── 읽어주기 (브라우저 내장 음성) ────────────────────── */
-
 var enVoice = null;
 
 function pickVoice() {
@@ -239,14 +232,13 @@ if (window.speechSynthesis) {
 
 function speak(text, rate, onEnd) {
   if (!window.speechSynthesis) {
-    alert('이 브라우저는 읽어주기를 지원하지 않아요. 크롬이나 사파리에서 열어보세요.');
+    alert('이 브라우저는 읽어주기를 지원하지 않아요.');
     return;
   }
   speechSynthesis.cancel();
   var u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US';
   u.rate = rate;
-  u.pitch = 1;
   if (enVoice) u.voice = enVoice;
   if (onEnd) { u.onend = onEnd; u.onerror = onEnd; }
   speechSynthesis.speak(u);
@@ -276,14 +268,12 @@ function sayArticle(btn) {
   });
 }
 
-/* ── PDF 저장 ─────────────────────────────────────────── */
-
 function savePdf(mode) {
   var btns = document.querySelector('.btns');
   var msg  = document.getElementById('pdf-msg');
 
   if (typeof html2pdf === 'undefined') {
-    msg.textContent = 'PDF 기능을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해주세요.';
+    msg.textContent = 'PDF 기능을 불러오지 못했습니다. 새로고침해주세요.';
     return;
   }
 
