@@ -321,7 +321,7 @@ def call_gemini(prompt):
                 "contents": [{"parts": [{"text": prompt}]}],
                 "generationConfig": {
                     "temperature": 0.7,
-                    "maxOutputTokens": 3000,
+                    "maxOutputTokens": 8192,
                     # JSON 모드 — 문법이 깨진 JSON이 나오는 것을 막아준다
                     "responseMimeType": "application/json",
                 },
