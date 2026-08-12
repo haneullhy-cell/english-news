@@ -58,7 +58,7 @@ GEMINI_API_KEY = need("GEMINI_API_KEY")
 GH_PAT = os.environ.get("GH_PAT", "").strip()
 GH_REPO = os.environ.get("GITHUB_REPOSITORY", "").strip()   # "사용자명/저장소명"
 
-# GitHub Pages 주소는 저장소 이름에서 자동으로 만듭니다 (따로 설정할 필요 없음)
+# GitHub Pages 주소는 저장소 이름에서 자동으로 만듭니다
 PAGES_URL = os.environ.get("PAGES_URL", "").strip().rstrip("/")
 if not PAGES_URL and "/" in GH_REPO:
     _owner, _repo = GH_REPO.split("/", 1)
@@ -67,7 +67,7 @@ if not PAGES_URL and "/" in GH_REPO:
 DOCS_DIR = "docs"
 HISTORY_FILE = os.path.join(DOCS_DIR, "history.json")
 
-# 구글 Gemini를 씁니다. 앞의 모델이 안 되면 뒤 것을 차례로 시도합니다.
+# 구글 Gemini. 앞의 모델이 안 되면 뒤 것을 차례로 시도합니다.
 GEMINI_MODELS = [
     "gemini-flash-latest",
     "gemini-2.5-flash",
@@ -106,7 +106,7 @@ def refresh_kakao_token():
         )
     data = res.json()
     access_token = data["access_token"]
-    new_refresh = data.get("refresh_token")  # 없으면 None (정상)
+    new_refresh = data.get("refresh_token")
     if new_refresh:
         log("카카오가 새 refresh token을 발급했습니다. 저장을 시도합니다.")
     return access_token, new_refresh
@@ -183,7 +183,7 @@ def load_history():
 
 def save_history(hist):
     os.makedirs(DOCS_DIR, exist_ok=True)
-    hist["used_urls"] = hist["used_urls"][-120:]  # 최근 120개만 유지
+    hist["used_urls"] = hist["used_urls"][-120:]
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(hist, f, ensure_ascii=False, indent=2)
 
@@ -275,7 +275,9 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
   "title_ko": "한국어 제목",
   "summary_ko": "한국어 요약 2~3문장",
   "question_ko": "question_en의 한국어 번역",
-  "tip_ko": "아이와 이 기사로 대화할 때 도움이 될 한 문장"
+  "tip_ko": "아이와 이 기사로 대화할 때 도움이 될 한 문장",
+
+  "glossary": {{"tonight": "오늘 밤", "special": "특별한", "burn": "타다"}}
 }}
 
 [아이용 규칙 — 여기엔 한국어 금지]
@@ -295,6 +297,15 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 - summary_ko는 영어를 못 읽어도 내용을 알 수 있게.
 - ko는 그 단어의 한국어 뜻 (엄마가 막혔을 때 참고용).
 - tip_ko는 잔소리 말고 실용적으로. 예: "우리 동네에서도 보이니까 오늘 밤에 같이 나가보세요."
+
+[glossary 규칙 — 중요]
+아이가 기사를 읽다가 모르는 단어를 눌러보는 기능에 쓰입니다.
+- article_en에 나온 단어를 **빠짐없이** 넣으세요. 하나도 빠뜨리지 마세요.
+- 기사에 나온 **그 형태 그대로**를 키로 쓰세요. 소문자로 바꿔서.
+  (예: 기사에 "meteors"가 있으면 키도 "meteors")
+- 값은 **문맥에 맞는 한국어 뜻 하나만.** 짧게. 여러 뜻을 나열하지 마세요.
+- a, an, the, is, are, of, to, in, on, and, or, but 같은 아주 기초적인 말은 빼도 됩니다.
+- 동사는 원형 뜻이 아니라 그 자리에서 쓰인 뜻으로. (예: "left" → "남긴")
 """
 
 
@@ -333,9 +344,7 @@ def call_gemini(prompt):
 
         if res.status_code == 429:
             raise RuntimeError(
-                "Gemini 한도를 초과했습니다. 하루 뒤 자동으로 풀립니다.\n"
-                "→ 하루 1건만 쓰는 구조라 보통 일어나지 않습니다. "
-                "키가 다른 곳에서도 쓰이고 있는지 확인해보세요."
+                "Gemini 한도를 초과했습니다. 하루 뒤 자동으로 풀립니다."
             )
 
         last_error = f"{model}: {res.status_code} {res.text[:300]}"
@@ -343,8 +352,7 @@ def call_gemini(prompt):
 
     raise RuntimeError(
         f"Gemini 호출 실패 — {last_error}\n"
-        "→ GEMINI_API_KEY가 올바른지 확인하세요. "
-        "aistudio.google.com 에서 새로 발급받을 수 있습니다."
+        "→ GEMINI_API_KEY가 올바른지 확인하세요."
     )
 
 
@@ -373,7 +381,6 @@ def make_content(title, body):
                 log(f"  JSON 파싱 실패, 다시 시도합니다: {e}")
                 continue
 
-        # 필수 항목이 다 있는지 확인
         missing = [k for k in ("title_en", "article_en", "words", "question_en",
                                "title_ko", "summary_ko", "question_ko")
                    if not data.get(k)]
@@ -410,11 +417,7 @@ def count_syllables(word):
 
 
 def reading_level(paragraphs):
-    """Flesch-Kincaid 학년 수준을 계산한다.
-
-    AR(ATOS) 지수와 계산 방식이 다르지만 대체로 비슷한 범위로 나온다.
-    공식 AR 지수가 아니라 '문장 길이와 단어 길이로 낸 추정치'다.
-    """
+    """Flesch-Kincaid 학년 수준. 공식 AR 지수가 아니라 추정치다."""
     text = " ".join(paragraphs)
     sentences = [s for s in re.split(r"[.!?]+", text) if s.strip()]
     words = [w for w in re.findall(r"[A-Za-z']+", text)]
@@ -450,10 +453,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .date{{font-size:13px;color:#888;letter-spacing:1px;margin-bottom:6px}}
   h1{{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-0.5px}}
   .title-ko{{font-size:17px;color:#666;margin-bottom:24px;font-weight:500}}
-  .meta-row{{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 20px}}
+  .meta-row{{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 14px}}
   .level{{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
     padding:5px 11px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap}}
   .src-link{{font-size:13px;color:#666;text-decoration:none;border-bottom:1px solid #ccc}}
+  .orig-btn{{display:block;text-align:center;background:#2d6cdf;color:#fff;
+    text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
+    margin:4px 0 8px}}
+  .orig-note{{font-size:12px;color:#888;line-height:1.6;margin:0 0 22px;text-align:center}}
   .level-note{{background:#f8f8f6;padding:14px 16px;font-size:13px;color:#666;
     line-height:1.7;border-left:3px solid #ccc}}
   hr{{border:none;border-top:2px solid #1a1a1a;margin:0 0 28px}}
@@ -471,8 +478,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     line-height:1.9}}
   .question{{border:2px solid #1a1a1a;padding:22px;text-align:center}}
   .question .en{{font-size:19px;font-weight:700;line-height:1.5}}
+  .say-btn{{float:right;font-family:inherit;font-size:12px;font-weight:700;
+    background:#1a1a1a;color:#fff;border:none;border-radius:20px;padding:6px 14px;
+    cursor:pointer;letter-spacing:0}}
+  .say-btn.playing{{background:#c0392b}}
+  .hint{{float:right;font-size:11px;color:#aaa;font-weight:400;letter-spacing:0;
+    padding-top:4px}}
   .words-def{{font-size:17px}}
-  .words-def dt{{font-weight:700;margin-top:14px}}
+  .words-def dt{{font-weight:700;margin-top:14px;cursor:pointer;display:inline-block;
+    border-bottom:2px dotted #bbb}}
+  .words-def dt:active{{color:#c0392b}}
   .words-def dd{{margin:2px 0 0;padding-left:0;color:#444;line-height:1.65}}
   .parent{{margin-top:56px;padding-top:0;border-top:6px double #ccc}}
   .parent-tag{{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
@@ -483,6 +498,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .parent table{{font-size:15px}}
   .parent .tip{{background:#fffdf0;border:1px dashed #d8cb8a;padding:16px 18px;
     font-size:15px;line-height:1.8}}
+  .w{{cursor:pointer;border-radius:3px;padding:0 1px}}
+  .w:active{{background:#ffe9a8}}
+  .w.on{{background:#ffe9a8}}
+  #wordbar{{position:fixed;left:0;right:0;bottom:0;background:#1a1a1a;color:#fff;
+    padding:16px 20px;transform:translateY(110%);transition:transform .18s ease;
+    z-index:99;box-shadow:0 -2px 12px rgba(0,0,0,.2)}}
+  #wordbar.show{{transform:translateY(0)}}
+  #wb-en{{font-size:20px;font-weight:700;margin-right:12px}}
+  #wb-ko{{font-size:16px;color:#ffe9a8}}
+  #wb-x{{float:right;font-size:20px;color:#888;cursor:pointer;line-height:1.2}}
   .btns{{display:flex;gap:10px;margin:40px 0 0}}
   .print-btn{{flex:1;padding:15px;font-size:15px;font-weight:700;background:#1a1a1a;
     color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit}}
@@ -496,7 +521,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .article{{font-size:13pt;line-height:1.8}}
     h1{{font-size:19pt}}
     h2{{margin:18px 0 9px}}
-    .btns{{display:none}}
+    .btns,.say-btn,.hint,#wordbar,.orig-btn,.orig-note{{display:none}}
+    .w{{background:none}}
     .parent{{page-break-before:always;border-top:none;margin-top:0}}
     @page{{margin:15mm}}
   }}
@@ -508,16 +534,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <h1>{title_en}</h1>
 <div class="meta-row">
   <span class="level">{level_badge}</span>
-  <a class="src-link" href="{source_url}" target="_blank" rel="noopener">원문 읽기 →</a>
 </div>
+
+<a class="orig-btn" href="{source_url}" target="_blank" rel="noopener">
+  📷 사진 있는 원문 보기 · 인쇄하기
+</a>
+<p class="orig-note">
+  원문 페이지 아래쪽 <b>Print</b> 버튼을 누르면 광고와 댓글이 빠진 인쇄용 화면이 뜹니다.
+  거기서 <b>PDF로 저장</b>하시면 사진까지 그대로 나와요.
+</p>
 <hr>
 
-<h2>READ</h2>
-<div class="article">
+<h2>READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
+<p class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
+<div class="article" id="article">
 {article_html}
 </div>
 
-<h2>WORDS</h2>
+<h2>WORDS <span class="hint">단어를 누르면 소리가 나요</span></h2>
 <dl class="words-def">
 {words_en_html}
 </dl>
@@ -566,9 +600,111 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <a href="./">지난 신문 보기</a>
 </footer>
 
+<div id="wordbar">
+  <span id="wb-x" onclick="hideBar()">×</span>
+  <span id="wb-en"></span><span id="wb-ko"></span>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-var PDF_DATE = "{date_file}";
+var PDF_DATE  = "{date_file}";
+var GLOSSARY  = {glossary_json};
+
+/* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
+
+var lastWordEl = null;
+var barTimer = null;
+
+function hideBar() {{
+  document.getElementById('wordbar').classList.remove('show');
+  if (lastWordEl) lastWordEl.classList.remove('on');
+}}
+
+function tapWord(el) {{
+  var raw = el.textContent.trim();
+  var key = raw.toLowerCase().replace(/[^a-z'-]/g, '');
+  var ko  = GLOSSARY[key] || GLOSSARY[key.replace(/[',-]/g, '')] || '';
+
+  if (lastWordEl) lastWordEl.classList.remove('on');
+  el.classList.add('on');
+  lastWordEl = el;
+
+  document.getElementById('wb-en').textContent = raw;
+  document.getElementById('wb-ko').textContent = ko ? ko : '(뜻 없음)';
+  document.getElementById('wordbar').classList.add('show');
+
+  clearTimeout(barTimer);
+  barTimer = setTimeout(hideBar, 6000);
+
+  speak(raw, 0.7);
+}}
+
+/* ── 읽어주기 (브라우저 내장 음성) ────────────────────── */
+
+var enVoice = null;
+
+function pickVoice() {{
+  var vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  if (!vs.length) return;
+  var prefer = ['Samantha', 'Karen', 'Google US English', 'Microsoft Aria',
+                'Microsoft Jenny', 'Alex', 'Daniel'];
+  for (var i = 0; i < prefer.length; i++) {{
+    for (var j = 0; j < vs.length; j++) {{
+      if (vs[j].name.indexOf(prefer[i]) === 0) {{ enVoice = vs[j]; return; }}
+    }}
+  }}
+  for (var k = 0; k < vs.length; k++) {{
+    if (vs[k].lang && vs[k].lang.toLowerCase().indexOf('en') === 0) {{
+      enVoice = vs[k]; return;
+    }}
+  }}
+}}
+
+if (window.speechSynthesis) {{
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}}
+
+function speak(text, rate, onEnd) {{
+  if (!window.speechSynthesis) {{
+    alert('이 브라우저는 읽어주기를 지원하지 않아요. 크롬이나 사파리에서 열어보세요.');
+    return;
+  }}
+  speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = rate;
+  u.pitch = 1;
+  if (enVoice) u.voice = enVoice;
+  if (onEnd) {{ u.onend = onEnd; u.onerror = onEnd; }}
+  speechSynthesis.speak(u);
+}}
+
+function sayWord(el) {{
+  speak(el.textContent.trim(), 0.75);
+}}
+
+function sayArticle(btn) {{
+  if (speechSynthesis.speaking && btn.classList.contains('playing')) {{
+    speechSynthesis.cancel();
+    btn.classList.remove('playing');
+    btn.textContent = '🔊 들어보기';
+    return;
+  }}
+  var ps = document.querySelectorAll('#article p');
+  var text = '';
+  for (var i = 0; i < ps.length; i++) {{ text += ps[i].textContent + ' '; }}
+
+  btn.classList.add('playing');
+  btn.textContent = '■ 멈추기';
+
+  speak(text, 0.82, function() {{
+    btn.classList.remove('playing');
+    btn.textContent = '🔊 들어보기';
+  }});
+}}
+
+/* ── PDF 저장 ─────────────────────────────────────────── */
 
 function savePdf(mode) {{
   var btns = document.querySelector('.btns');
@@ -579,6 +715,7 @@ function savePdf(mode) {{
     return;
   }}
 
+  hideBar();
   if (mode === 'kid') {{ document.body.classList.add('kid-only'); }}
   btns.style.display = 'none';
   msg.textContent = 'PDF 만드는 중... 잠시만요';
@@ -616,12 +753,42 @@ def esc(s):
     return html.escape(str(s))
 
 
+WORD_RE = re.compile(r"[A-Za-z][A-Za-z'’-]*")
+
+
+def wrap_words(paragraph, gloss_keys):
+    """문단의 각 단어를 눌러볼 수 있게 <span>으로 감싼다."""
+    out = []
+    pos = 0
+    for m in WORD_RE.finditer(paragraph):
+        out.append(esc(paragraph[pos:m.start()]))
+        word = m.group(0)
+        key = re.sub(r"[^a-z'’-]", "", word.lower())
+        if key in gloss_keys:
+            out.append(f'<span class="w" onclick="tapWord(this)">{esc(word)}</span>')
+        else:
+            out.append(esc(word))
+        pos = m.end()
+    out.append(esc(paragraph[pos:]))
+    return "".join(out)
+
+
 def render_html(c, source_url):
-    article_html = "\n".join(f"  <p>{esc(p)}</p>" for p in c["article_en"])
+    # 단어장 — 키를 소문자로 정리
+    glossary = {}
+    for k, v in (c.get("glossary") or {}).items():
+        key = re.sub(r"[^a-z'’-]", "", str(k).lower())
+        if key and v:
+            glossary[key] = str(v)
+
+    article_html = "\n".join(
+        f"  <p>{wrap_words(p, glossary)}</p>" for p in c["article_en"]
+    )
 
     # 아이 면 — 영영 뜻만
     words_en_html = "\n".join(
-        f"<dt>{esc(w.get('en',''))}</dt><dd>{esc(w.get('def_en',''))}</dd>"
+        f'<dt onclick="sayWord(this)">{esc(w.get("en",""))}</dt>'
+        f'<dd>{esc(w.get("def_en",""))}</dd>'
         for w in c.get("words", [])
     )
     # 엄마 면 — 한국어 뜻
@@ -649,6 +816,7 @@ def render_html(c, source_url):
     return HTML_TEMPLATE.format(
         date_en=TODAY.strftime("%A, %B %d, %Y"),
         date_file=DATE_STR,
+        glossary_json=json.dumps(glossary, ensure_ascii=False),
         title_en=esc(c["title_en"]),
         level_badge=esc(level_badge),
         level_note=level_note,
@@ -707,7 +875,7 @@ def send_kakao(access_token, content, page_url):
     tail = f"💬 {content['question_ko']}"
     summary = content["summary_ko"]
 
-    room = 195 - len(head) - len(tail) - 4      # 4 = 줄바꿈 여백
+    room = 195 - len(head) - len(tail) - 4
     if room < 20:
         summary = ""
     elif len(summary) > room:
@@ -728,7 +896,7 @@ def send_kakao(access_token, content, page_url):
         "object_type": "text",
         "text": text,
         "link": {"web_url": page_url, "mobile_web_url": page_url},
-        "button_title": "전체 보기 · PDF 저장",
+        "button_title": "읽기 · 듣기 · 인쇄",
     }
 
     log("카카오톡 발송 중...")
