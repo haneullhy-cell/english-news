@@ -11,12 +11,15 @@
     line-height:1.75;background:#fff;-webkit-text-size-adjust:100%}
   .date{font-size:13px;color:#888;letter-spacing:1px;margin-bottom:6px}
   h1{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-0.5px}
-  .meta-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 14px}
+  .title-ko{font-size:17px;color:#666;margin-bottom:24px;font-weight:500}
+  .meta-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 20px}
   .level{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
-    padding:5px 11px;border-radius:20px;white-space:nowrap}
+    padding:5px 11px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap}
+  .src-link{font-size:13px;color:#666;text-decoration:none;border-bottom:1px solid #ccc}
   .orig-btn{display:block;text-align:center;background:#2d6cdf;color:#fff;
     text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
-    margin:4px 0 22px}
+    margin:4px 0 8px}
+  .orig-note{font-size:12px;color:#888;line-height:1.6;margin:0 0 22px;text-align:center}
   .hero{width:100%;border-radius:8px;display:block;margin:0 0 6px}
   .hero-cap{font-size:11px;color:#999;line-height:1.5;margin:0 0 16px;text-align:center}
   .vid-btn{display:block;text-align:center;background:#c0392b;color:#fff;
@@ -32,8 +35,9 @@
   table{width:100%;border-collapse:collapse;font-size:16px}
   th{text-align:left;background:#f5f5f5;padding:10px 12px;font-size:13px;color:#555;
     border-bottom:2px solid #ddd}
-  td{padding:10px 12px;border-bottom:1px solid #eee;vertical-align:top}
+  td{padding:10px 12px;border-bottom:1px solid #eee}
   td:first-child{font-weight:700;width:32%}
+  td:nth-child(2){color:#999;width:24%;font-size:14px}
   .summary{background:#f8f8f6;padding:20px;border-left:4px solid #1a1a1a;font-size:16px;
     line-height:1.9}
   .question{border:2px solid #1a1a1a;padding:22px;text-align:center}
@@ -47,7 +51,17 @@
   .words-def{font-size:17px}
   .words-def dt{font-weight:700;margin-top:14px;cursor:pointer;display:inline-block;
     border-bottom:2px dotted #bbb}
+  .words-def dt:active{color:#c0392b}
   .words-def dd{margin:2px 0 0;padding-left:0;color:#444;line-height:1.65}
+  .parent{margin-top:56px;padding-top:0;border-top:6px double #ccc}
+  .parent-tag{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
+    padding:5px 12px;border-radius:4px;letter-spacing:1px;margin:24px 0 4px}
+  .parent h3{font-size:16px;margin:24px 0 8px;color:#444}
+  .parent .summary{background:#f8f8f6;padding:18px;border-left:4px solid #1a1a1a;
+    font-size:15px;line-height:1.85}
+  .parent table{font-size:15px}
+  .parent .tip{background:#fffdf0;border:1px dashed #d8cb8a;padding:16px 18px;
+    font-size:15px;line-height:1.8}
   .qz{margin:0 0 26px}
   .qz-q{font-size:17px;font-weight:700;margin:0 0 10px;line-height:1.5}
   .qz-c{display:block;width:100%;text-align:left;font-family:inherit;font-size:16px;
@@ -57,16 +71,9 @@
   .qz-c.wrong{background:#fdecea;border-color:#d9534f;text-decoration:line-through;
     color:#999}
   .qz-done{font-size:14px;color:#4a9d6a;font-weight:700;margin:4px 0 0}
-  .parent{margin-top:56px;border-top:6px double #ccc}
-  .parent-tag{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
-    padding:5px 12px;border-radius:4px;letter-spacing:1px;margin:24px 0 4px}
-  .parent h3{font-size:16px;margin:24px 0 8px;color:#444}
-  .parent .summary{padding:18px;font-size:15px;line-height:1.85}
-  .parent table{font-size:15px}
-  .parent .tip{background:#fffdf0;border:1px dashed #d8cb8a;padding:16px 18px;
-    font-size:15px;line-height:1.8}
   .w{cursor:pointer;border-radius:3px;padding:0 1px}
-  .w:active,.w.on{background:#ffe9a8}
+  .w:active{background:#ffe9a8}
+  .w.on{background:#ffe9a8}
   #wordbar{position:fixed;left:0;right:0;bottom:0;background:#1a1a1a;color:#fff;
     padding:16px 20px;transform:translateY(110%);transition:transform .18s ease;
     z-index:99;box-shadow:0 -2px 12px rgba(0,0,0,.2)}
@@ -75,6 +82,8 @@
   #wb-ko{font-size:16px;color:#ffe9a8}
   #wb-x{float:right;font-size:20px;color:#888;cursor:pointer;line-height:1.2}
   .btns{display:flex;gap:10px;margin:40px 0 0}
+  @media print{ .say-btn,.hint,#wordbar,.orig-btn,.orig-note{display:none}
+    .w{background:none} }
   .print-btn{flex:1;padding:15px;font-size:15px;font-weight:700;background:#1a1a1a;
     color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit}
   .print-btn.alt{background:#fff;color:#1a1a1a;border:1.5px solid #1a1a1a}
@@ -87,8 +96,7 @@
     .article{font-size:13pt;line-height:1.8}
     h1{font-size:19pt}
     h2{margin:18px 0 9px}
-    .btns,.say-btn,.hint,#wordbar,.orig-btn,.vid-btn{display:none}
-    .w{background:none}
+    .btns{display:none}
     .parent{page-break-before:always;border-top:none;margin-top:0}
     @page{margin:15mm}
   }
@@ -97,14 +105,14 @@
 <body>
 
 <div class="date">Wednesday, August 12, 2026</div>
-<h1>A Big Music Show at the World Cup</h1>
+<h1>Fun Facts About Sweet Ice Cream</h1>
 <div class="meta-row">
-  <span class="level">읽기 레벨 약 4.2 (AR 환산 추정)</span>
+  <span class="level">읽기 레벨 약 6.0 (AR 환산 추정)</span>
 </div>
 
+<a class="vid-btn" href="https://www.youtube.com/watch?v=RfRDA1Tbwko" target="_blank" rel="noopener">▶ 오늘의 영상 보기</a>
 
-
-<a class="orig-btn" href="https://www.dogonews.com/2026/6/29/pop-icons-to-headline-first-ever-fifa-world-cup-halftime-show" target="_blank" rel="noopener">
+<a class="orig-btn" href="https://www.dogonews.com/2026/6/26/celebrate-national-ice-cream-month-with-these-scoop-worthy-facts" target="_blank" rel="noopener">
   원문 기사 보기 (사진 더 있음)
 </a>
 <hr>
@@ -112,84 +120,85 @@
 <h2>READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
 <p class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
 <div class="article" id="article">
-  <p>The <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">World</span> <span class="w" onclick="tapWord(this)">Cup</span> <span class="w" onclick="tapWord(this)">soccer</span> <span class="w" onclick="tapWord(this)">final</span> will <span class="w" onclick="tapWord(this)">happen</span> in <span class="w" onclick="tapWord(this)">July</span> 2026. For the <span class="w" onclick="tapWord(this)">first</span> <span class="w" onclick="tapWord(this)">time</span>, there will be a <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">music</span> <span class="w" onclick="tapWord(this)">concert</span> during the <span class="w" onclick="tapWord(this)">game</span> <span class="w" onclick="tapWord(this)">break</span>. In the <span class="w" onclick="tapWord(this)">past</span>, <span class="w" onclick="tapWord(this)">singers</span> only <span class="w" onclick="tapWord(this)">sang</span> <span class="w" onclick="tapWord(this)">before</span> the <span class="w" onclick="tapWord(this)">tournament</span> <span class="w" onclick="tapWord(this)">started</span> or <span class="w" onclick="tapWord(this)">after</span> it <span class="w" onclick="tapWord(this)">ended</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">Many</span> <span class="w" onclick="tapWord(this)">famous</span> <span class="w" onclick="tapWord(this)">stars</span> will <span class="w" onclick="tapWord(this)">sing</span> at this <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">show</span>. You can <span class="w" onclick="tapWord(this)">see</span> Madonna, Shakira, and the <span class="w" onclick="tapWord(this)">famous</span> <span class="w" onclick="tapWord(this)">group</span> <span class="w" onclick="tapWord(this)">BTS</span>. <span class="w" onclick="tapWord(this)">Cute</span> <span class="w" onclick="tapWord(this)">puppets</span> like Elmo and Kermit the <span class="w" onclick="tapWord(this)">Frog</span> will also <span class="w" onclick="tapWord(this)">join</span> the <span class="w" onclick="tapWord(this)">fun</span> <span class="w" onclick="tapWord(this)">stage</span>.</p>
-  <p>This <span class="w" onclick="tapWord(this)">show</span> is not <span class="w" onclick="tapWord(this)">just</span> for <span class="w" onclick="tapWord(this)">fun</span>. It also <span class="w" onclick="tapWord(this)">helps</span> <span class="w" onclick="tapWord(this)">children</span> in <span class="w" onclick="tapWord(this)">need</span>. The <span class="w" onclick="tapWord(this)">team</span> <span class="w" onclick="tapWord(this)">wants</span> to <span class="w" onclick="tapWord(this)">raise</span> <span class="w" onclick="tapWord(this)">one</span> <span class="w" onclick="tapWord(this)">hundred</span> <span class="w" onclick="tapWord(this)">million</span> <span class="w" onclick="tapWord(this)">dollars</span> for <span class="w" onclick="tapWord(this)">schools</span> and <span class="w" onclick="tapWord(this)">soccer</span> <span class="w" onclick="tapWord(this)">programs</span>. <span class="w" onclick="tapWord(this)">FIFA</span> will <span class="w" onclick="tapWord(this)">give</span> <span class="w" onclick="tapWord(this)">one</span> <span class="w" onclick="tapWord(this)">dollar</span> from <span class="w" onclick="tapWord(this)">every</span> <span class="w" onclick="tapWord(this)">game</span> <span class="w" onclick="tapWord(this)">ticket</span> to help <span class="w" onclick="tapWord(this)">kids</span>.</p>
-  <p>In <span class="w" onclick="tapWord(this)">soccer</span>, the <span class="w" onclick="tapWord(this)">break</span> <span class="w" onclick="tapWord(this)">usually</span> <span class="w" onclick="tapWord(this)">lasts</span> <span class="w" onclick="tapWord(this)">fifteen</span> <span class="w" onclick="tapWord(this)">minutes</span>. But this <span class="w" onclick="tapWord(this)">music</span> <span class="w" onclick="tapWord(this)">show</span> <span class="w" onclick="tapWord(this)">needs</span> <span class="w" onclick="tapWord(this)">more</span> <span class="w" onclick="tapWord(this)">time</span> to <span class="w" onclick="tapWord(this)">build</span> the <span class="w" onclick="tapWord(this)">stage</span>. So, the <span class="w" onclick="tapWord(this)">break</span> will be <span class="w" onclick="tapWord(this)">thirty</span> <span class="w" onclick="tapWord(this)">minutes</span> <span class="w" onclick="tapWord(this)">long</span>. The <span class="w" onclick="tapWord(this)">music</span> <span class="w" onclick="tapWord(this)">show</span> <span class="w" onclick="tapWord(this)">itself</span> is <span class="w" onclick="tapWord(this)">eleven</span> <span class="w" onclick="tapWord(this)">minutes</span> <span class="w" onclick="tapWord(this)">long</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">Some</span> <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">worry</span> about the <span class="w" onclick="tapWord(this)">soccer</span> <span class="w" onclick="tapWord(this)">players</span>. If the <span class="w" onclick="tapWord(this)">break</span> is too <span class="w" onclick="tapWord(this)">long</span>, players&#x27; <span class="w" onclick="tapWord(this)">bodies</span> can get <span class="w" onclick="tapWord(this)">cold</span> and <span class="w" onclick="tapWord(this)">hurt</span> <span class="w" onclick="tapWord(this)">easily</span>. <span class="w" onclick="tapWord(this)">Players</span> will get <span class="w" onclick="tapWord(this)">time</span> to <span class="w" onclick="tapWord(this)">warm</span> up <span class="w" onclick="tapWord(this)">again</span>. If this <span class="w" onclick="tapWord(this)">show</span> <span class="w" onclick="tapWord(this)">goes</span> <span class="w" onclick="tapWord(this)">well</span>, <span class="w" onclick="tapWord(this)">future</span> <span class="w" onclick="tapWord(this)">World</span> Cups <span class="w" onclick="tapWord(this)">may</span> <span class="w" onclick="tapWord(this)">have</span> <span class="w" onclick="tapWord(this)">big</span> shows too.</p>
+  <p><span class="w" onclick="tapWord(this)">Every</span> <span class="w" onclick="tapWord(this)">July</span>, <span class="w" onclick="tapWord(this)">people</span> in the <span class="w" onclick="tapWord(this)">United</span> <span class="w" onclick="tapWord(this)">States</span> <span class="w" onclick="tapWord(this)">celebrate</span> <span class="w" onclick="tapWord(this)">National</span> <span class="w" onclick="tapWord(this)">Ice</span> <span class="w" onclick="tapWord(this)">Cream</span> <span class="w" onclick="tapWord(this)">Month</span>. <span class="w" onclick="tapWord(this)">This</span> <span class="w" onclick="tapWord(this)">fun</span> <span class="w" onclick="tapWord(this)">tradition</span> <span class="w" onclick="tapWord(this)">started</span> in 1984. <span class="w" onclick="tapWord(this)">President</span> <span class="w" onclick="tapWord(this)">Ronald</span> <span class="w" onclick="tapWord(this)">Reagan</span> <span class="w" onclick="tapWord(this)">chose</span> <span class="w" onclick="tapWord(this)">this</span> <span class="w" onclick="tapWord(this)">month</span> <span class="w" onclick="tapWord(this)">because</span> <span class="w" onclick="tapWord(this)">many</span> <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">love</span> <span class="w" onclick="tapWord(this)">cold</span> <span class="w" onclick="tapWord(this)">treats</span> in <span class="w" onclick="tapWord(this)">summer</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Long</span> <span class="w" onclick="tapWord(this)">ago</span>, <span class="w" onclick="tapWord(this)">kings</span> in <span class="w" onclick="tapWord(this)">China</span> <span class="w" onclick="tapWord(this)">ate</span> a <span class="w" onclick="tapWord(this)">frozen</span> <span class="w" onclick="tapWord(this)">food</span> <span class="w" onclick="tapWord(this)">made</span> <span class="w" onclick="tapWord(this)">with</span> <span class="w" onclick="tapWord(this)">milk</span> and <span class="w" onclick="tapWord(this)">flour</span>. <span class="w" onclick="tapWord(this)">Later</span>, <span class="w" onclick="tapWord(this)">Arab</span> <span class="w" onclick="tapWord(this)">chefs</span> <span class="w" onclick="tapWord(this)">made</span> a <span class="w" onclick="tapWord(this)">sweeter</span> <span class="w" onclick="tapWord(this)">version</span> <span class="w" onclick="tapWord(this)">with</span> <span class="w" onclick="tapWord(this)">sugar</span>. <span class="w" onclick="tapWord(this)">Ice</span> <span class="w" onclick="tapWord(this)">cream</span> <span class="w" onclick="tapWord(this)">came</span> to <span class="w" onclick="tapWord(this)">America</span> in 1744. <span class="w" onclick="tapWord(this)">President</span> <span class="w" onclick="tapWord(this)">George</span> <span class="w" onclick="tapWord(this)">Washington</span> <span class="w" onclick="tapWord(this)">loved</span> <span class="w" onclick="tapWord(this)">it</span> <span class="w" onclick="tapWord(this)">so</span> <span class="w" onclick="tapWord(this)">much</span> <span class="w" onclick="tapWord(this)">that</span> <span class="w" onclick="tapWord(this)">he</span> <span class="w" onclick="tapWord(this)">spent</span> a <span class="w" onclick="tapWord(this)">lot</span> of <span class="w" onclick="tapWord(this)">money</span> <span class="w" onclick="tapWord(this)">buying</span> <span class="w" onclick="tapWord(this)">ice</span> <span class="w" onclick="tapWord(this)">cream</span>!</p>
+  <p><span class="w" onclick="tapWord(this)">At</span> <span class="w" onclick="tapWord(this)">first</span>, <span class="w" onclick="tapWord(this)">ice</span> <span class="w" onclick="tapWord(this)">cream</span> <span class="w" onclick="tapWord(this)">was</span> <span class="w" onclick="tapWord(this)">only</span> <span class="w" onclick="tapWord(this)">for</span> <span class="w" onclick="tapWord(this)">rich</span> <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">because</span> <span class="w" onclick="tapWord(this)">ice</span> <span class="w" onclick="tapWord(this)">was</span> <span class="w" onclick="tapWord(this)">hard</span> to <span class="w" onclick="tapWord(this)">keep</span>. But in 1851, the <span class="w" onclick="tapWord(this)">first</span> <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">ice</span> <span class="w" onclick="tapWord(this)">cream</span> <span class="w" onclick="tapWord(this)">factory</span> <span class="w" onclick="tapWord(this)">opened</span>. <span class="w" onclick="tapWord(this)">After</span> <span class="w" onclick="tapWord(this)">that</span>, <span class="w" onclick="tapWord(this)">everyday</span> <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">could</span> <span class="w" onclick="tapWord(this)">buy</span> and <span class="w" onclick="tapWord(this)">enjoy</span> <span class="w" onclick="tapWord(this)">ice</span> <span class="w" onclick="tapWord(this)">cream</span> <span class="w" onclick="tapWord(this)">easily</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Today</span>, <span class="w" onclick="tapWord(this)">many</span> <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">love</span> <span class="w" onclick="tapWord(this)">ice</span> <span class="w" onclick="tapWord(this)">cream</span>. <span class="w" onclick="tapWord(this)">Did</span> <span class="w" onclick="tapWord(this)">you</span> <span class="w" onclick="tapWord(this)">know</span> <span class="w" onclick="tapWord(this)">your</span> <span class="w" onclick="tapWord(this)">favorite</span> <span class="w" onclick="tapWord(this)">flavor</span> <span class="w" onclick="tapWord(this)">can</span> <span class="w" onclick="tapWord(this)">show</span> <span class="w" onclick="tapWord(this)">your</span> <span class="w" onclick="tapWord(this)">personality</span>? <span class="w" onclick="tapWord(this)">People</span> <span class="w" onclick="tapWord(this)">who</span> <span class="w" onclick="tapWord(this)">like</span> <span class="w" onclick="tapWord(this)">vanilla</span> <span class="w" onclick="tapWord(this)">often</span> <span class="w" onclick="tapWord(this)">love</span> <span class="w" onclick="tapWord(this)">adventures</span>. <span class="w" onclick="tapWord(this)">Chocolate</span> <span class="w" onclick="tapWord(this)">lovers</span> are <span class="w" onclick="tapWord(this)">full</span> of <span class="w" onclick="tapWord(this)">energy</span>, and <span class="w" onclick="tapWord(this)">strawberry</span> <span class="w" onclick="tapWord(this)">fans</span> are <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">caring</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">People</span> <span class="w" onclick="tapWord(this)">even</span> <span class="w" onclick="tapWord(this)">made</span> <span class="w" onclick="tapWord(this)">giant</span> <span class="w" onclick="tapWord(this)">ice</span> <span class="w" onclick="tapWord(this)">cream</span> to <span class="w" onclick="tapWord(this)">break</span> a <span class="w" onclick="tapWord(this)">world</span> <span class="w" onclick="tapWord(this)">record</span>. In 2014, <span class="w" onclick="tapWord(this)">sculptors</span> <span class="w" onclick="tapWord(this)">made</span> the <span class="w" onclick="tapWord(this)">world’s</span> <span class="w" onclick="tapWord(this)">largest</span> <span class="w" onclick="tapWord(this)">single</span> <span class="w" onclick="tapWord(this)">scoop</span> in <span class="w" onclick="tapWord(this)">Wisconsin</span>. <span class="w" onclick="tapWord(this)">It</span> <span class="w" onclick="tapWord(this)">was</span> <span class="w" onclick="tapWord(this)">taller</span> <span class="w" onclick="tapWord(this)">than</span> a <span class="w" onclick="tapWord(this)">person</span>, and <span class="w" onclick="tapWord(this)">everyone</span> <span class="w" onclick="tapWord(this)">shared</span> <span class="w" onclick="tapWord(this)">it</span> <span class="w" onclick="tapWord(this)">together</span>!</p>
 </div>
 
 <h2>WORDS <span class="hint">단어를 누르면 소리가 나요</span></h2>
 <dl class="words-def">
-<dt onclick="sayWord(this)">concert</dt><dd>a music event where people play or sing</dd>
-<dt onclick="sayWord(this)">famous</dt><dd>known by many people in many places</dd>
-<dt onclick="sayWord(this)">puppet</dt><dd>a toy doll that moves with your hands</dd>
-<dt onclick="sayWord(this)">raise</dt><dd>to collect money to help other people</dd>
-<dt onclick="sayWord(this)">ticket</dt><dd>a piece of paper used to get inside</dd>
-<dt onclick="sayWord(this)">break</dt><dd>a time to rest between activities</dd>
-<dt onclick="sayWord(this)">worry</dt><dd>to feel afraid about something bad happening</dd>
-<dt onclick="sayWord(this)">hurt</dt><dd>to cause pain to the body</dd>
+<dt onclick="sayWord(this)">tradition</dt><dd>a custom that people follow for a long time</dd>
+<dt onclick="sayWord(this)">factory</dt><dd>a big building where things are made by machines</dd>
+<dt onclick="sayWord(this)">flavor</dt><dd>how food or drink tastes in your mouth</dd>
+<dt onclick="sayWord(this)">personality</dt><dd>how a person thinks, feels, and acts</dd>
+<dt onclick="sayWord(this)">adventures</dt><dd>exciting and fun things that you do</dd>
+<dt onclick="sayWord(this)">sculptors</dt><dd>people who make art shapes out of ice or stone</dd>
+<dt onclick="sayWord(this)">record</dt><dd>the best or biggest thing ever done</dd>
+<dt onclick="sayWord(this)">caring</dt><dd>being kind and wanting to help other people</dd>
 </dl>
 
 <h2>QUIZ <span class="hint">답을 골라보세요</span></h2>
+  <div class="qz" data-a="2">
+    <p class="qz-q">1. When did National Ice Cream Month start in the US?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. In 1744</button>
+    <button class="qz-c" onclick="pick(this,1)">B. In 1851</button>
+    <button class="qz-c" onclick="pick(this,2)">C. In 1984</button>
+  </div>
   <div class="qz" data-a="0">
-    <p class="qz-q">1. When will the World Cup final show happen?</p>
-    <button class="qz-c" onclick="pick(this,0)">A. In July 2026</button>
-    <button class="qz-c" onclick="pick(this,1)">B. In July 2025</button>
-    <button class="qz-c" onclick="pick(this,2)">C. In December 2026</button>
+    <p class="qz-q">2. Why was ice cream only for rich people long ago?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. Because ice was hard to keep</button>
+    <button class="qz-c" onclick="pick(this,1)">B. Because kings banned ice cream</button>
+    <button class="qz-c" onclick="pick(this,2)">C. Because factories were too big</button>
   </div>
   <div class="qz" data-a="1">
-    <p class="qz-q">2. Why will the halftime break be 30 minutes long?</p>
-    <button class="qz-c" onclick="pick(this,0)">A. To let players eat lunch</button>
-    <button class="qz-c" onclick="pick(this,1)">B. To build and move the music stage</button>
-    <button class="qz-c" onclick="pick(this,2)">C. To play another soccer game</button>
-  </div>
-  <div class="qz" data-a="2">
-    <p class="qz-q">3. Why do some people worry about soccer players?</p>
-    <button class="qz-c" onclick="pick(this,0)">A. They might forget how to play soccer</button>
-    <button class="qz-c" onclick="pick(this,1)">B. They do not like music at all</button>
-    <button class="qz-c" onclick="pick(this,2)">C. Their bodies might get cold during the long break</button>
+    <p class="qz-q">3. What kind of people usually like vanilla ice cream?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. People who hate traveling</button>
+    <button class="qz-c" onclick="pick(this,1)">B. People who love adventures</button>
+    <button class="qz-c" onclick="pick(this,2)">C. People who are very quiet</button>
   </div>
 
 <h2>THINK</h2>
 <div class="question">
-  <div class="en">Which singer or puppet would you like to see at the show?</div>
+  <div class="en">What is your favorite ice cream flavor and why do you like it?</div>
 </div>
 
 <div class="parent">
   <div class="parent-tag">엄마 보는 곳</div>
-  <h3>월드컵 축구 경기에 펼쳐지는 대형 음악 쇼</h3>
+  <h3>달콤한 아이스크림에 관한 재미있는 이야기</h3>
 
-  <div class="summary">2026년 월드컵 결승전 중간 휴식 시간에 역사상 처음으로 대형 콘서트가 열립니다. BTS와 세서미 스트리트 인형 등 유명 스타들이 참여하며, 입장권 판매금 일부는 어린이를 돕는 데 사용됩니다. 다만 휴식 시간이 늘어나 선수들의 경기력에 영향을 줄까 봐 걱정하는 시선도 있습니다.</div>
+  <div class="summary">미국에서는 7월을 아이스크림의 달로 기념합니다. 아주 옛날 왕들이 먹던 귀한 음식에서 시작해 지금은 누구나 쉽게 먹는 디저트가 되었습니다. 좋아하는 맛에 따라 성격을 알아볼 수도 있고 거대한 아이스크림 세계 기록도 있습니다.</div>
 
   <h3>단어 한국어 뜻</h3>
   <table>
   <tr><th>영어</th><th>뜻</th></tr>
-  <tr><td>concert</td><td>콘서트, 음악회</td></tr>
-<tr><td>famous</td><td>유명한</td></tr>
-<tr><td>puppet</td><td>인형</td></tr>
-<tr><td>raise</td><td>(돈을) 모으다</td></tr>
-<tr><td>ticket</td><td>표, 입장권</td></tr>
-<tr><td>break</td><td>쉬는 시간, 휴식</td></tr>
-<tr><td>worry</td><td>걱정하다</td></tr>
-<tr><td>hurt</td><td>다치게 하다, 아프다</td></tr>
+  <tr><td>tradition</td><td>전통</td></tr>
+<tr><td>factory</td><td>공장</td></tr>
+<tr><td>flavor</td><td>맛</td></tr>
+<tr><td>personality</td><td>성격</td></tr>
+<tr><td>adventures</td><td>모험</td></tr>
+<tr><td>sculptors</td><td>조각가들</td></tr>
+<tr><td>record</td><td>기록</td></tr>
+<tr><td>caring</td><td>배려하는</td></tr>
   </table>
 
   <h3>오늘의 질문</h3>
-  <p style="font-size:15px;margin-bottom:14px">이 공연에서 어떤 가수나 인형을 가장 보고 싶나요?</p>
+  <p style="font-size:15px;margin-bottom:14px">당신이 가장 좋아하는 아이스크림 맛은 무엇이고, 왜 그것을 좋아하나요?</p>
 
-  <div class="tip">아이에게 축구 경기를 보다가 중간에 좋아하는 가수가 나와서 노래를 부르면 어떨지 자유롭게 이야기 나누어 보세요.</div>
+  <div class="tip">아이와 함께 아이스크림을 먹으며 기사에 나온 맛별 성격 이야기를 주제로 재미있게 대화해보세요.</div>
 
   <h3>퀴즈 정답과 해설</h3>
-  <table><tr><th>문제</th><th>정답과 해설</th></tr><tr><td>1번</td><td><b>A. In July 2026</b><br><span style='color:#777;font-size:14px'>글의 첫 번째 문장에 2026년 7월에 월드컵 결승전이 열린다고 나와 있어요.</span></td></tr><tr><td>2번</td><td><b>B. To build and move the music stage</b><br><span style='color:#777;font-size:14px'>음악 쇼 무대를 세우는 데 더 많은 시간이 필요해서 쉬는 시간이 30분으로 늘어났어요.</span></td></tr><tr><td>3번</td><td><b>C. Their bodies might get cold during the long break</b><br><span style='color:#777;font-size:14px'>쉬는 시간이 너무 길어지면 선수들의 몸이 식어서 쉽게 다칠 수 있기 때문에 걱정해요.</span></td></tr></table>
+  <table><tr><th>문제</th><th>정답과 해설</th></tr><tr><td>1번</td><td><b>C. In 1984</b><br><span style='color:#777;font-size:14px'>첫 번째 문단에 1984년에 아이스크림의 달 전통이 시작되었다고 나와 있어요.</span></td></tr><tr><td>2번</td><td><b>A. Because ice was hard to keep</b><br><span style='color:#777;font-size:14px'>세 번째 문단에서 얼음을 보관하기 어려워서 처음에는 부자들만 먹었다고 설명해요.</span></td></tr><tr><td>3번</td><td><b>B. People who love adventures</b><br><span style='color:#777;font-size:14px'>네 번째 문단에 바닐라 맛을 좋아하는 사람은 모험을 즐기는 편이라고 나와 있어요.</span></td></tr></table>
 
   <h3>읽기 레벨</h3>
-  <div class="level-note">이 글의 읽기 레벨은 <b>약 4.2</b>입니다. 단어 188개, 문장 18개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝의 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요.</div>
+  <div class="level-note">이 글의 읽기 레벨은 <b>약 6.0</b>입니다. 단어 180개, 문장 17개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요.</div>
 
   <h3>원문</h3>
   <p style="font-size:15px">
-    이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.<br>
-    <a href="https://www.dogonews.com/2026/6/29/pop-icons-to-headline-first-ever-fifa-world-cup-halftime-show" target="_blank" rel="noopener">https://www.dogonews.com/2026/6/29/pop-icons-to-headline-first-ever-fifa-world-cup-halftime-show</a>
+    이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.
+    원래 글은 여기서 보실 수 있어요:<br>
+    <a href="https://www.dogonews.com/2026/6/26/celebrate-national-ice-cream-month-with-these-scoop-worthy-facts" target="_blank" rel="noopener">https://www.dogonews.com/2026/6/26/celebrate-national-ice-cream-month-with-these-scoop-worthy-facts</a>
   </p>
 </div>
 
@@ -200,8 +209,7 @@
 <div id="pdf-msg"></div>
 
 <footer>
-  출처: <a href="https://www.dogonews.com/2026/6/29/pop-icons-to-headline-first-ever-fifa-world-cup-halftime-show">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
-  사진은 퍼블릭 도메인인 경우에만 싣습니다.<br>
+  출처: <a href="https://www.dogonews.com/2026/6/26/celebrate-national-ice-cream-month-with-these-scoop-worthy-facts">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
   <a href="./">지난 신문 보기</a>
 </footer>
 
@@ -213,9 +221,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 var PDF_DATE  = "2026-08-12";
-var GLOSSARY  = {"big": "큰", "world": "세계", "cup": "컵", "soccer": "축구", "final": "결승전", "happen": "일어나다, 열리다", "july": "7월", "first": "첫 번째", "time": "시간", "music": "음악", "concert": "콘서트", "game": "경기", "break": "쉬는 시간", "past": "과거", "singers": "가수들", "sang": "노래했다", "before": "~전에", "tournament": "대회, 토너먼트", "started": "시작했다", "after": "~후에", "ended": "끝났다", "many": "많은", "famous": "유명한", "stars": "스타들, 연예인들", "sing": "노래하다", "special": "특별한", "show": "공연, 쇼", "see": "보다", "group": "그룹", "bts": "방탄소년단", "cute": "귀여운", "puppets": "인형들", "frog": "개구리", "join": "함께하다", "fun": "재미있는", "stage": "무대", "just": "그저, 단지", "helps": "돕는다", "children": "아이들", "need": "도움이 필요한", "team": "팀", "wants": "원한다", "raise": "모금하다", "one": "일", "hundred": "백", "million": "백만", "dollars": "달러", "schools": "학교들", "programs": "프로그램들", "fifa": "국제축구연맹", "give": "주다", "dollar": "달러", "every": "모든", "ticket": "표, 입장권", "kids": "아이들", "usually": "보통", "lasts": "지속된다", "fifteen": "15", "minutes": "분", "needs": "필요로 한다", "more": "더 많은", "build": "만들다, 세우다", "thirty": "30", "long": "길게", "itself": "그 자체로", "eleven": "11", "some": "몇몇의", "people": "사람들", "worry": "걱정하다", "players": "선수들", "bodies": "몸", "cold": "차가운, 식은", "hurt": "다치다", "easily": "쉽게", "warm": "따뜻하게 하다", "again": "다시", "goes": "진행되다", "well": "잘", "future": "미래의", "may": "~일지도 모른다", "have": "가지다"};
+var GLOSSARY  = {"every": "모든", "july": "7월", "people": "사람들", "united": "연합된", "states": "주들(미국)", "celebrate": "기념하다", "national": "국가의", "ice": "얼음", "cream": "크림", "month": "달", "this": "이", "fun": "재미있는", "tradition": "전통", "started": "시작되었다", "president": "대통령", "ronald": "로널드", "reagan": "레이건", "chose": "선택했다", "because": "왜냐하면", "many": "많은", "love": "좋아하다", "cold": "차가운", "treats": "간식들", "summer": "여름", "long": "오랜", "ago": "전에", "kings": "왕들", "china": "중국", "ate": "먹었다", "frozen": "얼린", "food": "음식", "made": "만들어진", "with": "함께", "milk": "우유", "flour": "밀가루", "later": "나중에", "arab": "아랍의", "chefs": "요리사들", "sweeter": "더 달콤한", "version": "버전", "sugar": "설탕", "came": "왔다", "america": "미국", "george": "조지", "washington": "워싱턴", "loved": "사랑했다", "it": "그것", "so": "매우", "much": "많이", "that": "그래서", "he": "그는", "spent": "썼다", "lot": "많은", "money": "돈", "buying": "사는데", "at": "처음에", "first": "첫번째의", "was": "~이었다", "only": "오직", "for": "~을 위해", "rich": "부유한", "hard": "어려운", "keep": "보관하다", "big": "큰", "factory": "공장", "opened": "문열었다", "after": "~후에", "everyday": "평범한", "could": "~할 수 있었다", "buy": "사다", "enjoy": "즐기다", "easily": "쉽게", "today": "오늘날", "did": "했니", "you": "너", "know": "알다", "your": "너의", "favorite": "가장 좋아하는", "flavor": "맛", "can": "~할 수 있다", "show": "보여주다", "personality": "성격", "who": "~하는 사람", "like": "좋아하다", "vanilla": "바닐라", "often": "자주", "adventures": "모험들", "chocolate": "초콜릿", "lovers": "애호가들", "full": "가득 찬", "energy": "에너지", "strawberry": "딸기", "fans": "팬들", "very": "매우", "caring": "배려하는", "even": "심지어", "giant": "거대한", "break": "깨다", "world": "세계", "record": "기록", "sculptors": "조각가들", "world’s": "세계의", "largest": "가장 큰", "single": "단 하나의", "scoop": "스쿱", "wisconsin": "위스콘신주", "taller": "더 키가 큰", "than": "~보다", "person": "사람", "everyone": "모두", "shared": "나누어 먹었다", "together": "함께"};
 
-/* ── 퀴즈 채점 ────────────────────────────────────────── */
+/* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
 
 function pick(btn, idx) {
   var box = btn.parentNode;
@@ -233,8 +241,6 @@ function pick(btn, idx) {
     btn.className = 'qz-c wrong';
   }
 }
-
-/* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
 
 var lastWordEl = null;
 var barTimer = null;
@@ -259,10 +265,11 @@ function tapWord(el) {
 
   clearTimeout(barTimer);
   barTimer = setTimeout(hideBar, 6000);
+
   speak(raw, 0.7);
 }
 
-/* ── 읽어주기 ─────────────────────────────────────────── */
+/* ── 읽어주기 (브라우저 내장 음성) ────────────────────── */
 
 var enVoice = null;
 
@@ -290,19 +297,22 @@ if (window.speechSynthesis) {
 
 function speak(text, rate, onEnd) {
   if (!window.speechSynthesis) {
-    alert('이 브라우저는 읽어주기를 지원하지 않아요. 크롬으로 열어보세요.');
+    alert('이 브라우저는 읽어주기를 지원하지 않아요. 크롬이나 사파리에서 열어보세요.');
     return;
   }
   speechSynthesis.cancel();
   var u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US';
   u.rate = rate;
+  u.pitch = 1;
   if (enVoice) u.voice = enVoice;
   if (onEnd) { u.onend = onEnd; u.onerror = onEnd; }
   speechSynthesis.speak(u);
 }
 
-function sayWord(el) { speak(el.textContent.trim(), 0.75); }
+function sayWord(el) {
+  speak(el.textContent.trim(), 0.75);
+}
 
 function sayArticle(btn) {
   if (speechSynthesis.speaking && btn.classList.contains('playing')) {
@@ -331,11 +341,10 @@ function savePdf(mode) {
   var msg  = document.getElementById('pdf-msg');
 
   if (typeof html2pdf === 'undefined') {
-    msg.textContent = 'PDF 기능을 불러오지 못했습니다. 새로고침해주세요.';
+    msg.textContent = 'PDF 기능을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해주세요.';
     return;
   }
 
-  hideBar();
   if (mode === 'kid') { document.body.classList.add('kid-only'); }
   btns.style.display = 'none';
   msg.textContent = 'PDF 만드는 중... 잠시만요';
