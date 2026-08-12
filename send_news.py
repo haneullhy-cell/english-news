@@ -7,7 +7,7 @@
   1. 카카오 refresh token으로 access token 발급
   2. DOGOnews에서 아직 안 쓴 최신 기사 하나 고르기
   3. AI로 아이용(영어) + 엄마용(한국어) 자료 만들기
-  4. HTML 페이지로 저장 (GitHub Pages로 공개됨)
+  4. 읽기 레벨 계산 후 HTML 페이지로 저장 (GitHub Pages로 공개됨)
   5. 카카오톡으로 제목 + 요약 + 링크 발송
   6. 카카오 refresh token이 갱신됐으면 GitHub Secret 자동 업데이트
 
@@ -67,12 +67,11 @@ if not PAGES_URL and "/" in GH_REPO:
 DOCS_DIR = "docs"
 HISTORY_FILE = os.path.join(DOCS_DIR, "history.json")
 
-# 구글 Gemini 무료 등급을 씁니다. 하루 250~1,500건 무료인데 우리는 하루 1건.
-# 앞의 모델이 안 되면 뒤 것을 차례로 시도합니다. (모델 이름은 가끔 바뀝니다)
+# 구글 Gemini를 씁니다. 앞의 모델이 안 되면 뒤 것을 차례로 시도합니다.
 GEMINI_MODELS = [
+    "gemini-flash-latest",
     "gemini-2.5-flash",
     "gemini-2.0-flash",
-    "gemini-flash-latest",
     "gemini-2.5-flash-lite",
 ]
 
@@ -88,11 +87,7 @@ def log(msg):
 # ─────────────────────────────────────────────────────────────
 
 def refresh_kakao_token():
-    """refresh token으로 access token을 발급받는다.
-
-    카카오는 refresh token의 남은 유효기간이 1개월 미만일 때만
-    새 refresh token을 함께 내려준다. 그때는 저장해둬야 한다.
-    """
+    """refresh token으로 access token을 발급받는다."""
     log("카카오 access token 발급 중...")
     res = requests.post(
         "https://kauth.kakao.com/oauth/token",
@@ -304,7 +299,7 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 
 
 def call_gemini(prompt):
-    """Gemini 무료 등급 호출. 모델 이름이 바뀌었을 수 있으니 차례로 시도한다."""
+    """Gemini 호출. 모델 이름이 바뀌었을 수 있으니 차례로 시도한다."""
     last_error = ""
     for model in GEMINI_MODELS:
         res = requests.post(
@@ -313,7 +308,12 @@ def call_gemini(prompt):
                      "Content-Type": "application/json"},
             json={
                 "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2500},
+                "generationConfig": {
+                    "temperature": 0.7,
+                    "maxOutputTokens": 3000,
+                    # JSON 모드 — 문법이 깨진 JSON이 나오는 것을 막아준다
+                    "responseMimeType": "application/json",
+                },
             },
             timeout=120,
         )
@@ -333,7 +333,7 @@ def call_gemini(prompt):
 
         if res.status_code == 429:
             raise RuntimeError(
-                "Gemini 무료 한도를 초과했습니다. 하루 뒤 자동으로 풀립니다.\n"
+                "Gemini 한도를 초과했습니다. 하루 뒤 자동으로 풀립니다.\n"
                 "→ 하루 1건만 쓰는 구조라 보통 일어나지 않습니다. "
                 "키가 다른 곳에서도 쓰이고 있는지 확인해보세요."
             )
@@ -349,17 +349,87 @@ def call_gemini(prompt):
 
 
 def make_content(title, body):
-    log("AI로 아이 수준 자료 만드는 중...")
-    text = call_gemini(PROMPT.format(title=title, body=body))
-    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
+    """AI 호출 + JSON 파싱. 실패하면 최대 3번까지 다시 시도한다."""
+    last_error = None
 
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        m = re.search(r"\{.*\}", text, re.S)
-        if not m:
-            raise RuntimeError(f"JSON을 못 읽었습니다:\n{text[:500]}")
-        return json.loads(m.group(0))
+    for attempt in range(1, 4):
+        log(f"AI로 아이 수준 자료 만드는 중... (시도 {attempt}/3)")
+        text = call_gemini(PROMPT.format(title=title, body=body))
+        text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
+
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError as e:
+            m = re.search(r"\{.*\}", text, re.S)
+            if m:
+                try:
+                    data = json.loads(m.group(0))
+                except json.JSONDecodeError:
+                    last_error = e
+                    log(f"  JSON 파싱 실패, 다시 시도합니다: {e}")
+                    continue
+            else:
+                last_error = e
+                log(f"  JSON 파싱 실패, 다시 시도합니다: {e}")
+                continue
+
+        # 필수 항목이 다 있는지 확인
+        missing = [k for k in ("title_en", "article_en", "words", "question_en",
+                               "title_ko", "summary_ko", "question_ko")
+                   if not data.get(k)]
+        if missing:
+            last_error = RuntimeError(f"빠진 항목: {missing}")
+            log(f"  항목이 빠졌습니다 {missing}, 다시 시도합니다")
+            continue
+
+        return data
+
+    raise RuntimeError(f"3번 시도했지만 자료를 만들지 못했습니다: {last_error}")
+
+
+# ─────────────────────────────────────────────────────────────
+# 읽기 난이도 계산 (Flesch-Kincaid)
+# ─────────────────────────────────────────────────────────────
+
+def count_syllables(word):
+    """영어 단어의 음절 수를 어림잡는다."""
+    word = word.lower().strip(".,!?;:\"'()")
+    if not word:
+        return 0
+    vowels = "aeiouy"
+    count = 0
+    prev_was_vowel = False
+    for ch in word:
+        is_vowel = ch in vowels
+        if is_vowel and not prev_was_vowel:
+            count += 1
+        prev_was_vowel = is_vowel
+    if word.endswith("e") and count > 1:
+        count -= 1
+    return max(1, count)
+
+
+def reading_level(paragraphs):
+    """Flesch-Kincaid 학년 수준을 계산한다.
+
+    AR(ATOS) 지수와 계산 방식이 다르지만 대체로 비슷한 범위로 나온다.
+    공식 AR 지수가 아니라 '문장 길이와 단어 길이로 낸 추정치'다.
+    """
+    text = " ".join(paragraphs)
+    sentences = [s for s in re.split(r"[.!?]+", text) if s.strip()]
+    words = [w for w in re.findall(r"[A-Za-z']+", text)]
+
+    if not sentences or not words:
+        return None
+
+    syllables = sum(count_syllables(w) for w in words)
+    wps = len(words) / len(sentences)
+    spw = syllables / len(words)
+
+    grade = 0.39 * wps + 11.8 * spw - 15.59
+    grade = max(0.5, round(grade, 1))
+
+    return {"grade": grade, "words": len(words), "sentences": len(sentences)}
 
 
 # ─────────────────────────────────────────────────────────────
@@ -380,6 +450,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .date{{font-size:13px;color:#888;letter-spacing:1px;margin-bottom:6px}}
   h1{{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-0.5px}}
   .title-ko{{font-size:17px;color:#666;margin-bottom:24px;font-weight:500}}
+  .meta-row{{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 20px}}
+  .level{{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
+    padding:5px 11px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap}}
+  .src-link{{font-size:13px;color:#666;text-decoration:none;border-bottom:1px solid #ccc}}
+  .level-note{{background:#f8f8f6;padding:14px 16px;font-size:13px;color:#666;
+    line-height:1.7;border-left:3px solid #ccc}}
   hr{{border:none;border-top:2px solid #1a1a1a;margin:0 0 28px}}
   h2{{font-size:15px;margin:36px 0 12px;padding-bottom:7px;border-bottom:1px solid #ddd;
     letter-spacing:1px;color:#555}}
@@ -430,6 +506,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 <div class="date">{date_en}</div>
 <h1>{title_en}</h1>
+<div class="meta-row">
+  <span class="level">{level_badge}</span>
+  <a class="src-link" href="{source_url}" target="_blank" rel="noopener">원문 읽기 →</a>
+</div>
 <hr>
 
 <h2>READ</h2>
@@ -463,6 +543,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <p style="font-size:15px;margin-bottom:14px">{question_ko}</p>
 
   <div class="tip">{tip_ko}</div>
+
+  <h3>읽기 레벨</h3>
+  <div class="level-note">{level_note}</div>
+
+  <h3>원문</h3>
+  <p style="font-size:15px">
+    이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.
+    원래 글은 여기서 보실 수 있어요:<br>
+    <a href="{source_url}" target="_blank" rel="noopener">{source_url}</a>
+  </p>
 </div>
 
 <div class="btns">
@@ -540,10 +630,28 @@ def render_html(c, source_url):
         for w in c.get("words", [])
     )
 
+    # 읽기 난이도
+    lv = reading_level(c["article_en"])
+    if lv:
+        level_badge = f"읽기 레벨 약 {lv['grade']} (AR 환산 추정)"
+        level_note = (
+            f"이 글의 읽기 레벨은 <b>약 {lv['grade']}</b>입니다. "
+            f"단어 {lv['words']}개, 문장 {lv['sentences']}개.<br><br>"
+            "Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. "
+            "르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> "
+            "숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. "
+            "아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요."
+        )
+    else:
+        level_badge = "읽기 레벨 측정 불가"
+        level_note = "이번 글은 읽기 레벨을 계산하지 못했습니다."
+
     return HTML_TEMPLATE.format(
         date_en=TODAY.strftime("%A, %B %d, %Y"),
         date_file=DATE_STR,
         title_en=esc(c["title_en"]),
+        level_badge=esc(level_badge),
+        level_note=level_note,
         article_html=article_html,
         words_en_html=words_en_html,
         question_en=esc(c["question_en"]),
@@ -594,22 +702,16 @@ def render_index(issues):
 # ─────────────────────────────────────────────────────────────
 
 def send_kakao(access_token, content, page_url):
-    """카카오톡 나와의 채팅으로 발송.
-
-    카카오 기본 텍스트 템플릿은 200자 제한이다.
-    문장 중간이 잘리지 않도록 요약부터 줄여서 맞춘다.
-    """
+    """카카오톡 나와의 채팅으로 발송. 텍스트는 200자 제한."""
     head = f"📰 오늘의 영어신문\n{content['title_ko']}"
     tail = f"💬 {content['question_ko']}"
     summary = content["summary_ko"]
 
-    # 머리말 + 질문은 반드시 남기고, 남는 공간만큼만 요약을 넣는다
     room = 195 - len(head) - len(tail) - 4      # 4 = 줄바꿈 여백
     if room < 20:
         summary = ""
     elif len(summary) > room:
         cut = summary[:room]
-        # 문장 끝에서 자르기
         for mark in (". ", "! ", "? ", "다. ", "요. "):
             idx = cut.rfind(mark)
             if idx > room * 0.4:
