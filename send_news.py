@@ -6,10 +6,10 @@
 동작 순서:
   1. 카카오 refresh token으로 access token 발급
   2. DOGOnews에서 아직 안 쓴 최신 기사 하나 고르기
-  3. AI로 아이용(영어) + 엄마용(한국어) 자료 만들기
-  4. 읽기 레벨 계산 후 HTML 페이지로 저장 (GitHub Pages로 공개됨)
-  5. 카카오톡으로 제목 + 요약 + 링크 발송
-  6. 카카오 refresh token이 갱신됐으면 GitHub Secret 자동 업데이트
+  3. 퍼블릭 도메인 사진과 영상 찾기
+  4. AI로 아이용(영어) + 엄마용(한국어) 자료 만들기
+  5. 읽기 레벨 계산 후 HTML 페이지로 저장 (GitHub Pages로 공개됨)
+  6. 카카오톡으로 제목 + 요약 + 링크 발송
 
 GitHub Actions에서 매일 자동 실행됩니다.
 """
@@ -43,7 +43,6 @@ def need(name):
 
   GitHub 저장소 → Settings → Secrets and variables → Actions 에서
   이름이 '{name}' 인 Secret이 등록돼 있는지 확인하세요.
-  대소문자와 밑줄(_)까지 정확히 같아야 합니다.
 {'!' * 62}
 """, flush=True)
         sys.exit(1)
@@ -54,11 +53,9 @@ KAKAO_REST_API_KEY = need("KAKAO_REST_API_KEY")
 KAKAO_REFRESH_TOKEN = need("KAKAO_REFRESH_TOKEN")
 GEMINI_API_KEY = need("GEMINI_API_KEY")
 
-# 선택 사항 — 있으면 토큰 자동 갱신, 없으면 만료 시 알림만
 GH_PAT = os.environ.get("GH_PAT", "").strip()
-GH_REPO = os.environ.get("GITHUB_REPOSITORY", "").strip()   # "사용자명/저장소명"
+GH_REPO = os.environ.get("GITHUB_REPOSITORY", "").strip()
 
-# GitHub Pages 주소는 저장소 이름에서 자동으로 만듭니다
 PAGES_URL = os.environ.get("PAGES_URL", "").strip().rstrip("/")
 if not PAGES_URL and "/" in GH_REPO:
     _owner, _repo = GH_REPO.split("/", 1)
@@ -67,7 +64,6 @@ if not PAGES_URL and "/" in GH_REPO:
 DOCS_DIR = "docs"
 HISTORY_FILE = os.path.join(DOCS_DIR, "history.json")
 
-# 구글 Gemini. 앞의 모델이 안 되면 뒤 것을 차례로 시도합니다.
 GEMINI_MODELS = [
     "gemini-flash-latest",
     "gemini-2.5-flash",
@@ -87,7 +83,6 @@ def log(msg):
 # ─────────────────────────────────────────────────────────────
 
 def refresh_kakao_token():
-    """refresh token으로 access token을 발급받는다."""
     log("카카오 access token 발급 중...")
     res = requests.post(
         "https://kauth.kakao.com/oauth/token",
@@ -101,21 +96,15 @@ def refresh_kakao_token():
     if res.status_code != 200:
         raise RuntimeError(
             f"카카오 토큰 발급 실패 ({res.status_code}): {res.text}\n"
-            "→ KAKAO_REFRESH_TOKEN이 만료됐을 수 있어요. "
-            "get_token.ps1을 다시 실행해서 새 토큰을 받아 Secret에 넣어주세요."
+            "→ get_token.ps1을 다시 실행해서 새 토큰을 받아 Secret에 넣어주세요."
         )
     data = res.json()
-    access_token = data["access_token"]
-    new_refresh = data.get("refresh_token")
-    if new_refresh:
-        log("카카오가 새 refresh token을 발급했습니다. 저장을 시도합니다.")
-    return access_token, new_refresh
+    return data["access_token"], data.get("refresh_token")
 
 
 def update_github_secret(name, value):
-    """GitHub Secret을 자동으로 갱신한다. GH_PAT이 없으면 건너뛴다."""
     if not (GH_PAT and GH_REPO):
-        log("GH_PAT이 없어 Secret 자동 갱신을 건너뜁니다. (수동 갱신 필요)")
+        log("GH_PAT이 없어 Secret 자동 갱신을 건너뜁니다.")
         return False
     try:
         from nacl import encoding, public
@@ -132,7 +121,7 @@ def update_github_secret(name, value):
         headers=headers, timeout=20,
     )
     if key_res.status_code != 200:
-        log(f"Secret 공개키 조회 실패: {key_res.status_code} {key_res.text}")
+        log(f"Secret 공개키 조회 실패: {key_res.status_code}")
         return False
     key_data = key_res.json()
 
@@ -148,7 +137,7 @@ def update_github_secret(name, value):
         timeout=20,
     )
     ok = put_res.status_code in (201, 204)
-    log(f"Secret 갱신 {'성공' if ok else '실패 ' + str(put_res.status_code)}")
+    log(f"Secret 갱신 {'성공' if ok else '실패'}")
     return ok
 
 
@@ -156,9 +145,6 @@ def update_github_secret(name, value):
 # 2. 기사 고르기
 # ─────────────────────────────────────────────────────────────
 
-# 아침에 아이와 읽기 부적절한 주제
-# 주의: 단어 단위로 정확히 비교합니다. 부분 문자열로 비교하면
-#       penguin 안의 "gun", award 안의 "war" 때문에 좋은 기사가 걸러집니다.
 BAD_WORDS = {
     "war", "wars", "guns", "shooting", "shot", "kill", "killed", "killing",
     "death", "deaths", "died", "dead", "murder", "attack", "attacks",
@@ -169,6 +155,15 @@ BAD_WORDS = {
     "missile", "conflict", "victim", "victims", "injured", "wounded",
     "violence", "shooter", "invasion", "troops", "refugee", "refugees",
 }
+
+# 저작권 걱정 없이 쓸 수 있는 사진의 출처 표기
+# (미국 정부 저작물은 저작권 자체가 없습니다)
+PUBLIC_DOMAIN_HINTS = [
+    "public domain", "publicdomain",
+    "nasa", "noaa", "usgs", "nps.gov", "national park service",
+    "u.s. air force", "u.s. navy", "u.s. army", "usda",
+    "library of congress", "smithsonian open access",
+]
 
 
 def load_history():
@@ -189,7 +184,6 @@ def save_history(hist):
 
 
 def pick_article(history):
-    """DOGOnews 첫 화면에서 아직 안 쓴 적당한 기사 하나를 고른다."""
     log("DOGOnews에서 기사 목록 가져오는 중...")
     res = requests.get("https://www.dogonews.com/", headers=UA, timeout=30)
     res.raise_for_status()
@@ -211,7 +205,7 @@ def pick_article(history):
         slug_words = set(url.rsplit("/", 1)[-1].lower().split("-"))
         hits = slug_words & BAD_WORDS
         if hits:
-            log(f"  건너뜀 (부적절 주제: {', '.join(hits)}): {url.rsplit('/', 1)[-1][:50]}")
+            log(f"  건너뜀 (부적절 주제: {', '.join(hits)})")
             continue
         candidates.append(url)
 
@@ -220,6 +214,56 @@ def pick_article(history):
 
     log(f"후보 {len(candidates)}개 중 첫 번째 선택")
     return candidates[0]
+
+
+def find_video(page_html):
+    """기사 본문의 유튜브 영상 하나를 찾는다.
+
+    페이지에는 사이드바·추천 영상까지 여러 개가 들어있는데,
+    본문 영상은 항상 'Resources:' 표기보다 앞에 나온다.
+    """
+    cutoff = page_html.find("Resources:")
+    if cutoff < 0:
+        cutoff = int(len(page_html) * 0.5)
+
+    for m in re.finditer(r"embed/([A-Za-z0-9_-]{11})", page_html):
+        if m.start() < cutoff:
+            log(f"  영상 발견: {m.group(1)}")
+            return m.group(1)
+    return None
+
+
+def find_free_image(soup):
+    """출처가 퍼블릭 도메인인 사진만 골라서 가져온다.
+
+    AP·로이터 같은 유료 사진은 재사용 권한이 없으므로 건너뛴다.
+    """
+    for img in soup.find_all("img"):
+        src = img.get("src") or ""
+        if "cdn" not in src or not src.startswith("http"):
+            continue
+
+        caption = ""
+        node = img
+        for _ in range(4):
+            node = node.find_next(["em", "figcaption", "p", "span"])
+            if node is None:
+                break
+            text = node.get_text(" ", strip=True)
+            if "credit" in text.lower() or "©" in text:
+                caption = text
+                break
+
+        if not caption:
+            continue
+
+        low = caption.lower()
+        if any(hint in low for hint in PUBLIC_DOMAIN_HINTS):
+            log(f"  퍼블릭 도메인 사진 발견: {caption[:70]}")
+            return {"src": src, "caption": caption}
+
+    log("  쓸 수 있는 사진 없음 (저작권 있는 사진은 건너뜁니다)")
+    return None
 
 
 def fetch_article(url):
@@ -237,7 +281,13 @@ def fetch_article(url):
     if len(body) < 200:
         raise RuntimeError("기사 본문을 제대로 읽지 못했습니다.")
 
-    return title, body[:6000], url
+    return {
+        "title": title,
+        "body": body[:6000],
+        "url": url,
+        "video": find_video(res.text),
+        "image": find_free_image(soup),
+    }
 
 
 # ─────────────────────────────────────────────────────────────
@@ -288,7 +338,6 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
   · 9살이 이미 아는 단어로만 설명 (약 500개 기초 단어 수준)
   · 15단어 이내 한 문장
   · 설명하려는 단어 자체를 설명 안에 쓰지 마세요
-  · 어려운 단어로 어려운 단어를 설명하지 마세요
   · 나쁜 예: "comet = a celestial body orbiting the sun"
   · 좋은 예: "comet = a big ball of ice and dust that moves around the sun"
 - question_en은 정답이 없고 아이가 자기 생각을 말할 수 있는 질문 1개만.
@@ -296,21 +345,18 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 [엄마용 규칙]
 - summary_ko는 영어를 못 읽어도 내용을 알 수 있게.
 - ko는 그 단어의 한국어 뜻 (엄마가 막혔을 때 참고용).
-- tip_ko는 잔소리 말고 실용적으로. 예: "우리 동네에서도 보이니까 오늘 밤에 같이 나가보세요."
+- tip_ko는 잔소리 말고 실용적으로.
 
 [glossary 규칙 — 중요]
 아이가 기사를 읽다가 모르는 단어를 눌러보는 기능에 쓰입니다.
-- article_en에 나온 단어를 **빠짐없이** 넣으세요. 하나도 빠뜨리지 마세요.
-- 기사에 나온 **그 형태 그대로**를 키로 쓰세요. 소문자로 바꿔서.
-  (예: 기사에 "meteors"가 있으면 키도 "meteors")
-- 값은 **문맥에 맞는 한국어 뜻 하나만.** 짧게. 여러 뜻을 나열하지 마세요.
-- a, an, the, is, are, of, to, in, on, and, or, but 같은 아주 기초적인 말은 빼도 됩니다.
-- 동사는 원형 뜻이 아니라 그 자리에서 쓰인 뜻으로. (예: "left" → "남긴")
+- article_en에 나온 단어를 **빠짐없이** 넣으세요.
+- 기사에 나온 **그 형태 그대로**를 키로 쓰세요. 소문자로.
+- 값은 **문맥에 맞는 한국어 뜻 하나만.** 짧게.
+- a, an, the, is, are, of, to, in, on, and 같은 기초어는 빼도 됩니다.
 """
 
 
 def call_gemini(prompt):
-    """Gemini 호출. 모델 이름이 바뀌었을 수 있으니 차례로 시도한다."""
     last_error = ""
     for model in GEMINI_MODELS:
         res = requests.post(
@@ -322,7 +368,6 @@ def call_gemini(prompt):
                 "generationConfig": {
                     "temperature": 0.7,
                     "maxOutputTokens": 8192,
-                    # JSON 모드 — 문법이 깨진 JSON이 나오는 것을 막아준다
                     "responseMimeType": "application/json",
                 },
             },
@@ -334,7 +379,7 @@ def call_gemini(prompt):
             try:
                 return data["candidates"][0]["content"]["parts"][0]["text"].strip()
             except (KeyError, IndexError):
-                last_error = f"{model}: 응답 형식이 예상과 다름 — {str(data)[:300]}"
+                last_error = f"{model}: 응답 형식이 예상과 다름"
                 continue
 
         if res.status_code == 404:
@@ -343,17 +388,12 @@ def call_gemini(prompt):
             continue
 
         if res.status_code == 429:
-            raise RuntimeError(
-                "Gemini 한도를 초과했습니다. 하루 뒤 자동으로 풀립니다."
-            )
+            raise RuntimeError("Gemini 한도를 초과했습니다. 하루 뒤 풀립니다.")
 
         last_error = f"{model}: {res.status_code} {res.text[:300]}"
         break
 
-    raise RuntimeError(
-        f"Gemini 호출 실패 — {last_error}\n"
-        "→ GEMINI_API_KEY가 올바른지 확인하세요."
-    )
+    raise RuntimeError(f"Gemini 호출 실패 — {last_error}")
 
 
 def make_content(title, body):
@@ -374,11 +414,11 @@ def make_content(title, body):
                     data = json.loads(m.group(0))
                 except json.JSONDecodeError:
                     last_error = e
-                    log(f"  JSON 파싱 실패, 다시 시도합니다: {e}")
+                    log(f"  JSON 파싱 실패, 다시 시도: {e}")
                     continue
             else:
                 last_error = e
-                log(f"  JSON 파싱 실패, 다시 시도합니다: {e}")
+                log(f"  JSON 파싱 실패, 다시 시도: {e}")
                 continue
 
         missing = [k for k in ("title_en", "article_en", "words", "question_en",
@@ -386,7 +426,7 @@ def make_content(title, body):
                    if not data.get(k)]
         if missing:
             last_error = RuntimeError(f"빠진 항목: {missing}")
-            log(f"  항목이 빠졌습니다 {missing}, 다시 시도합니다")
+            log(f"  항목이 빠졌습니다 {missing}, 다시 시도")
             continue
 
         return data
@@ -399,7 +439,6 @@ def make_content(title, body):
 # ─────────────────────────────────────────────────────────────
 
 def count_syllables(word):
-    """영어 단어의 음절 수를 어림잡는다."""
     word = word.lower().strip(".,!?;:\"'()")
     if not word:
         return 0
@@ -426,13 +465,9 @@ def reading_level(paragraphs):
         return None
 
     syllables = sum(count_syllables(w) for w in words)
-    wps = len(words) / len(sentences)
-    spw = syllables / len(words)
-
-    grade = 0.39 * wps + 11.8 * spw - 15.59
-    grade = max(0.5, round(grade, 1))
-
-    return {"grade": grade, "words": len(words), "sentences": len(sentences)}
+    grade = 0.39 * (len(words) / len(sentences)) + 11.8 * (syllables / len(words)) - 15.59
+    return {"grade": max(0.5, round(grade, 1)),
+            "words": len(words), "sentences": len(sentences)}
 
 
 # ─────────────────────────────────────────────────────────────
@@ -452,15 +487,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     line-height:1.75;background:#fff;-webkit-text-size-adjust:100%}}
   .date{{font-size:13px;color:#888;letter-spacing:1px;margin-bottom:6px}}
   h1{{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-0.5px}}
-  .title-ko{{font-size:17px;color:#666;margin-bottom:24px;font-weight:500}}
   .meta-row{{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 14px}}
   .level{{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
     padding:5px 11px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap}}
-  .src-link{{font-size:13px;color:#666;text-decoration:none;border-bottom:1px solid #ccc}}
   .orig-btn{{display:block;text-align:center;background:#2d6cdf;color:#fff;
     text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
-    margin:4px 0 8px}}
-  .orig-note{{font-size:12px;color:#888;line-height:1.6;margin:0 0 22px;text-align:center}}
+    margin:4px 0 22px}}
+  .hero{{width:100%;border-radius:8px;display:block;margin:0 0 6px}}
+  .hero-cap{{font-size:11px;color:#999;line-height:1.5;margin:0 0 16px;text-align:center}}
+  .vid-btn{{display:block;text-align:center;background:#c0392b;color:#fff;
+    text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
+    margin:0 0 10px}}
   .level-note{{background:#f8f8f6;padding:14px 16px;font-size:13px;color:#666;
     line-height:1.7;border-left:3px solid #ccc}}
   hr{{border:none;border-top:2px solid #1a1a1a;margin:0 0 28px}}
@@ -473,7 +510,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     border-bottom:2px solid #ddd}}
   td{{padding:10px 12px;border-bottom:1px solid #eee}}
   td:first-child{{font-weight:700;width:32%}}
-  td:nth-child(2){{color:#999;width:24%;font-size:14px}}
   .summary{{background:#f8f8f6;padding:20px;border-left:4px solid #1a1a1a;font-size:16px;
     line-height:1.9}}
   .question{{border:2px solid #1a1a1a;padding:22px;text-align:center}}
@@ -487,14 +523,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .words-def{{font-size:17px}}
   .words-def dt{{font-weight:700;margin-top:14px;cursor:pointer;display:inline-block;
     border-bottom:2px dotted #bbb}}
-  .words-def dt:active{{color:#c0392b}}
   .words-def dd{{margin:2px 0 0;padding-left:0;color:#444;line-height:1.65}}
-  .parent{{margin-top:56px;padding-top:0;border-top:6px double #ccc}}
+  .parent{{margin-top:56px;border-top:6px double #ccc}}
   .parent-tag{{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
     padding:5px 12px;border-radius:4px;letter-spacing:1px;margin:24px 0 4px}}
   .parent h3{{font-size:16px;margin:24px 0 8px;color:#444}}
-  .parent .summary{{background:#f8f8f6;padding:18px;border-left:4px solid #1a1a1a;
-    font-size:15px;line-height:1.85}}
+  .parent .summary{{padding:18px;font-size:15px;line-height:1.85}}
   .parent table{{font-size:15px}}
   .parent .tip{{background:#fffdf0;border:1px dashed #d8cb8a;padding:16px 18px;
     font-size:15px;line-height:1.8}}
@@ -521,7 +555,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .article{{font-size:13pt;line-height:1.8}}
     h1{{font-size:19pt}}
     h2{{margin:18px 0 9px}}
-    .btns,.say-btn,.hint,#wordbar,.orig-btn,.orig-note{{display:none}}
+    .btns,.say-btn,.hint,#wordbar,.orig-btn,.vid-btn{{display:none}}
     .w{{background:none}}
     .parent{{page-break-before:always;border-top:none;margin-top:0}}
     @page{{margin:15mm}}
@@ -536,13 +570,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <span class="level">{level_badge}</span>
 </div>
 
+{media_html}
+
 <a class="orig-btn" href="{source_url}" target="_blank" rel="noopener">
-  📷 사진 있는 원문 보기 · 인쇄하기
+  원문 기사 보기 (사진 더 있음)
 </a>
-<p class="orig-note">
-  원문 페이지 아래쪽 <b>Print</b> 버튼을 누르면 광고와 댓글이 빠진 인쇄용 화면이 뜹니다.
-  거기서 <b>PDF로 저장</b>하시면 사진까지 그대로 나와요.
-</p>
 <hr>
 
 <h2>READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
@@ -583,8 +615,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   <h3>원문</h3>
   <p style="font-size:15px">
-    이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.
-    원래 글은 여기서 보실 수 있어요:<br>
+    이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.<br>
     <a href="{source_url}" target="_blank" rel="noopener">{source_url}</a>
   </p>
 </div>
@@ -597,6 +628,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 <footer>
   출처: <a href="{source_url}">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
+  사진은 퍼블릭 도메인인 경우에만 싣습니다.<br>
   <a href="./">지난 신문 보기</a>
 </footer>
 
@@ -609,8 +641,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <script>
 var PDF_DATE  = "{date_file}";
 var GLOSSARY  = {glossary_json};
-
-/* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
 
 var lastWordEl = null;
 var barTimer = null;
@@ -639,8 +669,6 @@ function tapWord(el) {{
   speak(raw, 0.7);
 }}
 
-/* ── 읽어주기 (브라우저 내장 음성) ────────────────────── */
-
 var enVoice = null;
 
 function pickVoice() {{
@@ -667,14 +695,13 @@ if (window.speechSynthesis) {{
 
 function speak(text, rate, onEnd) {{
   if (!window.speechSynthesis) {{
-    alert('이 브라우저는 읽어주기를 지원하지 않아요. 크롬이나 사파리에서 열어보세요.');
+    alert('이 브라우저는 읽어주기를 지원하지 않아요.');
     return;
   }}
   speechSynthesis.cancel();
   var u = new SpeechSynthesisUtterance(text);
   u.lang = 'en-US';
   u.rate = rate;
-  u.pitch = 1;
   if (enVoice) u.voice = enVoice;
   if (onEnd) {{ u.onend = onEnd; u.onerror = onEnd; }}
   speechSynthesis.speak(u);
@@ -704,14 +731,12 @@ function sayArticle(btn) {{
   }});
 }}
 
-/* ── PDF 저장 ─────────────────────────────────────────── */
-
 function savePdf(mode) {{
   var btns = document.querySelector('.btns');
   var msg  = document.getElementById('pdf-msg');
 
   if (typeof html2pdf === 'undefined') {{
-    msg.textContent = 'PDF 기능을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해주세요.';
+    msg.textContent = 'PDF 기능을 불러오지 못했습니다. 새로고침해주세요.';
     return;
   }}
 
@@ -773,8 +798,30 @@ def wrap_words(paragraph, gloss_keys):
     return "".join(out)
 
 
-def render_html(c, source_url):
-    # 단어장 — 키를 소문자로 정리
+def render_media(art):
+    """사진(퍼블릭 도메인만)과 영상 버튼 HTML을 만든다."""
+    parts = []
+
+    img = art.get("image")
+    if img:
+        parts.append(
+            f'<img class="hero" src="{esc(img["src"])}" alt="">'
+            f'<p class="hero-cap">{esc(img["caption"])}</p>'
+        )
+
+    vid = art.get("video")
+    if vid:
+        parts.append(
+            f'<a class="vid-btn" href="https://www.youtube.com/watch?v={esc(vid)}" '
+            f'target="_blank" rel="noopener">▶ 오늘의 영상 보기</a>'
+        )
+
+    return "\n".join(parts)
+
+
+def render_html(c, source_url, art=None):
+    art = art or {}
+
     glossary = {}
     for k, v in (c.get("glossary") or {}).items():
         key = re.sub(r"[^a-z'’-]", "", str(k).lower())
@@ -785,19 +832,16 @@ def render_html(c, source_url):
         f"  <p>{wrap_words(p, glossary)}</p>" for p in c["article_en"]
     )
 
-    # 아이 면 — 영영 뜻만
     words_en_html = "\n".join(
         f'<dt onclick="sayWord(this)">{esc(w.get("en",""))}</dt>'
         f'<dd>{esc(w.get("def_en",""))}</dd>'
         for w in c.get("words", [])
     )
-    # 엄마 면 — 한국어 뜻
     words_ko_html = "\n".join(
         f"<tr><td>{esc(w.get('en',''))}</td><td>{esc(w.get('ko',''))}</td></tr>"
         for w in c.get("words", [])
     )
 
-    # 읽기 난이도
     lv = reading_level(c["article_en"])
     if lv:
         level_badge = f"읽기 레벨 약 {lv['grade']} (AR 환산 추정)"
@@ -806,8 +850,7 @@ def render_html(c, source_url):
             f"단어 {lv['words']}개, 문장 {lv['sentences']}개.<br><br>"
             "Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. "
             "르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> "
-            "숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. "
-            "아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요."
+            "아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요."
         )
     else:
         level_badge = "읽기 레벨 측정 불가"
@@ -816,6 +859,7 @@ def render_html(c, source_url):
     return HTML_TEMPLATE.format(
         date_en=TODAY.strftime("%A, %B %d, %Y"),
         date_file=DATE_STR,
+        media_html=render_media(art),
         glossary_json=json.dumps(glossary, ensure_ascii=False),
         title_en=esc(c["title_en"]),
         level_badge=esc(level_badge),
@@ -844,7 +888,6 @@ h1{{font-size:26px;margin-bottom:4px}}
 ul{{list-style:none;padding:0}}
 li{{padding:16px 0;border-bottom:1px solid #eee}}
 a{{color:#1a1a1a;text-decoration:none;font-weight:600;font-size:17px}}
-a:hover{{text-decoration:underline}}
 .d{{display:block;color:#aaa;font-size:13px;font-weight:400;margin-top:3px}}
 </style></head><body>
 <h1>오늘의 영어신문</h1>
@@ -922,13 +965,14 @@ def main():
 
     history = load_history()
     url = pick_article(history)
-    title, body, source_url = fetch_article(url)
-    content = make_content(title, body)
+    art = fetch_article(url)
+    source_url = art["url"]
+    content = make_content(art["title"], art["body"])
 
     os.makedirs(DOCS_DIR, exist_ok=True)
     filename = f"{DATE_STR}.html"
     with open(os.path.join(DOCS_DIR, filename), "w", encoding="utf-8") as f:
-        f.write(render_html(content, source_url))
+        f.write(render_html(content, source_url, art))
     log(f"HTML 저장: {DOCS_DIR}/{filename}")
 
     history["used_urls"].append(source_url)
