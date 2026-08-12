@@ -4,7 +4,8 @@
     "https://www.dogonews.com/2026/8/7/why-rescue-animals-in-england-are-wearing-soccer-socks",
     "https://www.dogonews.com/2026/8/5/mainland-europe-set-to-witness-its-first-total-solar-eclipse-since-1999",
     "https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile",
-    "https://www.dogonews.com/2026/6/30/inside-americas-250th-birthday-time-capsule"
+    "https://www.dogonews.com/2026/6/30/inside-americas-250th-birthday-time-capsule",
+    "https://www.dogonews.com/2026/6/29/pop-icons-to-headline-first-ever-fifa-world-cup-halftime-show"
   ],
   "issues": [
     {
@@ -36,6 +37,12 @@
       "file": "2026-08-12.html",
       "title_en": "America's Birthday and a Special Time Capsule",
       "title_ko": "미국의 생일과 특별한 타임캡슐"
+    },
+    {
+      "date": "2026-08-12",
+      "file": "2026-08-12.html",
+      "title_en": "A Big Music Show at the World Cup",
+      "title_ko": "월드컵 축구 경기에 펼쳐지는 대형 음악 쇼"
     }
   ]
 }
