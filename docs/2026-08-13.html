@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 영어신문 — Thursday, August 13, 2026</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:"Malgun Gothic","맑은 고딕",-apple-system,BlinkMacSystemFont,sans-serif;
+    max-width:680px;margin:0 auto;padding:32px 20px 60px;color:#1a1a1a;
+    line-height:1.75;background:#fff;-webkit-text-size-adjust:100%}
+  .date{font-size:13px;color:#888;letter-spacing:1px;margin-bottom:6px}
+  h1{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-0.5px}
+  .title-ko{font-size:17px;color:#666;margin-bottom:24px;font-weight:500}
+  .meta-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 20px}
+  .level{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
+    padding:5px 11px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap}
+  .src-link{font-size:13px;color:#666;text-decoration:none;border-bottom:1px solid #ccc}
+  .orig-btn{display:block;text-align:center;background:#2d6cdf;color:#fff;
+    text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
+    margin:4px 0 8px}
+  .orig-note{font-size:12px;color:#888;line-height:1.6;margin:0 0 22px;text-align:center}
+  .hero{width:100%;border-radius:8px;display:block;margin:0 0 6px}
+  .hero-cap{font-size:11px;color:#999;line-height:1.5;margin:0 0 16px;text-align:center}
+  .vid-btn{display:block;text-align:center;background:#c0392b;color:#fff;
+    text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
+    margin:0 0 10px}
+  .level-note{background:#f8f8f6;padding:14px 16px;font-size:13px;color:#666;
+    line-height:1.7;border-left:3px solid #ccc}
+  hr{border:none;border-top:2px solid #1a1a1a;margin:0 0 28px}
+  h2{font-size:15px;margin:36px 0 12px;padding-bottom:7px;border-bottom:1px solid #ddd;
+    letter-spacing:1px;color:#555}
+  .article{font-size:19px;line-height:2.0}
+  .article p{margin:0 0 16px}
+  table{width:100%;border-collapse:collapse;font-size:16px}
+  th{text-align:left;background:#f5f5f5;padding:10px 12px;font-size:13px;color:#555;
+    border-bottom:2px solid #ddd}
+  td{padding:10px 12px;border-bottom:1px solid #eee}
+  td:first-child{font-weight:700;width:32%}
+  td:nth-child(2){color:#999;width:24%;font-size:14px}
+  .summary{background:#f8f8f6;padding:20px;border-left:4px solid #1a1a1a;font-size:16px;
+    line-height:1.9}
+  .question{border:2px solid #1a1a1a;padding:22px;text-align:center}
+  .question .en{font-size:19px;font-weight:700;line-height:1.5}
+  .say-btn{float:right;font-family:inherit;font-size:12px;font-weight:700;
+    background:#1a1a1a;color:#fff;border:none;border-radius:20px;padding:6px 14px;
+    cursor:pointer;letter-spacing:0}
+  .say-btn.playing{background:#c0392b}
+  .hint{float:right;font-size:11px;color:#aaa;font-weight:400;letter-spacing:0;
+    padding-top:4px}
+  .words-def{font-size:17px}
+  .words-def dt{font-weight:700;margin-top:14px;cursor:pointer;display:inline-block;
+    border-bottom:2px dotted #bbb}
+  .words-def dt:active{color:#c0392b}
+  .words-def dd{margin:2px 0 0;padding-left:0;color:#444;line-height:1.65}
+  .parent{margin-top:56px;padding-top:0;border-top:6px double #ccc}
+  .parent-tag{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
+    padding:5px 12px;border-radius:4px;letter-spacing:1px;margin:24px 0 4px}
+  .parent h3{font-size:16px;margin:24px 0 8px;color:#444}
+  .parent .summary{background:#f8f8f6;padding:18px;border-left:4px solid #1a1a1a;
+    font-size:15px;line-height:1.85}
+  .parent table{font-size:15px}
+  .parent .tip{background:#fffdf0;border:1px dashed #d8cb8a;padding:16px 18px;
+    font-size:15px;line-height:1.8}
+  .qz{margin:0 0 26px}
+  .qz-q{font-size:17px;font-weight:700;margin:0 0 10px;line-height:1.5}
+  .qz-c{display:block;width:100%;text-align:left;font-family:inherit;font-size:16px;
+    background:#fff;border:1.5px solid #ddd;border-radius:8px;padding:12px 14px;
+    margin:0 0 8px;cursor:pointer;line-height:1.4}
+  .qz-c.right{background:#e8f6ec;border-color:#4a9d6a;font-weight:700}
+  .qz-c.wrong{background:#fdecea;border-color:#d9534f;text-decoration:line-through;
+    color:#999}
+  .qz-done{font-size:14px;color:#4a9d6a;font-weight:700;margin:4px 0 0}
+  .w{cursor:pointer;border-radius:3px;padding:0 1px}
+  .w:active{background:#ffe9a8}
+  .w.on{background:#ffe9a8}
+  #wordbar{position:fixed;left:0;right:0;bottom:0;background:#1a1a1a;color:#fff;
+    padding:16px 20px;transform:translateY(110%);transition:transform .18s ease;
+    z-index:99;box-shadow:0 -2px 12px rgba(0,0,0,.2)}
+  #wordbar.show{transform:translateY(0)}
+  #wb-en{font-size:20px;font-weight:700;margin-right:12px}
+  #wb-ko{font-size:16px;color:#ffe9a8}
+  #wb-x{float:right;font-size:20px;color:#888;cursor:pointer;line-height:1.2}
+  .btns{display:flex;gap:10px;margin:40px 0 0}
+  @media print{ .say-btn,.hint,#wordbar,.orig-btn,.orig-note{display:none}
+    .w{background:none} }
+  .print-btn{flex:1;padding:15px;font-size:15px;font-weight:700;background:#1a1a1a;
+    color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit}
+  .print-btn.alt{background:#fff;color:#1a1a1a;border:1.5px solid #1a1a1a}
+  #pdf-msg{margin-top:12px;font-size:14px;color:#666;text-align:center}
+  footer{margin-top:36px;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#aaa}
+  footer a{color:#aaa}
+  body.kid-only .parent{display:none}
+  @media print{
+    body{padding:0;font-size:12pt;max-width:100%}
+    .article{font-size:13pt;line-height:1.8}
+    h1{font-size:19pt}
+    h2{margin:18px 0 9px}
+    .btns{display:none}
+    .parent{page-break-before:always;border-top:none;margin-top:0}
+    @page{margin:15mm}
+  }
+</style>
+</head>
+<body>
+
+<div class="date">Thursday, August 13, 2026</div>
+<h1>The Famous Piano Playing Octopus Retires</h1>
+<div class="meta-row">
+  <span class="level">읽기 레벨 약 5.8 (AR 환산 추정)</span>
+</div>
+
+<a class="vid-btn" href="https://www.youtube.com/watch?v=PcWnQ7fYzwI" target="_blank" rel="noopener">▶ 오늘의 영상 보기</a>
+
+<a class="orig-btn" href="https://www.dogonews.com/2026/8/12/famous-piano-playing-octopus-retires" target="_blank" rel="noopener">
+  원문 기사 보기 (사진 더 있음)
+</a>
+<hr>
+
+<h2>READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
+<p class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
+<div class="article" id="article">
+  <p>A <span class="w" onclick="tapWord(this)">famous</span> <span class="w" onclick="tapWord(this)">octopus</span> <span class="w" onclick="tapWord(this)">named</span> <span class="w" onclick="tapWord(this)">Tako</span> is now <span class="w" onclick="tapWord(this)">retiring</span>. <span class="w" onclick="tapWord(this)">Tako</span> <span class="w" onclick="tapWord(this)">lives</span> with his <span class="w" onclick="tapWord(this)">owner</span>, <span class="w" onclick="tapWord(this)">Mattias</span> <span class="w" onclick="tapWord(this)">Krantz</span>, who is a <span class="w" onclick="tapWord(this)">YouTuber</span> from <span class="w" onclick="tapWord(this)">Sweden</span>. <span class="w" onclick="tapWord(this)">Mattias</span> <span class="w" onclick="tapWord(this)">always</span> <span class="w" onclick="tapWord(this)">wanted</span> to <span class="w" onclick="tapWord(this)">teach</span> an <span class="w" onclick="tapWord(this)">animal</span> to <span class="w" onclick="tapWord(this)">play</span> the <span class="w" onclick="tapWord(this)">piano</span>. In 2025, he <span class="w" onclick="tapWord(this)">got</span> <span class="w" onclick="tapWord(this)">Tako</span> from a <span class="w" onclick="tapWord(this)">fish</span> <span class="w" onclick="tapWord(this)">market</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Octopuses</span> are very <span class="w" onclick="tapWord(this)">smart</span> <span class="w" onclick="tapWord(this)">animals</span> with <span class="w" onclick="tapWord(this)">eight</span> <span class="w" onclick="tapWord(this)">arms</span>. <span class="w" onclick="tapWord(this)">Each</span> <span class="w" onclick="tapWord(this)">arm</span> can <span class="w" onclick="tapWord(this)">think</span> on its <span class="w" onclick="tapWord(this)">own</span>. But <span class="w" onclick="tapWord(this)">teaching</span> an <span class="w" onclick="tapWord(this)">octopus</span> was not <span class="w" onclick="tapWord(this)">easy</span>. <span class="w" onclick="tapWord(this)">Mattias</span> had to <span class="w" onclick="tapWord(this)">make</span> a <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">piano</span> for <span class="w" onclick="tapWord(this)">Tako</span>. Because <span class="w" onclick="tapWord(this)">Tako</span> could not <span class="w" onclick="tapWord(this)">hear</span> <span class="w" onclick="tapWord(this)">sound</span> in the <span class="w" onclick="tapWord(this)">air</span>, <span class="w" onclick="tapWord(this)">Mattias</span> <span class="w" onclick="tapWord(this)">put</span> a <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">speaker</span> in the <span class="w" onclick="tapWord(this)">water</span>.</p>
+  <p>Also, <span class="w" onclick="tapWord(this)">Tako</span> <span class="w" onclick="tapWord(this)">pulled</span> <span class="w" onclick="tapWord(this)">keys</span> <span class="w" onclick="tapWord(this)">instead</span> of <span class="w" onclick="tapWord(this)">pushing</span> them <span class="w" onclick="tapWord(this)">down</span>. When <span class="w" onclick="tapWord(this)">Tako</span> <span class="w" onclick="tapWord(this)">played</span> the right <span class="w" onclick="tapWord(this)">notes</span>, a <span class="w" onclick="tapWord(this)">little</span> <span class="w" onclick="tapWord(this)">elevator</span> <span class="w" onclick="tapWord(this)">brought</span> a <span class="w" onclick="tapWord(this)">live</span> <span class="w" onclick="tapWord(this)">crab</span> into the <span class="w" onclick="tapWord(this)">tank</span> for him to <span class="w" onclick="tapWord(this)">eat</span>! <span class="w" onclick="tapWord(this)">Mattias</span> <span class="w" onclick="tapWord(this)">trained</span> <span class="w" onclick="tapWord(this)">Tako</span> for <span class="w" onclick="tapWord(this)">six</span> <span class="w" onclick="tapWord(this)">months</span>. <span class="w" onclick="tapWord(this)">Finally</span>, <span class="w" onclick="tapWord(this)">Tako</span> <span class="w" onclick="tapWord(this)">learned</span> to <span class="w" onclick="tapWord(this)">play</span> <span class="w" onclick="tapWord(this)">music</span> with <span class="w" onclick="tapWord(this)">Mattias</span>.</p>
+  <p>Now, <span class="w" onclick="tapWord(this)">Tako</span> is <span class="w" onclick="tapWord(this)">getting</span> <span class="w" onclick="tapWord(this)">old</span> and <span class="w" onclick="tapWord(this)">tired</span>. <span class="w" onclick="tapWord(this)">Octopuses</span> do not <span class="w" onclick="tapWord(this)">live</span> for a <span class="w" onclick="tapWord(this)">long</span> <span class="w" onclick="tapWord(this)">time</span>. <span class="w" onclick="tapWord(this)">Mattias</span> <span class="w" onclick="tapWord(this)">turned</span> <span class="w" onclick="tapWord(this)">off</span> the <span class="w" onclick="tapWord(this)">cameras</span> so <span class="w" onclick="tapWord(this)">Tako</span> can <span class="w" onclick="tapWord(this)">rest</span> <span class="w" onclick="tapWord(this)">peacefully</span> in his <span class="w" onclick="tapWord(this)">favorite</span> <span class="w" onclick="tapWord(this)">cave</span>. <span class="w" onclick="tapWord(this)">People</span> <span class="w" onclick="tapWord(this)">around</span> the <span class="w" onclick="tapWord(this)">world</span> will <span class="w" onclick="tapWord(this)">miss</span> this <span class="w" onclick="tapWord(this)">clever</span> <span class="w" onclick="tapWord(this)">little</span> <span class="w" onclick="tapWord(this)">musician</span>.</p>
+</div>
+
+<h2>WORDS <span class="hint">단어를 누르면 소리가 나요</span></h2>
+<dl class="words-def">
+<dt onclick="sayWord(this)">retiring</dt><dd>stopping work because of getting old</dd>
+<dt onclick="sayWord(this)">owner</dt><dd>a person who has something or a pet</dd>
+<dt onclick="sayWord(this)">special</dt><dd>different from others and very good</dd>
+<dt onclick="sayWord(this)">speaker</dt><dd>a thing that makes sound louder</dd>
+<dt onclick="sayWord(this)">elevator</dt><dd>a machine that moves things up and down</dd>
+<dt onclick="sayWord(this)">trained</dt><dd>taught a skill over a long time</dd>
+<dt onclick="sayWord(this)">peacefully</dt><dd>in a quiet and safe way</dd>
+<dt onclick="sayWord(this)">clever</dt><dd>quick to learn and understand things</dd>
+</dl>
+
+<h2>QUIZ <span class="hint">답을 골라보세요</span></h2>
+  <div class="qz" data-a="0">
+    <p class="qz-q">1. Where did Mattias get Tako in 2025?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. From a fish market</button>
+    <button class="qz-c" onclick="pick(this,1)">B. From a pet shop</button>
+    <button class="qz-c" onclick="pick(this,2)">C. From the ocean</button>
+  </div>
+  <div class="qz" data-a="1">
+    <p class="qz-q">2. What happened when Tako played the right notes?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. A light turned on</button>
+    <button class="qz-c" onclick="pick(this,1)">B. A live crab came down</button>
+    <button class="qz-c" onclick="pick(this,2)">C. The music stopped</button>
+  </div>
+  <div class="qz" data-a="1">
+    <p class="qz-q">3. Why did Mattias turn off the cameras?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. Because the piano broke</button>
+    <button class="qz-c" onclick="pick(this,1)">B. Because Tako is old and needs to rest</button>
+    <button class="qz-c" onclick="pick(this,2)">C. Because Tako ran away</button>
+  </div>
+
+<h2>THINK</h2>
+<div class="question">
+  <div class="en">If you could teach an animal to do something, what would it be?</div>
+</div>
+
+<div class="parent">
+  <div class="parent-tag">엄마 보는 곳</div>
+  <h3>피아노 치는 문어 타코의 은퇴</h3>
+
+  <div class="summary">스웨덴 유튜버 마티아스는 어시장에서 데려온 문어 타코에게 맞춤형 피아노를 만들어 연주법을 가르쳤습니다. 타코는 6개월간의 훈련 끝에 멋진 연주를 선보였지만, 이제 나이가 들어 은퇴를 맞이하게 되었습니다. 마티아스는 타코가 편안히 쉴 수 있도록 촬영을 끝내고 타코의 휴식을 돕고 있습니다.</div>
+
+  <h3>단어 한국어 뜻</h3>
+  <table>
+  <tr><th>영어</th><th>뜻</th></tr>
+  <tr><td>retiring</td><td>은퇴하는</td></tr>
+<tr><td>owner</td><td>주인</td></tr>
+<tr><td>special</td><td>특별한</td></tr>
+<tr><td>speaker</td><td>스피커, 음향 장치</td></tr>
+<tr><td>elevator</td><td>엘리베이터</td></tr>
+<tr><td>trained</td><td>훈련시켰다</td></tr>
+<tr><td>peacefully</td><td>평화롭게</td></tr>
+<tr><td>clever</td><td>영리한</td></tr>
+  </table>
+
+  <h3>오늘의 질문</h3>
+  <p style="font-size:15px;margin-bottom:14px">만약 여러분이 동물에게 무언가를 가르칠 수 있다면 무엇을 가르치고 싶나요?</p>
+
+  <div class="tip">아이에게 좋아하는 동물이 있는지 물어보고, 그 동물이 어떤 흥미로운 행동을 할 수 있을지 함께 이야기해 보세요.</div>
+
+  <h3>퀴즈 정답과 해설</h3>
+  <table><tr><th>문제</th><th>정답과 해설</th></tr><tr><td>1번</td><td><b>A. From a fish market</b><br><span style='color:#777;font-size:14px'>첫 번째 문단에서 마티아스가 2025년에 어시장(fish market)에서 타코를 구했다고 나와요.</span></td></tr><tr><td>2번</td><td><b>B. A live crab came down</b><br><span style='color:#777;font-size:14px'>세 번째 문단에서 맞는 음을 연주하면 작은 엘리베이터가 먹을 수 있는 살아있는 게(live crab)를 내려보내 주었다고 해요.</span></td></tr><tr><td>3번</td><td><b>B. Because Tako is old and needs to rest</b><br><span style='color:#777;font-size:14px'>마지막 문단에서 타코가 나이가 들고 지쳐서 평화롭게 쉴 수 있도록 카메라를 껐다고 언급하고 있어요.</span></td></tr></table>
+
+  <h3>읽기 레벨</h3>
+  <div class="level-note">이 글의 읽기 레벨은 <b>약 5.8</b>입니다. 단어 170개, 문장 17개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요.</div>
+
+  <h3>원문</h3>
+  <p style="font-size:15px">
+    이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.
+    원래 글은 여기서 보실 수 있어요:<br>
+    <a href="https://www.dogonews.com/2026/8/12/famous-piano-playing-octopus-retires" target="_blank" rel="noopener">https://www.dogonews.com/2026/8/12/famous-piano-playing-octopus-retires</a>
+  </p>
+</div>
+
+<div class="btns">
+  <button class="print-btn" onclick="savePdf('kid')">아이 것만 PDF 저장</button>
+  <button class="print-btn alt" onclick="savePdf('all')">전체 PDF 저장</button>
+</div>
+<div id="pdf-msg"></div>
+
+<footer>
+  출처: <a href="https://www.dogonews.com/2026/8/12/famous-piano-playing-octopus-retires">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
+  <a href="./">지난 신문 보기</a>
+</footer>
+
+<div id="wordbar">
+  <span id="wb-x" onclick="hideBar()">×</span>
+  <span id="wb-en"></span><span id="wb-ko"></span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+var PDF_DATE  = "2026-08-13";
+var GLOSSARY  = {"famous": "유명한", "octopus": "문어", "named": "~라는 이름의", "tako": "타코", "retiring": "은퇴하는", "lives": "살다", "owner": "주인", "mattias": "마티아스", "krantz": "크란츠", "youtuber": "유튜버", "sweden": "스웨덴", "always": "항상", "wanted": "원했다", "teach": "가르치다", "animal": "동물", "play": "연주하다", "piano": "피아노", "got": "구했다", "fish": "물고기", "market": "시장", "octopuses": "문어들", "smart": "똑똑한", "animals": "동물들", "eight": "여덟 개의", "arms": "다리들", "each": "각각의", "arm": "다리", "think": "생각하다", "own": "자신의", "teaching": "가르치는 것", "easy": "쉬운", "make": "만들다", "special": "특별한", "hear": "듣다", "sound": "소리", "air": "공기", "put": "놓았다", "speaker": "스피커", "water": "물", "pulled": "당겼다", "keys": "건반들", "instead": "대신에", "pushing": "누르는 것", "down": "아래로", "played": "연주했다", "notes": "음표들", "little": "작은", "elevator": "엘리베이터", "brought": "가져왔다", "live": "살아있는", "crab": "게", "tank": "수조", "eat": "먹다", "trained": "훈련시켰다", "six": "6", "months": "개월", "finally": "마침내", "learned": "배웠다", "music": "음악", "getting": "~해지는", "old": "나이 든", "tired": "지친", "long": "긴", "time": "시간", "turned": "돌렸다", "off": "꺼진", "cameras": "카메라들", "rest": "쉬다", "peacefully": "평화롭게", "favorite": "가장 좋아하는", "cave": "동굴", "people": "사람들", "around": "전 세계의", "world": "세상", "miss": "그리워하다", "clever": "영리한", "musician": "음악가"};
+
+/* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
+
+function pick(btn, idx) {
+  var box = btn.parentNode;
+  if (box.dataset.done === '1') return;
+  var ans = parseInt(box.dataset.a, 10);
+
+  if (idx === ans) {
+    btn.className = 'qz-c right';
+    box.dataset.done = '1';
+    var msg = document.createElement('p');
+    msg.className = 'qz-done';
+    msg.textContent = '정답이에요!';
+    box.appendChild(msg);
+  } else {
+    btn.className = 'qz-c wrong';
+  }
+}
+
+var lastWordEl = null;
+var barTimer = null;
+
+function hideBar() {
+  document.getElementById('wordbar').classList.remove('show');
+  if (lastWordEl) lastWordEl.classList.remove('on');
+}
+
+function tapWord(el) {
+  var raw = el.textContent.trim();
+  var key = raw.toLowerCase().replace(/[^a-z'-]/g, '');
+  var ko  = GLOSSARY[key] || GLOSSARY[key.replace(/[',-]/g, '')] || '';
+
+  if (lastWordEl) lastWordEl.classList.remove('on');
+  el.classList.add('on');
+  lastWordEl = el;
+
+  document.getElementById('wb-en').textContent = raw;
+  document.getElementById('wb-ko').textContent = ko ? ko : '(뜻 없음)';
+  document.getElementById('wordbar').classList.add('show');
+
+  clearTimeout(barTimer);
+  barTimer = setTimeout(hideBar, 6000);
+
+  speak(raw, 0.7);
+}
+
+/* ── 읽어주기 (브라우저 내장 음성) ────────────────────── */
+
+var enVoice = null;
+
+function pickVoice() {
+  var vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  if (!vs.length) return;
+  var prefer = ['Samantha', 'Karen', 'Google US English', 'Microsoft Aria',
+                'Microsoft Jenny', 'Alex', 'Daniel'];
+  for (var i = 0; i < prefer.length; i++) {
+    for (var j = 0; j < vs.length; j++) {
+      if (vs[j].name.indexOf(prefer[i]) === 0) { enVoice = vs[j]; return; }
+    }
+  }
+  for (var k = 0; k < vs.length; k++) {
+    if (vs[k].lang && vs[k].lang.toLowerCase().indexOf('en') === 0) {
+      enVoice = vs[k]; return;
+    }
+  }
+}
+
+if (window.speechSynthesis) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+
+function speak(text, rate, onEnd) {
+  if (!window.speechSynthesis) {
+    alert('이 브라우저는 읽어주기를 지원하지 않아요. 크롬이나 사파리에서 열어보세요.');
+    return;
+  }
+  speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = rate;
+  u.pitch = 1;
+  if (enVoice) u.voice = enVoice;
+  if (onEnd) { u.onend = onEnd; u.onerror = onEnd; }
+  speechSynthesis.speak(u);
+}
+
+function sayWord(el) {
+  speak(el.textContent.trim(), 0.75);
+}
+
+function sayArticle(btn) {
+  if (speechSynthesis.speaking && btn.classList.contains('playing')) {
+    speechSynthesis.cancel();
+    btn.classList.remove('playing');
+    btn.textContent = '🔊 들어보기';
+    return;
+  }
+  var ps = document.querySelectorAll('#article p');
+  var text = '';
+  for (var i = 0; i < ps.length; i++) { text += ps[i].textContent + ' '; }
+
+  btn.classList.add('playing');
+  btn.textContent = '■ 멈추기';
+
+  speak(text, 0.82, function() {
+    btn.classList.remove('playing');
+    btn.textContent = '🔊 들어보기';
+  });
+}
+
+/* ── PDF 저장 ─────────────────────────────────────────── */
+
+function savePdf(mode) {
+  var btns = document.querySelector('.btns');
+  var msg  = document.getElementById('pdf-msg');
+
+  if (typeof html2pdf === 'undefined') {
+    msg.textContent = 'PDF 기능을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해주세요.';
+    return;
+  }
+
+  if (mode === 'kid') { document.body.classList.add('kid-only'); }
+  btns.style.display = 'none';
+  msg.textContent = 'PDF 만드는 중... 잠시만요';
+
+  var filename = PDF_DATE + '-영어신문-' + (mode === 'kid' ? '아이' : '전체') + '.pdf';
+
+  var opt = {
+    margin:      [12, 10, 12, 10],
+    filename:    filename,
+    image:       { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:   { mode: ['css', 'legacy'], before: '.parent' }
+  };
+
+  function done() {
+    btns.style.display = '';
+    document.body.classList.remove('kid-only');
+    msg.textContent = '';
+  }
+
+  html2pdf().set(opt).from(document.body).save().then(done).catch(function(e) {
+    done();
+    msg.textContent = 'PDF 저장에 실패했습니다: ' + e;
+  });
+}
+</script>
+
+</body>
+</html>
