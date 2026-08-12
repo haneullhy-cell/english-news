@@ -1,0 +1,43 @@
+name: 매일 아침 영어신문
+
+on:
+  schedule:
+    # UTC 기준입니다. 22:00 UTC = 다음날 07:00 한국시간
+    # 0-4 = 일~목(UTC) → 월~금(한국) 아침
+    - cron: "0 22 * * 0-4"
+  workflow_dispatch:   # GitHub에서 수동 실행 버튼
+
+permissions:
+  contents: write      # 만든 HTML을 저장소에 커밋하기 위해 필요
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 가져오기
+        uses: actions/checkout@v4
+
+      - name: 파이썬 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 필요한 것 설치
+        run: pip install -r requirements.txt
+
+      - name: 영어신문 만들어서 카톡 보내기
+        env:
+          KAKAO_REST_API_KEY:  ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+          GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
+          GH_PAT:              ${{ secrets.GH_PAT }}
+        run: python send_news.py
+
+      - name: 만든 신문 저장하기
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          git diff --staged --quiet || git commit -m "영어신문 $(date +'%Y-%m-%d')"
+          git push
