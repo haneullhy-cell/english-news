@@ -13,7 +13,7 @@
   h1{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-0.5px}
   .meta-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 14px}
   .level{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
-    padding:5px 11px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap}
+    padding:5px 11px;border-radius:20px;white-space:nowrap}
   .orig-btn{display:block;text-align:center;background:#2d6cdf;color:#fff;
     text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
     margin:4px 0 22px}
@@ -32,7 +32,7 @@
   table{width:100%;border-collapse:collapse;font-size:16px}
   th{text-align:left;background:#f5f5f5;padding:10px 12px;font-size:13px;color:#555;
     border-bottom:2px solid #ddd}
-  td{padding:10px 12px;border-bottom:1px solid #eee}
+  td{padding:10px 12px;border-bottom:1px solid #eee;vertical-align:top}
   td:first-child{font-weight:700;width:32%}
   .summary{background:#f8f8f6;padding:20px;border-left:4px solid #1a1a1a;font-size:16px;
     line-height:1.9}
@@ -48,6 +48,15 @@
   .words-def dt{font-weight:700;margin-top:14px;cursor:pointer;display:inline-block;
     border-bottom:2px dotted #bbb}
   .words-def dd{margin:2px 0 0;padding-left:0;color:#444;line-height:1.65}
+  .qz{margin:0 0 26px}
+  .qz-q{font-size:17px;font-weight:700;margin:0 0 10px;line-height:1.5}
+  .qz-c{display:block;width:100%;text-align:left;font-family:inherit;font-size:16px;
+    background:#fff;border:1.5px solid #ddd;border-radius:8px;padding:12px 14px;
+    margin:0 0 8px;cursor:pointer;line-height:1.4}
+  .qz-c.right{background:#e8f6ec;border-color:#4a9d6a;font-weight:700}
+  .qz-c.wrong{background:#fdecea;border-color:#d9534f;text-decoration:line-through;
+    color:#999}
+  .qz-done{font-size:14px;color:#4a9d6a;font-weight:700;margin:4px 0 0}
   .parent{margin-top:56px;border-top:6px double #ccc}
   .parent-tag{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
     padding:5px 12px;border-radius:4px;letter-spacing:1px;margin:24px 0 4px}
@@ -57,8 +66,7 @@
   .parent .tip{background:#fffdf0;border:1px dashed #d8cb8a;padding:16px 18px;
     font-size:15px;line-height:1.8}
   .w{cursor:pointer;border-radius:3px;padding:0 1px}
-  .w:active{background:#ffe9a8}
-  .w.on{background:#ffe9a8}
+  .w:active,.w.on{background:#ffe9a8}
   #wordbar{position:fixed;left:0;right:0;bottom:0;background:#1a1a1a;color:#fff;
     padding:16px 20px;transform:translateY(110%);transition:transform .18s ease;
     z-index:99;box-shadow:0 -2px 12px rgba(0,0,0,.2)}
@@ -89,14 +97,14 @@
 <body>
 
 <div class="date">Wednesday, August 12, 2026</div>
-<h1>Josh Kerr Runs Fast and Breaks World Record</h1>
+<h1>America&#x27;s Birthday and a Special Time Capsule</h1>
 <div class="meta-row">
-  <span class="level">읽기 레벨 약 3.4 (AR 환산 추정)</span>
+  <span class="level">읽기 레벨 약 4.1 (AR 환산 추정)</span>
 </div>
 
 
 
-<a class="orig-btn" href="https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile" target="_blank" rel="noopener">
+<a class="orig-btn" href="https://www.dogonews.com/2026/6/30/inside-americas-250th-birthday-time-capsule" target="_blank" rel="noopener">
   원문 기사 보기 (사진 더 있음)
 </a>
 <hr>
@@ -104,56 +112,79 @@
 <h2>READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
 <p class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
 <div class="article" id="article">
-  <p><span class="w" onclick="tapWord(this)">Josh</span> <span class="w" onclick="tapWord(this)">Kerr</span> is a <span class="w" onclick="tapWord(this)">fast</span> <span class="w" onclick="tapWord(this)">runner</span> from <span class="w" onclick="tapWord(this)">Scotland</span>. On <span class="w" onclick="tapWord(this)">July</span> 18, 2026, he <span class="w" onclick="tapWord(this)">set</span> a <span class="w" onclick="tapWord(this)">new</span> <span class="w" onclick="tapWord(this)">world</span> <span class="w" onclick="tapWord(this)">record</span>. He <span class="w" onclick="tapWord(this)">ran</span> <span class="w" onclick="tapWord(this)">one</span> <span class="w" onclick="tapWord(this)">mile</span> in 3 <span class="w" onclick="tapWord(this)">minutes</span> and 42 <span class="w" onclick="tapWord(this)">seconds</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">Before</span> the <span class="w" onclick="tapWord(this)">race</span>, <span class="w" onclick="tapWord(this)">Kerr</span> <span class="w" onclick="tapWord(this)">worked</span> very <span class="w" onclick="tapWord(this)">hard</span>. He <span class="w" onclick="tapWord(this)">trained</span> on a <span class="w" onclick="tapWord(this)">high</span> <span class="w" onclick="tapWord(this)">mountain</span> to <span class="w" onclick="tapWord(this)">make</span> his <span class="w" onclick="tapWord(this)">body</span> <span class="w" onclick="tapWord(this)">strong</span>. He <span class="w" onclick="tapWord(this)">even</span> <span class="w" onclick="tapWord(this)">slept</span> in a <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">room</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">About</span> 60,000 <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">watched</span> him run in <span class="w" onclick="tapWord(this)">London</span>. <span class="w" onclick="tapWord(this)">Two</span> <span class="w" onclick="tapWord(this)">other</span> <span class="w" onclick="tapWord(this)">runners</span> <span class="w" onclick="tapWord(this)">helped</span> him <span class="w" onclick="tapWord(this)">stay</span> <span class="w" onclick="tapWord(this)">fast</span>. <span class="w" onclick="tapWord(this)">Near</span> the <span class="w" onclick="tapWord(this)">end</span>, <span class="w" onclick="tapWord(this)">Kerr</span> <span class="w" onclick="tapWord(this)">ran</span> <span class="w" onclick="tapWord(this)">super</span> <span class="w" onclick="tapWord(this)">fast</span> and <span class="w" onclick="tapWord(this)">passed</span> <span class="w" onclick="tapWord(this)">everyone</span>.</p>
-  <p>He <span class="w" onclick="tapWord(this)">broke</span> a <span class="w" onclick="tapWord(this)">famous</span> <span class="w" onclick="tapWord(this)">record</span> from 1999. <span class="w" onclick="tapWord(this)">Kerr</span> was very <span class="w" onclick="tapWord(this)">happy</span> <span class="w" onclick="tapWord(this)">because</span> his <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">dream</span> <span class="w" onclick="tapWord(this)">came</span> <span class="w" onclick="tapWord(this)">true</span>. <span class="w" onclick="tapWord(this)">Now</span>, he is a <span class="w" onclick="tapWord(this)">famous</span> <span class="w" onclick="tapWord(this)">running</span> <span class="w" onclick="tapWord(this)">hero</span>!</p>
+  <p>On <span class="w" onclick="tapWord(this)">July</span> 4, 2026, <span class="w" onclick="tapWord(this)">America</span> will <span class="w" onclick="tapWord(this)">celebrate</span> its 250<span class="w" onclick="tapWord(this)">th</span> <span class="w" onclick="tapWord(this)">birthday</span>. <span class="w" onclick="tapWord(this)">People</span> will <span class="w" onclick="tapWord(this)">bury</span> a <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">time</span> <span class="w" onclick="tapWord(this)">capsule</span> in <span class="w" onclick="tapWord(this)">Philadelphia</span>. It will <span class="w" onclick="tapWord(this)">stay</span> <span class="w" onclick="tapWord(this)">underground</span> for 250 <span class="w" onclick="tapWord(this)">years</span>. <span class="w" onclick="tapWord(this)">People</span> will <span class="w" onclick="tapWord(this)">open</span> it in 2276.</p>
+  <p>All <span class="w" onclick="tapWord(this)">states</span> <span class="w" onclick="tapWord(this)">put</span> <span class="w" onclick="tapWord(this)">fun</span> <span class="w" onclick="tapWord(this)">things</span> <span class="w" onclick="tapWord(this)">inside</span>. <span class="w" onclick="tapWord(this)">Utah</span> <span class="w" onclick="tapWord(this)">sent</span> <span class="w" onclick="tapWord(this)">cards</span> and <span class="w" onclick="tapWord(this)">coins</span>. <span class="w" onclick="tapWord(this)">Arkansas</span> <span class="w" onclick="tapWord(this)">sent</span> a <span class="w" onclick="tapWord(this)">real</span> <span class="w" onclick="tapWord(this)">diamond</span>. <span class="w" onclick="tapWord(this)">California</span> <span class="w" onclick="tapWord(this)">sent</span> a <span class="w" onclick="tapWord(this)">small</span> <span class="w" onclick="tapWord(this)">computer</span> <span class="w" onclick="tapWord(this)">chip</span> and a <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">picture</span> of the <span class="w" onclick="tapWord(this)">future</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Scientists</span> <span class="w" onclick="tapWord(this)">worked</span> <span class="w" onclick="tapWord(this)">hard</span> to <span class="w" onclick="tapWord(this)">protect</span> these <span class="w" onclick="tapWord(this)">items</span> from <span class="w" onclick="tapWord(this)">water</span>. They <span class="w" onclick="tapWord(this)">made</span> the <span class="w" onclick="tapWord(this)">capsule</span> with <span class="w" onclick="tapWord(this)">strong</span> <span class="w" onclick="tapWord(this)">steel</span>. They <span class="w" onclick="tapWord(this)">used</span> a <span class="w" onclick="tapWord(this)">round</span> <span class="w" onclick="tapWord(this)">shape</span> so it will not <span class="w" onclick="tapWord(this)">crack</span> at the <span class="w" onclick="tapWord(this)">corners</span>.</p>
+  <p>A <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">snake</span> <span class="w" onclick="tapWord(this)">sculpture</span> will <span class="w" onclick="tapWord(this)">mark</span> the <span class="w" onclick="tapWord(this)">spot</span>. The <span class="w" onclick="tapWord(this)">capsule</span> <span class="w" onclick="tapWord(this)">holds</span> <span class="w" onclick="tapWord(this)">pictures</span> and a <span class="w" onclick="tapWord(this)">letter</span> for <span class="w" onclick="tapWord(this)">future</span> <span class="w" onclick="tapWord(this)">people</span>. It <span class="w" onclick="tapWord(this)">shows</span> <span class="w" onclick="tapWord(this)">our</span> <span class="w" onclick="tapWord(this)">hope</span> for the <span class="w" onclick="tapWord(this)">future</span>.</p>
 </div>
 
 <h2>WORDS <span class="hint">단어를 누르면 소리가 나요</span></h2>
 <dl class="words-def">
-<dt onclick="sayWord(this)">runner</dt><dd>a person who moves fast on their feet</dd>
-<dt onclick="sayWord(this)">record</dt><dd>the best result ever made in a sport</dd>
-<dt onclick="sayWord(this)">train</dt><dd>to practice a sport to get better</dd>
-<dt onclick="sayWord(this)">mountain</dt><dd>a very tall piece of land</dd>
-<dt onclick="sayWord(this)">dream</dt><dd>something you really want to do</dd>
-<dt onclick="sayWord(this)">hero</dt><dd>a person who does great things</dd>
+<dt onclick="sayWord(this)">celebrate</dt><dd>to do something fun for a special day</dd>
+<dt onclick="sayWord(this)">underground</dt><dd>under the surface of the earth</dd>
+<dt onclick="sayWord(this)">protect</dt><dd>to keep someone or something safe from harm</dd>
+<dt onclick="sayWord(this)">steel</dt><dd>a very strong metal used to build big things</dd>
+<dt onclick="sayWord(this)">sculpture</dt><dd>an art object made from stone, wood, or metal</dd>
+<dt onclick="sayWord(this)">future</dt><dd>the time that will come after now</dd>
 </dl>
+
+<h2>QUIZ <span class="hint">답을 골라보세요</span></h2>
+  <div class="qz" data-a="1">
+    <p class="qz-q">1. When will people open the time capsule?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. In 2026</button>
+    <button class="qz-c" onclick="pick(this,1)">B. In 2276</button>
+    <button class="qz-c" onclick="pick(this,2)">C. In 1776</button>
+  </div>
+  <div class="qz" data-a="0">
+    <p class="qz-q">2. What did Arkansas put inside the capsule?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. A real diamond</button>
+    <button class="qz-c" onclick="pick(this,1)">B. A big snake</button>
+    <button class="qz-c" onclick="pick(this,2)">C. A round coin</button>
+  </div>
+  <div class="qz" data-a="1">
+    <p class="qz-q">3. Why is the time capsule made in a round shape?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. To look like a snake</button>
+    <button class="qz-c" onclick="pick(this,1)">B. So it will not crack at the corners</button>
+    <button class="qz-c" onclick="pick(this,2)">C. To fit more coins</button>
+  </div>
 
 <h2>THINK</h2>
 <div class="question">
-  <div class="en">If you could break a world record, what would it be?</div>
+  <div class="en">If you could put one thing in a time capsule, what would you choose?</div>
 </div>
 
 <div class="parent">
   <div class="parent-tag">엄마 보는 곳</div>
-  <h3>세계 신기록을 세운 조시 커</h3>
+  <h3>미국의 생일과 특별한 타임캡슐</h3>
 
-  <div class="summary">스코틀랜드의 육상 선수 조시 커가 1마일(약 1.6km) 달리기에서 3분 42초라는 세계 신기록을 세웠습니다. 그는 높은 산에서 훈련하고 특수 방에서 자며 오랫동안 열심히 준비했습니다. 6만 명의 관중 앞에서 멋지게 달린 그는 최고의 육상 영웅이 되었습니다.</div>
+  <div class="summary">2026년 미국 탄생 250주년을 맞아 필라델피아 땅속에 타임캡슐을 묻습니다. 여러 주에서 보낸 다이아몬드, 컴퓨터 칩 등 다양한 물건들이 튼튼한 강철 용기에 담겨 250년 뒤인 2276년에 열리게 됩니다.</div>
 
   <h3>단어 한국어 뜻</h3>
   <table>
   <tr><th>영어</th><th>뜻</th></tr>
-  <tr><td>runner</td><td>달리기 선수</td></tr>
-<tr><td>record</td><td>기록</td></tr>
-<tr><td>train</td><td>훈련하다</td></tr>
-<tr><td>mountain</td><td>산</td></tr>
-<tr><td>dream</td><td>꿈</td></tr>
-<tr><td>hero</td><td>영웅</td></tr>
+  <tr><td>celebrate</td><td>축하하다, 기념하다</td></tr>
+<tr><td>underground</td><td>지하에, 땅속에</td></tr>
+<tr><td>protect</td><td>보호하다, 지키다</td></tr>
+<tr><td>steel</td><td>강철</td></tr>
+<tr><td>sculpture</td><td>조각품</td></tr>
+<tr><td>future</td><td>미래</td></tr>
   </table>
 
   <h3>오늘의 질문</h3>
-  <p style="font-size:15px;margin-bottom:14px">만약 여러분이 세계 신기록을 세울 수 있다면, 어떤 분야에서 기록을 세우고 싶나요?</p>
+  <p style="font-size:15px;margin-bottom:14px">만약 타임캡슐에 물건 하나를 넣을 수 있다면, 무엇을 넣고 싶나요?</p>
 
-  <div class="tip">1마일(1.6km)을 3분 대에 달리는 것이 얼마나 빠른 속도인지 함께 나누며 아이의 흥미를 유도해 보세요.</div>
+  <div class="tip">아이에게 &#x27;250년 뒤 사람들에게 보여주고 싶은 너의 보물은 뭐야?&#x27;라고 물어보며 자유롭게 대화해 보세요.</div>
+
+  <h3>퀴즈 정답과 해설</h3>
+  <table><tr><th>문제</th><th>정답과 해설</th></tr><tr><td>1번</td><td><b>B. In 2276</b><br><span style='color:#777;font-size:14px'>지문에서 타임캡슐을 2276년에 열 것이라고 나와 있어요.</span></td></tr><tr><td>2번</td><td><b>A. A real diamond</b><br><span style='color:#777;font-size:14px'>아칸소 주는 진짜 다이아몬드를 캡슐 안에 넣었다고 써 있어요.</span></td></tr><tr><td>3번</td><td><b>B. So it will not crack at the corners</b><br><span style='color:#777;font-size:14px'>모서리에 금이 가지 않도록 둥근 모양으로 만들어졌어요.</span></td></tr></table>
 
   <h3>읽기 레벨</h3>
-  <div class="level-note">이 글의 읽기 레벨은 <b>약 3.4</b>입니다. 단어 96개, 문장 12개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요.</div>
+  <div class="level-note">이 글의 읽기 레벨은 <b>약 4.1</b>입니다. 단어 111개, 문장 14개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝의 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요.</div>
 
   <h3>원문</h3>
   <p style="font-size:15px">
     이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.<br>
-    <a href="https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile" target="_blank" rel="noopener">https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile</a>
+    <a href="https://www.dogonews.com/2026/6/30/inside-americas-250th-birthday-time-capsule" target="_blank" rel="noopener">https://www.dogonews.com/2026/6/30/inside-americas-250th-birthday-time-capsule</a>
   </p>
 </div>
 
@@ -164,7 +195,7 @@
 <div id="pdf-msg"></div>
 
 <footer>
-  출처: <a href="https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
+  출처: <a href="https://www.dogonews.com/2026/6/30/inside-americas-250th-birthday-time-capsule">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
   사진은 퍼블릭 도메인인 경우에만 싣습니다.<br>
   <a href="./">지난 신문 보기</a>
 </footer>
@@ -177,7 +208,28 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 var PDF_DATE  = "2026-08-12";
-var GLOSSARY  = {"josh": "조시 (이름)", "kerr": "커 (성)", "fast": "빠른", "runner": "달리기 선수", "scotland": "스코틀랜드", "july": "7월", "set": "세웠다", "new": "새로운", "world": "세계", "record": "기록", "ran": "달렸다", "one": "1", "mile": "마일", "minutes": "분", "seconds": "초", "before": "~전에", "race": "경주", "worked": "노력했다", "hard": "열심히", "trained": "훈련했다", "high": "높은", "mountain": "산", "make": "만들다", "body": "몸", "strong": "튼튼한", "even": "~조차", "slept": "잤다", "special": "특별한", "room": "방", "about": "약", "people": "사람들", "watched": "지켜보았다", "london": "런던", "two": "두 명의", "other": "다른", "runners": "달리기 선수들", "helped": "도왔다", "stay": "유지하다", "near": "~근처에", "end": "끝", "super": "엄청", "passed": "앞질렀다", "everyone": "모두를", "broke": "깨뜨렸다", "famous": "유명한", "happy": "기쁜", "because": "~때문에", "big": "큰", "dream": "꿈", "came": "왔다", "true": "실현된", "now": "지금", "running": "달리기", "hero": "영웅"};
+var GLOSSARY  = {"july": "7월", "america": "미국", "celebrate": "축하하다", "th": "250번째의", "birthday": "생일", "people": "사람들", "bury": "묻다", "special": "특별한", "time": "시간", "capsule": "캡슐", "philadelphia": "필라델피아", "stay": "머무르다", "underground": "땅속에", "years": "년, 해", "open": "열다", "states": "주들", "put": "넣다", "fun": "재미있는", "things": "물건들", "inside": "안에", "utah": "유타 주", "sent": "보냈다", "cards": "카드들", "coins": "동전들", "arkansas": "아칸소 주", "real": "진짜의", "diamond": "다이아몬드", "california": "캘리포니아 주", "small": "작은", "computer": "컴퓨터", "chip": "칩", "picture": "사진, 그림", "future": "미래", "scientists": "과학자들", "worked": "일했다", "hard": "열심히", "protect": "보호하다", "items": "물품들", "water": "물", "made": "만들었다", "strong": "튼튼한", "steel": "강철", "used": "사용했다", "round": "둥근", "shape": "모양", "crack": "금이 가다", "corners": "모서리들", "big": "큰", "snake": "뱀", "sculpture": "조각품", "mark": "표시하다", "spot": "장소", "holds": "담고 있다", "pictures": "사진들", "letter": "편지", "shows": "보여주다", "our": "우리의", "hope": "희망", "world": "세상"};
+
+/* ── 퀴즈 채점 ────────────────────────────────────────── */
+
+function pick(btn, idx) {
+  var box = btn.parentNode;
+  if (box.dataset.done === '1') return;
+  var ans = parseInt(box.dataset.a, 10);
+
+  if (idx === ans) {
+    btn.className = 'qz-c right';
+    box.dataset.done = '1';
+    var msg = document.createElement('p');
+    msg.className = 'qz-done';
+    msg.textContent = '정답이에요!';
+    box.appendChild(msg);
+  } else {
+    btn.className = 'qz-c wrong';
+  }
+}
+
+/* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
 
 var lastWordEl = null;
 var barTimer = null;
@@ -202,9 +254,10 @@ function tapWord(el) {
 
   clearTimeout(barTimer);
   barTimer = setTimeout(hideBar, 6000);
-
   speak(raw, 0.7);
 }
+
+/* ── 읽어주기 ─────────────────────────────────────────── */
 
 var enVoice = null;
 
@@ -232,7 +285,7 @@ if (window.speechSynthesis) {
 
 function speak(text, rate, onEnd) {
   if (!window.speechSynthesis) {
-    alert('이 브라우저는 읽어주기를 지원하지 않아요.');
+    alert('이 브라우저는 읽어주기를 지원하지 않아요. 크롬으로 열어보세요.');
     return;
   }
   speechSynthesis.cancel();
@@ -244,9 +297,7 @@ function speak(text, rate, onEnd) {
   speechSynthesis.speak(u);
 }
 
-function sayWord(el) {
-  speak(el.textContent.trim(), 0.75);
-}
+function sayWord(el) { speak(el.textContent.trim(), 0.75); }
 
 function sayArticle(btn) {
   if (speechSynthesis.speaking && btn.classList.contains('playing')) {
@@ -267,6 +318,8 @@ function sayArticle(btn) {
     btn.textContent = '🔊 들어보기';
   });
 }
+
+/* ── PDF 저장 ─────────────────────────────────────────── */
 
 function savePdf(mode) {
   var btns = document.querySelector('.btns');

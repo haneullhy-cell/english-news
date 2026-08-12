@@ -3,7 +3,8 @@
     "https://www.dogonews.com/2026/8/10/look-up-the-perseid-meteor-shower-peaks-august-12-13",
     "https://www.dogonews.com/2026/8/7/why-rescue-animals-in-england-are-wearing-soccer-socks",
     "https://www.dogonews.com/2026/8/5/mainland-europe-set-to-witness-its-first-total-solar-eclipse-since-1999",
-    "https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile"
+    "https://www.dogonews.com/2026/7/30/josh-kerr-sets-new-world-record-for-the-fastest-mile",
+    "https://www.dogonews.com/2026/6/30/inside-americas-250th-birthday-time-capsule"
   ],
   "issues": [
     {
@@ -29,6 +30,12 @@
       "file": "2026-08-12.html",
       "title_en": "Josh Kerr Runs Fast and Breaks World Record",
       "title_ko": "세계 신기록을 세운 조시 커"
+    },
+    {
+      "date": "2026-08-12",
+      "file": "2026-08-12.html",
+      "title_en": "America's Birthday and a Special Time Capsule",
+      "title_ko": "미국의 생일과 특별한 타임캡슐"
     }
   ]
 }
