@@ -25,6 +25,8 @@ jobs:
 
       - name: 필요한 것 설치
         run: pip install -r requirements.txt
+      - name: 브라우저 설치 (기사 영상 찾기용)
+        run: python -m playwright install --with-deps chromium
 
       - name: 영어신문 만들어서 카톡 보내기
         env:
