@@ -234,6 +234,8 @@ PUBLIC_DOMAIN_HINTS = [
     "nasa", "noaa", "usgs", "nps.gov", "national park service",
     "u.s. air force", "u.s. navy", "u.s. army", "usda",
     "library of congress", "smithsonian open access",
+    "creative commons", "cc by", "cc-by", "cc0",
+    "wikimedia", "wikipedia", "flickr",
 ]
 
 
