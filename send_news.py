@@ -411,6 +411,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .print-btn{{flex:1;padding:15px;font-size:15px;font-weight:700;background:#1a1a1a;
     color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit}}
   .print-btn.alt{{background:#fff;color:#1a1a1a;border:1.5px solid #1a1a1a}}
+  #pdf-msg{{margin-top:12px;font-size:14px;color:#666;text-align:center}}
   footer{{margin-top:36px;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#aaa}}
   footer a{{color:#aaa}}
   body.kid-only .parent{{display:none}}
@@ -465,20 +466,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </div>
 
 <div class="btns">
-  <button class="print-btn" onclick="printKid()">아이 것만 인쇄</button>
-  <button class="print-btn alt" onclick="window.print()">전체 인쇄</button>
+  <button class="print-btn" onclick="savePdf('kid')">아이 것만 PDF 저장</button>
+  <button class="print-btn alt" onclick="savePdf('all')">전체 PDF 저장</button>
 </div>
+<div id="pdf-msg"></div>
 
 <footer>
   출처: <a href="{source_url}">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
   <a href="./">지난 신문 보기</a>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
-function printKid() {{
-  document.body.classList.add('kid-only');
-  window.print();
-  setTimeout(function() {{ document.body.classList.remove('kid-only'); }}, 500);
+var PDF_DATE = "{date_file}";
+
+function savePdf(mode) {{
+  var btns = document.querySelector('.btns');
+  var msg  = document.getElementById('pdf-msg');
+
+  if (typeof html2pdf === 'undefined') {{
+    msg.textContent = 'PDF 기능을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해주세요.';
+    return;
+  }}
+
+  if (mode === 'kid') {{ document.body.classList.add('kid-only'); }}
+  btns.style.display = 'none';
+  msg.textContent = 'PDF 만드는 중... 잠시만요';
+
+  var filename = PDF_DATE + '-영어신문-' + (mode === 'kid' ? '아이' : '전체') + '.pdf';
+
+  var opt = {{
+    margin:      [12, 10, 12, 10],
+    filename:    filename,
+    image:       {{ type: 'jpeg', quality: 0.98 }},
+    html2canvas: {{ scale: 2, useCORS: true, scrollY: 0 }},
+    jsPDF:       {{ unit: 'mm', format: 'a4', orientation: 'portrait' }},
+    pagebreak:   {{ mode: ['css', 'legacy'], before: '.parent' }}
+  }};
+
+  function done() {{
+    btns.style.display = '';
+    document.body.classList.remove('kid-only');
+    msg.textContent = '';
+  }}
+
+  html2pdf().set(opt).from(document.body).save().then(done).catch(function(e) {{
+    done();
+    msg.textContent = 'PDF 저장에 실패했습니다: ' + e;
+  }});
 }}
 </script>
 
@@ -507,6 +542,7 @@ def render_html(c, source_url):
 
     return HTML_TEMPLATE.format(
         date_en=TODAY.strftime("%A, %B %d, %Y"),
+        date_file=DATE_STR,
         title_en=esc(c["title_en"]),
         article_html=article_html,
         words_en_html=words_en_html,
@@ -590,7 +626,7 @@ def send_kakao(access_token, content, page_url):
         "object_type": "text",
         "text": text,
         "link": {"web_url": page_url, "mobile_web_url": page_url},
-        "button_title": "전체 보기 · 인쇄",
+        "button_title": "전체 보기 · PDF 저장",
     }
 
     log("카카오톡 발송 중...")
