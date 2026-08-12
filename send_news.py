@@ -193,12 +193,16 @@ def pick_article(history):
 
 
 def find_video(page_html):
-    """본문 영상은 항상 'Resources:' 표기보다 앞에 나온다."""
+    """기사 영상은 출처 표기('Resources:') 바로 아래에 붙는다.
+
+    페이지에는 사이드바 추천 영상도 여러 개 들어있어서,
+    Resources 직후 5000자 안에서 찾은 첫 영상만 기사 영상으로 인정한다.
+    """
     cutoff = page_html.find("Resources:")
     if cutoff < 0:
-        cutoff = int(len(page_html) * 0.5)
+        return None
     for m in re.finditer(r"embed/([A-Za-z0-9_-]{11})", page_html):
-        if m.start() < cutoff:
+        if cutoff < m.start() < cutoff + 5000:
             log(f"  영상 발견: {m.group(1)}")
             return m.group(1)
     return None
@@ -268,7 +272,7 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 
 {{
   "title_en": "쉬운 영어 제목 (8단어 이내)",
-  "article_en": ["문단1", "문단2", "문단3", "문단4"],
+  "article_en": ["문단1", "문단2", "문단3", "문단4", "문단5"],
   "words": [
     {{"en": "meteor",
       "def_en": "a small rock from space that burns and makes a bright line in the sky",
@@ -292,9 +296,10 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 }}
 
 [아이용 규칙 — 여기엔 한국어 금지]
-- article_en은 전체 합쳐서 반드시 100~150 단어. 문장은 짧고 쉽게.
+- article_en은 전체 합쳐서 반드시 170~230 단어. 문단은 4~6개.
+  문장은 여전히 짧고 쉽게 유지하면서, 내용을 더 자세히 담으세요.
   원문을 그대로 베끼지 말고 다시 쓰세요.
-- words는 5~7개. 기사에 실제로 나온 단어만.
+- words는 7~9개. 기사에 실제로 나온 단어만.
 - def_en(영영 뜻)이 핵심입니다. 아주 쉽게:
   · 9살이 아는 단어로만 설명 (기초 500단어 수준), 15단어 이내 한 문장
   · 설명하려는 단어 자체를 설명 안에 쓰지 마세요
@@ -802,7 +807,6 @@ def render_media(art):
 
 
 def render_quiz(quiz):
-    """아이 면 — 눌러서 채점되는 객관식 문제."""
     if not quiz:
         return "<p style='color:#999;font-size:14px'>이번 기사는 문제가 없어요.</p>"
 
@@ -821,7 +825,6 @@ def render_quiz(quiz):
 
 
 def render_quiz_answers(quiz):
-    """엄마 면 — 정답과 한국어 해설."""
     if not quiz:
         return "<p style='font-size:15px'>이번 기사는 문제가 없어요.</p>"
 
