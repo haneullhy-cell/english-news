@@ -7,7 +7,8 @@
     "https://www.dogonews.com/2026/6/30/inside-americas-250th-birthday-time-capsule",
     "https://www.dogonews.com/2026/6/29/pop-icons-to-headline-first-ever-fifa-world-cup-halftime-show",
     "https://www.dogonews.com/2026/6/26/celebrate-national-ice-cream-month-with-these-scoop-worthy-facts",
-    "https://www.dogonews.com/2026/8/12/famous-piano-playing-octopus-retires"
+    "https://www.dogonews.com/2026/8/12/famous-piano-playing-octopus-retires",
+    "https://www.dogonews.com/2026/6/25/these-tiny-fish-can-climb-steep-rock-walls"
   ],
   "issues": [
     {
@@ -57,6 +58,12 @@
       "file": "2026-08-13.html",
       "title_en": "The Famous Piano Playing Octopus Retires",
       "title_ko": "피아노 치는 문어 타코의 은퇴"
+    },
+    {
+      "date": "2026-08-14",
+      "file": "2026-08-14.html",
+      "title_en": "Tiny Fish That Can Climb High Waterfalls",
+      "title_ko": "높은 폭포를 기어오르는 작은 물고기"
     }
   ]
 }
