@@ -1173,7 +1173,7 @@ def send_kakao(access_token, content, page_url):
     문장 중간이 잘리지 않도록 요약부터 줄여서 맞춘다.
     """
     head = f"📰 오늘의 영어신문\n{content['title_ko']}"
-    tail = f"💬 {content['question_ko']}"
+    tail = f"💬 {content['question_ko']}\n{page_url}"
     summary = content["summary_ko"]
 
     # 머리말 + 질문은 반드시 남기고, 남는 공간만큼만 요약을 넣는다
