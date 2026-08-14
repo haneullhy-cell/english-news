@@ -8,7 +8,8 @@
     "https://www.dogonews.com/2026/6/29/pop-icons-to-headline-first-ever-fifa-world-cup-halftime-show",
     "https://www.dogonews.com/2026/6/26/celebrate-national-ice-cream-month-with-these-scoop-worthy-facts",
     "https://www.dogonews.com/2026/8/12/famous-piano-playing-octopus-retires",
-    "https://www.dogonews.com/2026/6/25/these-tiny-fish-can-climb-steep-rock-walls"
+    "https://www.dogonews.com/2026/6/25/these-tiny-fish-can-climb-steep-rock-walls",
+    "https://www.dogonews.com/2026/6/23/why-pink-cleats-have-taken-over-the-world-cup"
   ],
   "issues": [
     {
@@ -64,6 +65,12 @@
       "file": "2026-08-14.html",
       "title_en": "Tiny Fish That Can Climb High Waterfalls",
       "title_ko": "높은 폭포를 기어오르는 작은 물고기"
+    },
+    {
+      "date": "2026-08-14",
+      "file": "2026-08-14.html",
+      "title_en": "Why Are World Cup Shoes Pink?",
+      "title_ko": "월드컵 축구화가 분홍색인 이유"
     }
   ]
 }

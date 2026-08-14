@@ -81,7 +81,9 @@
   #wb-en{font-size:20px;font-weight:700;margin-right:12px}
   #wb-ko{font-size:16px;color:#ffe9a8}
   #wb-x{float:right;font-size:20px;color:#888;cursor:pointer;line-height:1.2}
-  .btns{display:flex;gap:10px;margin:40px 0 0}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin:40px 0 0}
+  body.no-article #read-h2,body.no-article #read-hint,
+  body.no-article #article{display:none}
   @media print{ .say-btn,.hint,#wordbar,.orig-btn,.orig-note{display:none}
     .w{background:none} }
   .print-btn{flex:1;padding:15px;font-size:15px;font-weight:700;background:#1a1a1a;
@@ -105,112 +107,110 @@
 <body>
 
 <div class="date">Friday, August 14, 2026</div>
-<h1>Tiny Fish That Can Climb High Waterfalls</h1>
+<h1>Why Are World Cup Shoes Pink?</h1>
 <div class="meta-row">
-  <span class="level">읽기 레벨 약 2.5 (AR 환산 추정)</span>
+  <span class="level">읽기 레벨 약 2.3 (AR 환산 추정)</span>
 </div>
 
-<img class="hero" src="https://cdn4.dogonews.com/images/02aa42ec-f1f4-44c6-aeb7-f1eef6f0215e/download-14.jpeg" alt=""><p class="hero-cap">Tiny shellear fish climbing up the 50-foot rockface behind Luvilombo Falls (Credit: P. Kiwele Mutambala  et al., Scientific Reports , 2026 under CC-BY-4.0)</p>
-<a class="vid-btn" href="https://www.youtube.com/watch?v=GdQ7wAuJ_uI" target="_blank" rel="noopener">▶ 오늘의 영상 보기</a>
+<a class="vid-btn" href="https://www.youtube.com/watch?v=_6X_MndNFCA" target="_blank" rel="noopener">▶ 오늘의 영상 보기</a>
 
-<a class="orig-btn" href="https://www.dogonews.com/2026/6/25/these-tiny-fish-can-climb-steep-rock-walls" target="_blank" rel="noopener">
+<a class="orig-btn" href="https://www.dogonews.com/2026/6/23/why-pink-cleats-have-taken-over-the-world-cup" target="_blank" rel="noopener">
   원문 기사 보기 (사진 더 있음)
 </a>
 <hr>
 
-<h2>READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
-<p class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
+<h2 id="read-h2">READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
+<p id="read-hint" class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
 <div class="article" id="article">
-  <p><span class="w" onclick="tapWord(this)">Can</span> you <span class="w" onclick="tapWord(this)">imagine</span> a <span class="w" onclick="tapWord(this)">fish</span> <span class="w" onclick="tapWord(this)">climbing</span> a <span class="w" onclick="tapWord(this)">high</span> <span class="w" onclick="tapWord(this)">rock</span> <span class="w" onclick="tapWord(this)">wall</span>? In <span class="w" onclick="tapWord(this)">Africa</span>, a <span class="w" onclick="tapWord(this)">tiny</span> <span class="w" onclick="tapWord(this)">fish</span> <span class="w" onclick="tapWord(this)">can</span> <span class="w" onclick="tapWord(this)">do</span> this! It is <span class="w" onclick="tapWord(this)">called</span> the <span class="w" onclick="tapWord(this)">shellear</span> <span class="w" onclick="tapWord(this)">fish</span>. It is <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">small</span>, <span class="w" onclick="tapWord(this)">like</span> a <span class="w" onclick="tapWord(this)">French</span> <span class="w" onclick="tapWord(this)">fry</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">These</span> <span class="w" onclick="tapWord(this)">fish</span> <span class="w" onclick="tapWord(this)">live</span> in <span class="w" onclick="tapWord(this)">Africa</span>. <span class="w" onclick="tapWord(this)">Every</span> <span class="w" onclick="tapWord(this)">year</span>, <span class="w" onclick="tapWord(this)">after</span> <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">rains</span>, <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">travel</span> <span class="w" onclick="tapWord(this)">up</span> a <span class="w" onclick="tapWord(this)">huge</span> <span class="w" onclick="tapWord(this)">waterfall</span>. The <span class="w" onclick="tapWord(this)">waterfall</span> is <span class="w" onclick="tapWord(this)">fifteen</span> <span class="w" onclick="tapWord(this)">meters</span> <span class="w" onclick="tapWord(this)">tall</span>. The <span class="w" onclick="tapWord(this)">water</span> <span class="w" onclick="tapWord(this)">rushes</span> <span class="w" onclick="tapWord(this)">down</span> <span class="w" onclick="tapWord(this)">fast</span>. <span class="w" onclick="tapWord(this)">Still</span>, <span class="w" onclick="tapWord(this)">these</span> <span class="w" onclick="tapWord(this)">little</span> <span class="w" onclick="tapWord(this)">fish</span> <span class="w" onclick="tapWord(this)">climb</span> <span class="w" onclick="tapWord(this)">straight</span> <span class="w" onclick="tapWord(this)">up</span> the <span class="w" onclick="tapWord(this)">wet</span>, <span class="w" onclick="tapWord(this)">slippery</span> <span class="w" onclick="tapWord(this)">rock</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">How</span> <span class="w" onclick="tapWord(this)">do</span> <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">climb</span> <span class="w" onclick="tapWord(this)">without</span> <span class="w" onclick="tapWord(this)">falling</span>? <span class="w" onclick="tapWord(this)">Scientists</span> <span class="w" onclick="tapWord(this)">looked</span> <span class="w" onclick="tapWord(this)">closely</span> at <span class="w" onclick="tapWord(this)">their</span> <span class="w" onclick="tapWord(this)">bodies</span>. <span class="w" onclick="tapWord(this)">They</span> <span class="w" onclick="tapWord(this)">found</span> <span class="w" onclick="tapWord(this)">tiny</span> <span class="w" onclick="tapWord(this)">hooks</span> on <span class="w" onclick="tapWord(this)">their</span> <span class="w" onclick="tapWord(this)">front</span> <span class="w" onclick="tapWord(this)">fins</span>. <span class="w" onclick="tapWord(this)">These</span> <span class="w" onclick="tapWord(this)">hooks</span> <span class="w" onclick="tapWord(this)">grip</span> the <span class="w" onclick="tapWord(this)">rock</span> <span class="w" onclick="tapWord(this)">like</span> <span class="w" onclick="tapWord(this)">Velcro</span>. <span class="w" onclick="tapWord(this)">Their</span> <span class="w" onclick="tapWord(this)">back</span> <span class="w" onclick="tapWord(this)">fins</span> <span class="w" onclick="tapWord(this)">push</span> <span class="w" onclick="tapWord(this)">them</span> <span class="w" onclick="tapWord(this)">upward</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">Climbing</span> is <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">hard</span> <span class="w" onclick="tapWord(this)">work</span>. To <span class="w" onclick="tapWord(this)">avoid</span> <span class="w" onclick="tapWord(this)">strong</span> <span class="w" onclick="tapWord(this)">water</span>, the <span class="w" onclick="tapWord(this)">fish</span> <span class="w" onclick="tapWord(this)">stay</span> <span class="w" onclick="tapWord(this)">near</span> the <span class="w" onclick="tapWord(this)">edge</span>. <span class="w" onclick="tapWord(this)">They</span> <span class="w" onclick="tapWord(this)">often</span> <span class="w" onclick="tapWord(this)">stop</span> and <span class="w" onclick="tapWord(this)">rest</span> for an <span class="w" onclick="tapWord(this)">hour</span>. <span class="w" onclick="tapWord(this)">Sometimes</span> <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">slip</span> and <span class="w" onclick="tapWord(this)">fall</span> <span class="w" onclick="tapWord(this)">down</span>. <span class="w" onclick="tapWord(this)">Then</span> <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">must</span> <span class="w" onclick="tapWord(this)">start</span> <span class="w" onclick="tapWord(this)">over</span>! A <span class="w" onclick="tapWord(this)">single</span> <span class="w" onclick="tapWord(this)">climb</span> <span class="w" onclick="tapWord(this)">can</span> <span class="w" onclick="tapWord(this)">take</span> <span class="w" onclick="tapWord(this)">ten</span> <span class="w" onclick="tapWord(this)">hours</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">Why</span> <span class="w" onclick="tapWord(this)">do</span> <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">go</span> to the <span class="w" onclick="tapWord(this)">top</span>? <span class="w" onclick="tapWord(this)">Scientists</span> <span class="w" onclick="tapWord(this)">think</span> <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">want</span> <span class="w" onclick="tapWord(this)">better</span> <span class="w" onclick="tapWord(this)">food</span> and <span class="w" onclick="tapWord(this)">safer</span> <span class="w" onclick="tapWord(this)">homes</span>. <span class="w" onclick="tapWord(this)">Only</span> <span class="w" onclick="tapWord(this)">young</span> <span class="w" onclick="tapWord(this)">fish</span> <span class="w" onclick="tapWord(this)">make</span> this <span class="w" onclick="tapWord(this)">climb</span>. <span class="w" onclick="tapWord(this)">Adult</span> <span class="w" onclick="tapWord(this)">fish</span> are <span class="w" onclick="tapWord(this)">too</span> <span class="w" onclick="tapWord(this)">big</span> and <span class="w" onclick="tapWord(this)">heavy</span> to <span class="w" onclick="tapWord(this)">climb</span> the <span class="w" onclick="tapWord(this)">wall</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Did</span> you <span class="w" onclick="tapWord(this)">see</span> the <span class="w" onclick="tapWord(this)">soccer</span> <span class="w" onclick="tapWord(this)">games</span>? <span class="w" onclick="tapWord(this)">Many</span> <span class="w" onclick="tapWord(this)">players</span> <span class="w" onclick="tapWord(this)">wore</span> <span class="w" onclick="tapWord(this)">pink</span> <span class="w" onclick="tapWord(this)">shoes</span>. It was not a <span class="w" onclick="tapWord(this)">mistake</span>. <span class="w" onclick="tapWord(this)">Big</span> <span class="w" onclick="tapWord(this)">shoe</span> <span class="w" onclick="tapWord(this)">companies</span> <span class="w" onclick="tapWord(this)">planned</span> <span class="w" onclick="tapWord(this)">this</span> <span class="w" onclick="tapWord(this)">together</span>. <span class="w" onclick="tapWord(this)">Why</span> <span class="w" onclick="tapWord(this)">did</span> <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">choose</span> <span class="w" onclick="tapWord(this)">pink</span>?</p>
+  <p>The <span class="w" onclick="tapWord(this)">grass</span> on the <span class="w" onclick="tapWord(this)">soccer</span> <span class="w" onclick="tapWord(this)">field</span> is <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">green</span>. <span class="w" onclick="tapWord(this)">Pink</span> is a <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">bright</span> <span class="w" onclick="tapWord(this)">color</span>. <span class="w" onclick="tapWord(this)">When</span> <span class="w" onclick="tapWord(this)">pink</span> <span class="w" onclick="tapWord(this)">shoes</span> are on <span class="w" onclick="tapWord(this)">green</span> <span class="w" onclick="tapWord(this)">grass</span>, <span class="w" onclick="tapWord(this)">they</span> are <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">easy</span> to <span class="w" onclick="tapWord(this)">see</span>. <span class="w" onclick="tapWord(this)">People</span> <span class="w" onclick="tapWord(this)">watching</span> on <span class="w" onclick="tapWord(this)">television</span> can <span class="w" onclick="tapWord(this)">see</span> the <span class="w" onclick="tapWord(this)">pink</span> <span class="w" onclick="tapWord(this)">shoes</span> <span class="w" onclick="tapWord(this)">clearly</span>. The <span class="w" onclick="tapWord(this)">shoe</span> <span class="w" onclick="tapWord(this)">companies</span> <span class="w" onclick="tapWord(this)">want</span> <span class="w" onclick="tapWord(this)">everyone</span> to <span class="w" onclick="tapWord(this)">look</span> at their <span class="w" onclick="tapWord(this)">shoes</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Soccer</span> <span class="w" onclick="tapWord(this)">players</span> <span class="w" onclick="tapWord(this)">wear</span> <span class="w" onclick="tapWord(this)">different</span> <span class="w" onclick="tapWord(this)">colors</span> for their <span class="w" onclick="tapWord(this)">teams</span>. <span class="w" onclick="tapWord(this)">They</span> <span class="w" onclick="tapWord(this)">wear</span> <span class="w" onclick="tapWord(this)">blue</span>, <span class="w" onclick="tapWord(this)">red</span>, <span class="w" onclick="tapWord(this)">yellow</span>, or <span class="w" onclick="tapWord(this)">white</span> <span class="w" onclick="tapWord(this)">shirts</span>. But no <span class="w" onclick="tapWord(this)">team</span> <span class="w" onclick="tapWord(this)">wears</span> a <span class="w" onclick="tapWord(this)">lot</span> of <span class="w" onclick="tapWord(this)">pink</span>. So, the <span class="w" onclick="tapWord(this)">pink</span> <span class="w" onclick="tapWord(this)">shoes</span> <span class="w" onclick="tapWord(this)">look</span> <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">next</span> to the <span class="w" onclick="tapWord(this)">team</span> <span class="w" onclick="tapWord(this)">clothes</span>. <span class="w" onclick="tapWord(this)">They</span> <span class="w" onclick="tapWord(this)">stand</span> <span class="w" onclick="tapWord(this)">out</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Bright</span> <span class="w" onclick="tapWord(this)">colors</span> can <span class="w" onclick="tapWord(this)">also</span> <span class="w" onclick="tapWord(this)">help</span> the <span class="w" onclick="tapWord(this)">players</span>. <span class="w" onclick="tapWord(this)">When</span> <span class="w" onclick="tapWord(this)">players</span> <span class="w" onclick="tapWord(this)">wear</span> <span class="w" onclick="tapWord(this)">bright</span> <span class="w" onclick="tapWord(this)">pink</span> <span class="w" onclick="tapWord(this)">shoes</span>, <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">feel</span> <span class="w" onclick="tapWord(this)">strong</span> and <span class="w" onclick="tapWord(this)">fast</span>. <span class="w" onclick="tapWord(this)">They</span> <span class="w" onclick="tapWord(this)">want</span> to play <span class="w" onclick="tapWord(this)">better</span>. The <span class="w" onclick="tapWord(this)">bright</span> <span class="w" onclick="tapWord(this)">color</span> <span class="w" onclick="tapWord(this)">gives</span> them <span class="w" onclick="tapWord(this)">good</span> <span class="w" onclick="tapWord(this)">energy</span>.</p>
+  <p>But there is one <span class="w" onclick="tapWord(this)">small</span> <span class="w" onclick="tapWord(this)">problem</span>. <span class="w" onclick="tapWord(this)">Before</span>, <span class="w" onclick="tapWord(this)">fans</span> <span class="w" onclick="tapWord(this)">knew</span> their <span class="w" onclick="tapWord(this)">favorite</span> <span class="w" onclick="tapWord(this)">players</span> by their <span class="w" onclick="tapWord(this)">shoe</span> <span class="w" onclick="tapWord(this)">colors</span>. Now, <span class="w" onclick="tapWord(this)">many</span> <span class="w" onclick="tapWord(this)">players</span> <span class="w" onclick="tapWord(this)">wear</span> the <span class="w" onclick="tapWord(this)">same</span> <span class="w" onclick="tapWord(this)">pink</span> <span class="w" onclick="tapWord(this)">shoes</span>. <span class="w" onclick="tapWord(this)">Fans</span> have to <span class="w" onclick="tapWord(this)">look</span> at the <span class="w" onclick="tapWord(this)">numbers</span> on their <span class="w" onclick="tapWord(this)">shirts</span> to <span class="w" onclick="tapWord(this)">know</span> <span class="w" onclick="tapWord(this)">who</span> <span class="w" onclick="tapWord(this)">they</span> are!</p>
 </div>
 
 <h2>WORDS <span class="hint">단어를 누르면 소리가 나요</span></h2>
 <dl class="words-def">
-<dt onclick="sayWord(this)">tiny</dt><dd>very, very small</dd>
-<dt onclick="sayWord(this)">waterfall</dt><dd>water falling from a high place to a low place</dd>
-<dt onclick="sayWord(this)">slippery</dt><dd>smooth and wet so things slide easily</dd>
-<dt onclick="sayWord(this)">hooks</dt><dd>curved items used to catch or hold things</dd>
-<dt onclick="sayWord(this)">fins</dt><dd>flat body parts that fish use to swim</dd>
-<dt onclick="sayWord(this)">grip</dt><dd>to hold something very tightly</dd>
-<dt onclick="sayWord(this)">avoid</dt><dd>to stay away from something</dd>
-<dt onclick="sayWord(this)">heavy</dt><dd>having a lot of weight and hard to lift</dd>
+<dt onclick="sayWord(this)">planned</dt><dd>thought about how to do something before doing it</dd>
+<dt onclick="sayWord(this)">companies</dt><dd>groups of people who make and sell things</dd>
+<dt onclick="sayWord(this)">clearly</dt><dd>in a way that is very easy to see</dd>
+<dt onclick="sayWord(this)">special</dt><dd>different from normal things in a good way</dd>
+<dt onclick="sayWord(this)">energy</dt><dd>the power and feeling to move and play hard</dd>
+<dt onclick="sayWord(this)">problem</dt><dd>a thing that is difficult and needs to be fixed</dd>
+<dt onclick="sayWord(this)">favorite</dt><dd>the one you like the most out of all</dd>
 </dl>
 
 <h2>QUIZ <span class="hint">답을 골라보세요</span></h2>
   <div class="qz" data-a="0">
-    <p class="qz-q">1. What helps the tiny fish grip the rock?</p>
-    <button class="qz-c" onclick="pick(this,0)">A. Tiny hooks on their fins</button>
-    <button class="qz-c" onclick="pick(this,1)">B. Sticky glue on their heads</button>
-    <button class="qz-c" onclick="pick(this,2)">C. Big claws on their feet</button>
+    <p class="qz-q">1. Why is it easy to see pink shoes on the soccer field?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. Because the grass is green</button>
+    <button class="qz-c" onclick="pick(this,1)">B. Because the ball is pink</button>
+    <button class="qz-c" onclick="pick(this,2)">C. Because the players run slow</button>
   </div>
   <div class="qz" data-a="1">
-    <p class="qz-q">2. Why do adult fish not climb the waterfall?</p>
-    <button class="qz-c" onclick="pick(this,0)">A. They do not like rocks</button>
-    <button class="qz-c" onclick="pick(this,1)">B. They are too big and heavy</button>
-    <button class="qz-c" onclick="pick(this,2)">C. They want to stay asleep</button>
+    <p class="qz-q">2. What do bright pink shoes do for the players?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. Make them feel sleepy</button>
+    <button class="qz-c" onclick="pick(this,1)">B. Make them feel strong and fast</button>
+    <button class="qz-c" onclick="pick(this,2)">C. Make them want to go home</button>
   </div>
-  <div class="qz" data-a="2">
-    <p class="qz-q">3. What do the fish do to avoid strong water?</p>
-    <button class="qz-c" onclick="pick(this,0)">A. They jump over the waterfall</button>
-    <button class="qz-c" onclick="pick(this,1)">B. They fly into the sky</button>
-    <button class="qz-c" onclick="pick(this,2)">C. They stay near the edge</button>
+  <div class="qz" data-a="0">
+    <p class="qz-q">3. Why do fans have to look at shirt numbers now?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. Because players are wearing the same pink shoes</button>
+    <button class="qz-c" onclick="pick(this,1)">B. Because players have no names</button>
+    <button class="qz-c" onclick="pick(this,2)">C. Because the shoes are too small</button>
   </div>
 
 <h2>THINK</h2>
 <div class="question">
-  <div class="en">If you were a tiny climbing fish, what would you look for at the top of the waterfall?</div>
+  <div class="en">If you were a soccer player, what color shoes would you wear and why?</div>
 </div>
 
 <div class="parent">
   <div class="parent-tag">엄마 보는 곳</div>
-  <h3>높은 폭포를 기어오르는 작은 물고기</h3>
+  <h3>월드컵 축구화가 분홍색인 이유</h3>
 
-  <div class="summary">아프리카에는 감자튀김 크기의 아주 작은 물고기가 높은 폭포 바위를 기어올라갑니다. 지느러미에 달린 작은 갈고리로 바위를 잡고 최대 10시간 동안 올라갑니다. 어른 물고기는 너무 무거워서 어린 물고기들만 이 힘든 등반을 할 수 있습니다.</div>
+  <div class="summary">월드컵에서 많은 축구 선수들이 분홍색 축구화를 신은 것은 스포츠 브랜드들의 계획된 전략입니다. 초록색 잔디와 유니폼 색상에 대비되어 눈에 잘 띄고, 선수들에게는 자신감을 주기 때문입니다. 하지만 똑같은 색 때문에 멀리서 선수들을 구별하기는 어려워졌습니다.</div>
 
   <h3>단어 한국어 뜻</h3>
   <table>
   <tr><th>영어</th><th>뜻</th></tr>
-  <tr><td>tiny</td><td>아주 작은</td></tr>
-<tr><td>waterfall</td><td>폭포</td></tr>
-<tr><td>slippery</td><td>미끄러운</td></tr>
-<tr><td>hooks</td><td>갈고리</td></tr>
-<tr><td>fins</td><td>지느러미</td></tr>
-<tr><td>grip</td><td>꽉 잡다</td></tr>
-<tr><td>avoid</td><td>피하다</td></tr>
-<tr><td>heavy</td><td>무거운</td></tr>
+  <tr><td>planned</td><td>계획했다</td></tr>
+<tr><td>companies</td><td>회사들</td></tr>
+<tr><td>clearly</td><td>분명하게, 또렷하게</td></tr>
+<tr><td>special</td><td>특별한</td></tr>
+<tr><td>energy</td><td>에너지, 활력</td></tr>
+<tr><td>problem</td><td>문제</td></tr>
+<tr><td>favorite</td><td>가장 좋아하는</td></tr>
   </table>
 
   <h3>오늘의 질문</h3>
-  <p style="font-size:15px;margin-bottom:14px">만약 네가 폭포를 오르는 작은 물고기라면, 폭포 꼭대기에서 무엇을 찾고 싶니?</p>
+  <p style="font-size:15px;margin-bottom:14px">만약 네가 축구 선수라면, 어떤 색깔의 신발을 신고 싶어? 그 이유는 뭐야?</p>
 
-  <div class="tip">아이 신발이나 옷에 있는 찍찍이(벨크로)를 보여주며 물고기가 바위를 어떻게 잡는지 이야기해 보세요.</div>
+  <div class="tip">아이가 좋아하는 스포츠나 운동화 색깔에 대해 이야기하며, 왜 그 색이 좋은지 물어봐 주세요.</div>
 
   <h3>퀴즈 정답과 해설</h3>
-  <table><tr><th>문제</th><th>정답과 해설</th></tr><tr><td>1번</td><td><b>A. Tiny hooks on their fins</b><br><span style='color:#777;font-size:14px'>기사에서 앞지느러미에 달린 작은 갈고리(tiny hooks)로 바위를 잡는다고 나와요.</span></td></tr><tr><td>2번</td><td><b>B. They are too big and heavy</b><br><span style='color:#777;font-size:14px'>다 자란 어른 물고기는 너무 크고 무거워서(too big and heavy) 바위를 오르지 못해요.</span></td></tr><tr><td>3번</td><td><b>C. They stay near the edge</b><br><span style='color:#777;font-size:14px'>물살이 센 곳을 피하려고 폭포 가장자리(near the edge)로 올라간다고 나와요.</span></td></tr></table>
+  <table><tr><th>문제</th><th>정답과 해설</th></tr><tr><td>1번</td><td><b>A. Because the grass is green</b><br><span style='color:#777;font-size:14px'>기사에 초록색 잔디 위에서 분홍색이 아주 잘 보인다고 했어요.</span></td></tr><tr><td>2번</td><td><b>B. Make them feel strong and fast</b><br><span style='color:#777;font-size:14px'>밝은 분홍색 신발을 신으면 선수들이 강하고 빠르다고 느끼고 좋은 에너지를 얻는다고 나와요.</span></td></tr><tr><td>3번</td><td><b>A. Because players are wearing the same pink shoes</b><br><span style='color:#777;font-size:14px'>예전에는 신발 색깔로 선수를 구별했는데, 이제는 많은 선수가 똑같은 분홍색 신발을 신어서 등번호를 봐야 한다고 해요.</span></td></tr></table>
 
   <h3>읽기 레벨</h3>
-  <div class="level-note">이 글의 읽기 레벨은 <b>약 2.5</b>입니다. 단어 177개, 문장 24개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요.</div>
+  <div class="level-note">이 글의 읽기 레벨은 <b>약 2.3</b>입니다. 단어 183개, 문장 23개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요.</div>
 
   <h3>원문</h3>
   <p style="font-size:15px">
     이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.
     원래 글은 여기서 보실 수 있어요:<br>
-    <a href="https://www.dogonews.com/2026/6/25/these-tiny-fish-can-climb-steep-rock-walls" target="_blank" rel="noopener">https://www.dogonews.com/2026/6/25/these-tiny-fish-can-climb-steep-rock-walls</a>
+    <a href="https://www.dogonews.com/2026/6/23/why-pink-cleats-have-taken-over-the-world-cup" target="_blank" rel="noopener">https://www.dogonews.com/2026/6/23/why-pink-cleats-have-taken-over-the-world-cup</a>
   </p>
 </div>
 
 <div class="btns">
-  <button class="print-btn" onclick="savePdf('kid')">아이 것만 PDF 저장</button>
-  <button class="print-btn alt" onclick="savePdf('all')">전체 PDF 저장</button>
+  <button class="print-btn" onclick="savePdf('kid')">지문+문제 PDF</button>
+  <button class="print-btn" onclick="savePdf('quiz')">문제만 PDF (지문 빼고)</button>
+  <button class="print-btn alt" onclick="savePdf('all')">전체 PDF (엄마 면)</button>
 </div>
 <div id="pdf-msg"></div>
 
 <footer>
-  출처: <a href="https://www.dogonews.com/2026/6/25/these-tiny-fish-can-climb-steep-rock-walls">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
+  출처: <a href="https://www.dogonews.com/2026/6/23/why-pink-cleats-have-taken-over-the-world-cup">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
   <a href="./">지난 신문 보기</a>
 </footer>
 
@@ -222,7 +222,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 var PDF_DATE  = "2026-08-14";
-var GLOSSARY  = {"can": "~할 수 있다", "imagine": "상상하다", "fish": "물고기", "climbing": "오르는 것", "high": "높은", "rock": "바위", "wall": "벽", "africa": "아프리카", "tiny": "아주 작은", "called": "~라고 불리는", "shellear": "쉘리어 (물고기 이름)", "very": "매우", "small": "작은", "like": "~처럼", "french": "프렌치", "fry": "튀김", "live": "살다", "every": "매", "year": "해", "after": "~후에", "big": "큰", "rains": "비", "travel": "이동하다", "up": "위로", "huge": "거대한", "waterfall": "폭포", "fifteen": "15", "meters": "미터", "tall": "높은", "water": "물", "rushes": "세차게 흐르다", "down": "아래로", "fast": "빠르게", "still": "그래도", "these": "이", "little": "작은", "climb": "오르다", "straight": "곧장", "wet": "젖은", "slippery": "미끄러운", "how": "어떻게", "do": "하다", "they": "그들은", "without": "~없이", "falling": "떨어지는 것", "scientists": "과학자들", "looked": "관찰했다", "closely": "자세히", "bodies": "몸", "found": "발견했다", "hooks": "갈고리들", "front": "앞쪽", "fins": "지느러미들", "grip": "잡다", "velcro": "벨크로(찍찍이)", "their": "그들의", "back": "뒤쪽", "push": "밀다", "them": "그들을", "upward": "위쪽으로", "hard": "힘든", "work": "일", "avoid": "피하다", "strong": "강한", "stay": "머무르다", "near": "근처에", "edge": "가장자리", "often": "자주", "stop": "멈추다", "rest": "쉬다", "hour": "시간", "sometimes": "때때로", "slip": "미끄러지다", "fall": "떨어지다", "then": "그러고 나면", "must": "~해야 한다", "start": "시작하다", "over": "다시", "single": "한 번의", "take": "걸리다", "ten": "10", "hours": "시간", "why": "왜", "go": "가다", "top": "꼭대기", "think": "생각하다", "want": "원하다", "better": "더 좋은", "food": "먹이", "safer": "더 안전한", "homes": "집", "only": "오직", "young": "어린", "make": "하다", "adult": "다 자란", "too": "너무", "heavy": "무거운"};
+var GLOSSARY  = {"did": "했니 (질문할 때 쓰는 말)", "see": "보다", "soccer": "축구", "games": "경기", "many": "많은", "players": "선수들", "wore": "신었다", "pink": "분홍색", "shoes": "신발", "mistake": "실수", "big": "큰", "shoe": "신발", "companies": "회사들", "planned": "계획했다", "this": "이것", "together": "함께", "why": "왜", "they": "그들은", "choose": "고르다", "grass": "잔디", "field": "경기장", "very": "매우", "green": "초록색", "bright": "밝은", "color": "색깔", "when": "~할 때", "easy": "쉬운", "people": "사람들", "watching": "보는", "television": "텔레비전", "clearly": "분명하게, 잘", "want": "원하다", "everyone": "모든 사람", "look": "보다", "different": "다른", "colors": "색깔들", "teams": "팀들", "wear": "입다, 신다", "blue": "파란색", "red": "빨간색", "yellow": "노란색", "white": "하얀색", "shirts": "셔츠, 유니폼", "team": "팀", "wears": "입는다", "lot": "많은", "special": "특별한", "next": "옆에", "clothes": "옷", "stand": "서다 (stand out: 눈에 띄다)", "out": "밖으로", "also": "또한", "help": "돕다", "feel": "느끼다", "strong": "강한", "fast": "빠른", "better": "더 잘", "gives": "준다", "good": "좋은", "energy": "에너지, 힘", "small": "작은", "problem": "문제", "before": "예전에", "fans": "팬들", "knew": "알았다", "favorite": "가장 좋아하는", "same": "같은", "numbers": "번호들", "know": "알다", "who": "누구"};
 
 /* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
 
@@ -346,11 +346,13 @@ function savePdf(mode) {
     return;
   }
 
-  if (mode === 'kid') { document.body.classList.add('kid-only'); }
+  if (mode !== 'all') { document.body.classList.add('kid-only'); }
+  if (mode === 'quiz') { document.body.classList.add('no-article'); }
   btns.style.display = 'none';
   msg.textContent = 'PDF 만드는 중... 잠시만요';
 
-  var filename = PDF_DATE + '-영어신문-' + (mode === 'kid' ? '아이' : '전체') + '.pdf';
+  var filename = PDF_DATE + '-영어신문-' +
+    (mode === 'kid' ? '지문문제' : mode === 'quiz' ? '문제만' : '전체') + '.pdf';
 
   var opt = {
     margin:      [12, 10, 12, 10],
@@ -364,6 +366,7 @@ function savePdf(mode) {
   function done() {
     btns.style.display = '';
     document.body.classList.remove('kid-only');
+    document.body.classList.remove('no-article');
     msg.textContent = '';
   }
 
