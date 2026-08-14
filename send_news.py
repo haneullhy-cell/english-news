@@ -19,6 +19,7 @@ import sys
 import json
 import re
 import html
+import time
 from datetime import datetime, timezone, timedelta
 
 import requests
@@ -71,6 +72,7 @@ HISTORY_FILE = os.path.join(DOCS_DIR, "history.json")
 # 앞의 모델이 안 되면 뒤 것을 차례로 시도합니다. (모델 이름은 가끔 바뀝니다)
 GEMINI_MODELS = [
     "gemini-flash-latest",
+    "gemini-pro-latest",
     "gemini-2.5-flash",
     "gemini-2.0-flash",
     "gemini-2.5-flash-lite",
@@ -539,7 +541,13 @@ def make_content(title, body):
 
     for attempt in range(1, 4):
         log(f"AI로 아이 수준 자료 만드는 중... (시도 {attempt}/3)")
-        text = call_gemini(PROMPT.format(title=title, body=body))
+        try:
+            text = call_gemini(PROMPT.format(title=title, body=body))
+        except RuntimeError as e:
+            last_error = e
+            log(f"  AI 호출 실패 — 25초 쉬었다가 다시 시도합니다")
+            time.sleep(25)
+            continue
         text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
 
         try:
