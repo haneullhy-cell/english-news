@@ -521,8 +521,10 @@ def call_gemini(prompt):
                 "키가 다른 곳에서도 쓰이고 있는지 확인해보세요."
             )
 
+        # 503(서버 혼잡) 등 — 이 모델은 포기하고 다음 모델을 시도한다
         last_error = f"{model}: {res.status_code} {res.text[:300]}"
-        break
+        log(f"  {model} 응답 {res.status_code}, 다음 모델 시도")
+        continue
 
     raise RuntimeError(
         f"Gemini 호출 실패 — {last_error}\n"
