@@ -702,7 +702,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   #wb-en{{font-size:20px;font-weight:700;margin-right:12px}}
   #wb-ko{{font-size:16px;color:#ffe9a8}}
   #wb-x{{float:right;font-size:20px;color:#888;cursor:pointer;line-height:1.2}}
-  .btns{{display:flex;gap:10px;margin:40px 0 0}}
+  .btns{{display:flex;flex-wrap:wrap;gap:10px;margin:40px 0 0}}
+  body.no-article #read-h2,body.no-article #read-hint,
+  body.no-article #article{{display:none}}
   @media print{{ .say-btn,.hint,#wordbar,.orig-btn,.orig-note{{display:none}}
     .w{{background:none}} }}
   .print-btn{{flex:1;padding:15px;font-size:15px;font-weight:700;background:#1a1a1a;
@@ -738,8 +740,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </a>
 <hr>
 
-<h2>READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
-<p class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
+<h2 id="read-h2">READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
+<p id="read-hint" class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
 <div class="article" id="article">
 {article_html}
 </div>
@@ -789,8 +791,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </div>
 
 <div class="btns">
-  <button class="print-btn" onclick="savePdf('kid')">아이 것만 PDF 저장</button>
-  <button class="print-btn alt" onclick="savePdf('all')">전체 PDF 저장</button>
+  <button class="print-btn" onclick="savePdf('kid')">지문+문제 PDF</button>
+  <button class="print-btn" onclick="savePdf('quiz')">문제만 PDF (지문 빼고)</button>
+  <button class="print-btn alt" onclick="savePdf('all')">전체 PDF (엄마 면)</button>
 </div>
 <div id="pdf-msg"></div>
 
@@ -931,11 +934,13 @@ function savePdf(mode) {{
     return;
   }}
 
-  if (mode === 'kid') {{ document.body.classList.add('kid-only'); }}
+  if (mode !== 'all') {{ document.body.classList.add('kid-only'); }}
+  if (mode === 'quiz') {{ document.body.classList.add('no-article'); }}
   btns.style.display = 'none';
   msg.textContent = 'PDF 만드는 중... 잠시만요';
 
-  var filename = PDF_DATE + '-영어신문-' + (mode === 'kid' ? '아이' : '전체') + '.pdf';
+  var filename = PDF_DATE + '-영어신문-' +
+    (mode === 'kid' ? '지문문제' : mode === 'quiz' ? '문제만' : '전체') + '.pdf';
 
   var opt = {{
     margin:      [12, 10, 12, 10],
@@ -949,6 +954,7 @@ function savePdf(mode) {{
   function done() {{
     btns.style.display = '';
     document.body.classList.remove('kid-only');
+    document.body.classList.remove('no-article');
     msg.textContent = '';
   }}
 
