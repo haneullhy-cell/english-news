@@ -11,7 +11,8 @@
     "https://www.dogonews.com/2026/6/25/these-tiny-fish-can-climb-steep-rock-walls",
     "https://www.dogonews.com/2026/6/23/why-pink-cleats-have-taken-over-the-world-cup",
     "https://www.dogonews.com/2026/6/22/mars-flyby-sends-nasas-psyche-probe-toward-a-metal-rich-asteroid",
-    "https://www.dogonews.com/2026/8/14/nasa-launches-rescue-mission-to-save-the-swift-observatory"
+    "https://www.dogonews.com/2026/8/14/nasa-launches-rescue-mission-to-save-the-swift-observatory",
+    "https://www.dogonews.com/2026/4/27/the-super-mario-galaxy-movie-sets-box-office-records"
   ],
   "issues": [
     {
@@ -85,6 +86,12 @@
       "file": "2026-08-17.html",
       "title_en": "NASA Saves an Old Space Telescope",
       "title_ko": "낡은 우주 망원경을 구하는 나사(NASA)"
+    },
+    {
+      "date": "2026-08-17",
+      "file": "2026-08-17.html",
+      "title_en": "Super Mario Flies into Space",
+      "title_ko": "우주로 날아간 슈퍼 마리오 영화 대흥행!"
     }
   ]
 }
