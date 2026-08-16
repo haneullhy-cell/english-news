@@ -10,7 +10,8 @@
     "https://www.dogonews.com/2026/8/12/famous-piano-playing-octopus-retires",
     "https://www.dogonews.com/2026/6/25/these-tiny-fish-can-climb-steep-rock-walls",
     "https://www.dogonews.com/2026/6/23/why-pink-cleats-have-taken-over-the-world-cup",
-    "https://www.dogonews.com/2026/6/22/mars-flyby-sends-nasas-psyche-probe-toward-a-metal-rich-asteroid"
+    "https://www.dogonews.com/2026/6/22/mars-flyby-sends-nasas-psyche-probe-toward-a-metal-rich-asteroid",
+    "https://www.dogonews.com/2026/8/14/nasa-launches-rescue-mission-to-save-the-swift-observatory"
   ],
   "issues": [
     {
@@ -78,6 +79,12 @@
       "file": "2026-08-14.html",
       "title_en": "A Long Trip to a Metal Rock",
       "title_ko": "화성의 도움을 받아 금속 소행성으로 가는 우주선"
+    },
+    {
+      "date": "2026-08-17",
+      "file": "2026-08-17.html",
+      "title_en": "NASA Saves an Old Space Telescope",
+      "title_ko": "낡은 우주 망원경을 구하는 나사(NASA)"
     }
   ]
 }
