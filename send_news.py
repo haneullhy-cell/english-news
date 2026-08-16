@@ -195,17 +195,13 @@ def save_history(hist):
         json.dump(hist, f, ensure_ascii=False, indent=2)
 
 
-def pick_article(history):
-    """DOGOnews 첫 화면에서 아직 안 쓴 적당한 기사 하나를 고른다."""
-    log("DOGOnews에서 기사 목록 가져오는 중...")
+def _dogonews_candidates(used):
+    """DOGOnews 첫 화면에서 안 쓴 기사 목록을 뽑는다."""
     res = requests.get("https://www.dogonews.com/", headers=UA, timeout=30)
     res.raise_for_status()
     soup = BeautifulSoup(res.text, "html.parser")
 
-    used = set(history.get("used_urls", []))
-    candidates = []
-    seen = set()
-
+    out, seen = [], set()
     for a in soup.find_all("a", href=True):
         href = a["href"]
         if not re.search(r"/\d{4}/\d{1,2}/\d{1,2}/", href):
@@ -218,14 +214,68 @@ def pick_article(history):
         slug_words = set(url.rsplit("/", 1)[-1].lower().split("-"))
         hits = slug_words & BAD_WORDS
         if hits:
-            log(f"  건너뜀 (부적절 주제: {', '.join(hits)}): {url.rsplit('/', 1)[-1][:50]}")
+            log(f"  건너뜀 (부적절 주제: {', '.join(hits)})")
             continue
-        candidates.append(url)
+        out.append(url)
+    return out
+
+
+def _newsround_candidates(used):
+    """BBC Newsround에서 안 쓴 기사 목록을 뽑는다.
+
+    DOGOnews는 주 2~3편뿐이라 재고가 자주 바닥난다.
+    Newsround는 매일 올라와서 빈 날을 메워준다.
+    """
+    res = requests.get("https://www.bbc.co.uk/newsround", headers=UA, timeout=30)
+    res.raise_for_status()
+    soup = BeautifulSoup(res.text, "html.parser")
+
+    out, seen = [], set()
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        if "/newsround/" not in href or not re.search(r"/\d{7,9}", href):
+            continue
+        url = href if href.startswith("http") else "https://www.bbc.co.uk" + href
+        url = url.split("?")[0]
+        if url in seen or url in used:
+            continue
+        seen.add(url)
+
+        slug_words = set(re.split(r"[-/]", url.lower()))
+        hits = slug_words & BAD_WORDS
+        if hits:
+            log(f"  건너뜀 (부적절 주제: {', '.join(hits)})")
+            continue
+        out.append(url)
+    return out
+
+
+def pick_article(history):
+    """기사를 고른다. DOGOnews를 먼저 보고, 없으면 BBC Newsround."""
+    used = set(history.get("used_urls", []))
+
+    log("DOGOnews에서 기사 목록 가져오는 중...")
+    try:
+        candidates = _dogonews_candidates(used)
+    except Exception as e:
+        log(f"  DOGOnews 실패: {e}")
+        candidates = []
+
+    if candidates:
+        log(f"후보 {len(candidates)}개 중 첫 번째 선택")
+        return candidates[0]
+
+    log("DOGOnews에 새 기사가 없어 BBC Newsround로 넘어갑니다...")
+    try:
+        candidates = _newsround_candidates(used)
+    except Exception as e:
+        log(f"  Newsround 실패: {e}")
+        candidates = []
 
     if not candidates:
-        raise RuntimeError("쓸 만한 새 기사를 찾지 못했습니다.")
+        raise RuntimeError("두 곳 모두에서 쓸 만한 새 기사를 찾지 못했습니다.")
 
-    log(f"후보 {len(candidates)}개 중 첫 번째 선택")
+    log(f"Newsround 후보 {len(candidates)}개 중 첫 번째 선택")
     return candidates[0]
 
 
