@@ -13,7 +13,8 @@
     "https://www.dogonews.com/2026/6/22/mars-flyby-sends-nasas-psyche-probe-toward-a-metal-rich-asteroid",
     "https://www.dogonews.com/2026/8/14/nasa-launches-rescue-mission-to-save-the-swift-observatory",
     "https://www.dogonews.com/2026/4/27/the-super-mario-galaxy-movie-sets-box-office-records",
-    "https://www.bbc.co.uk/newsround/69138626"
+    "https://www.bbc.co.uk/newsround/69138626",
+    "https://www.bbc.co.uk/newsround/44630436"
   ],
   "issues": [
     {
@@ -99,6 +100,12 @@
       "file": "2026-08-17.html",
       "title_en": "Why Do We Need Sunscreen?",
       "title_ko": "선크림은 왜 발라야 할까요?"
+    },
+    {
+      "date": "2026-08-17",
+      "file": "2026-08-17.html",
+      "title_en": "How to Keep Your Pets Cool",
+      "title_ko": "더운 날씨에 반려동물을 시원하게 해주는 방법"
     }
   ]
 }
