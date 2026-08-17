@@ -17,7 +17,8 @@
     "https://www.bbc.co.uk/newsround/44630436",
     "https://www.bbc.co.uk/newsround/49552043",
     "https://www.bbc.co.uk/newsround/39691274",
-    "https://www.bbc.co.uk/newsround/67496949"
+    "https://www.bbc.co.uk/newsround/67496949",
+    "https://www.bbc.co.uk/newsround/68010461"
   ],
   "issues": [
     {
@@ -127,6 +128,12 @@
       "file": "2026-08-18.html",
       "title_en": "Fun Adventures on a School Residential Trip",
       "title_ko": "학교 숙박 여행에서의 즐거운 모험"
+    },
+    {
+      "date": "2026-08-18",
+      "file": "2026-08-18.html",
+      "title_en": "Fun News From Around the World",
+      "title_ko": "세계의 재미있는 뉴스들"
     }
   ]
 }
