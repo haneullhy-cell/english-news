@@ -763,6 +763,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   #wb-ko{{font-size:16px;color:#ffe9a8}}
   #wb-x{{float:right;font-size:20px;color:#888;cursor:pointer;line-height:1.2}}
   .btns{{display:flex;flex-wrap:wrap;gap:10px;margin:40px 0 0}}
+  body.pdf-mode .btns,body.pdf-mode .say-btn,body.pdf-mode .hint,
+  body.pdf-mode #wordbar,body.pdf-mode .orig-btn,body.pdf-mode .vid-btn,
+  body.pdf-mode #pdf-msg{{display:none}}
+  body.pdf-mode .w{{background:none}}
   body.no-article #read-h2,body.no-article #read-hint,
   body.no-article #article{{display:none}}
   @media print{{ .say-btn,.hint,#wordbar,.orig-btn,.orig-note{{display:none}}
@@ -994,6 +998,7 @@ function savePdf(mode) {{
     return;
   }}
 
+  document.body.classList.add('pdf-mode');
   if (mode !== 'all') {{ document.body.classList.add('kid-only'); }}
   if (mode === 'quiz') {{ document.body.classList.add('no-article'); }}
   btns.style.display = 'none';
@@ -1008,11 +1013,12 @@ function savePdf(mode) {{
     image:       {{ type: 'jpeg', quality: 0.98 }},
     html2canvas: {{ scale: 2, useCORS: true, scrollY: 0 }},
     jsPDF:       {{ unit: 'mm', format: 'a4', orientation: 'portrait' }},
-    pagebreak:   {{ mode: ['css', 'legacy'], before: '.parent' }}
+    pagebreak:   {{ mode: ['avoid-all'] }}
   }};
 
   function done() {{
     btns.style.display = '';
+    document.body.classList.remove('pdf-mode');
     document.body.classList.remove('kid-only');
     document.body.classList.remove('no-article');
     msg.textContent = '';
