@@ -496,7 +496,9 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 }}
 
 [아이용 규칙 — 여기엔 한국어 금지]
-- article_en은 전체 합쳐서 반드시 170~230 단어. 문단은 4~6개.
+- article_en은 전체 합쳐서 반드시 **250~320 단어**. 문단은 5~7개.
+  원문의 내용을 충분히 담으세요. 어떻게/왜에 해당하는 설명과
+  구체적인 숫자·예시를 빼지 말고 넣으세요.
 - **난이도 목표: Flesch-Kincaid 3.0~3.5 (미국 초등3학년)**. 이게 가장 중요합니다.
   · 평균 문장 길이를 **10~13단어**로 맞추세요. 너무 짧은 문장만 쓰지 마세요.
   · and, but, because, so, when, if 같은 연결어로 문장을 자연스럽게 엮으세요.
@@ -699,6 +701,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   h1{{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-0.5px}}
   .title-ko{{font-size:17px;color:#666;margin-bottom:24px;font-weight:500}}
   .meta-row{{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 20px}}
+  .src-badge{{display:inline-block;background:#e8eef8;color:#2d4a7a;font-size:12px;
+    padding:5px 11px;border-radius:20px;font-weight:700;white-space:nowrap}}
   .level{{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
     padding:5px 11px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap}}
   .src-link{{font-size:13px;color:#666;text-decoration:none;border-bottom:1px solid #ccc}}
@@ -816,6 +820,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <div class="date">{date_en}</div>
 <h1>{title_en}</h1>
 <div class="meta-row">
+  <span class="src-badge">{source_name}</span>
   <span class="level">{level_badge}</span>
 </div>
 
@@ -884,7 +889,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <div id="pdf-msg"></div>
 
 <footer>
-  출처: <a href="{source_url}">DOGOnews</a> · 쉬운 영어로 다시 썼습니다.<br>
+  출처: <a href="{source_url}">{source_name}</a> · 쉬운 영어로 다시 썼습니다.<br>
   <a href="./">지난 신문 보기</a>
 </footer>
 
@@ -1193,6 +1198,13 @@ def render_html(c, source_url, art=None):
         level_badge = "읽기 레벨 측정 불가"
         level_note = "이번 글은 읽기 레벨을 계산하지 못했습니다."
 
+    if "bbc.co.uk" in source_url:
+        source_name = "BBC Newsround"
+    elif "dogonews" in source_url:
+        source_name = "DOGOnews"
+    else:
+        source_name = "출처"
+
     return HTML_TEMPLATE.format(
         date_en=TODAY.strftime("%A, %B %d, %Y"),
         date_file=DATE_STR,
@@ -1201,6 +1213,7 @@ def render_html(c, source_url, art=None):
         quiz_answers_html=render_quiz_answers(c.get("quiz")),
         glossary_json=json.dumps(glossary, ensure_ascii=False),
         title_en=esc(c["title_en"]),
+        source_name=esc(source_name),
         level_badge=esc(level_badge),
         level_note=level_note,
         article_html=article_html,
