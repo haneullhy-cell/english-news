@@ -768,7 +768,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   body.pdf-mode #pdf-msg,body.pdf-mode .orig-note,
   body.pdf-mode .meta-row{{display:none !important}}
   body.pdf-mode footer{{margin-top:16px;padding-top:10px}}
-  body.pdf-mode{{padding-bottom:0}}
+  body.pdf-mode{{padding-bottom:0;width:680px;max-width:680px}}
+  body.pdf-mode table{{table-layout:fixed;width:100%}}
+  body.pdf-mode td,body.pdf-mode th{{word-break:keep-all;overflow-wrap:anywhere}}
+  body.pdf-mode td:first-child{{width:22%}}
   body.pdf-mode .w{{background:none}}
   body.no-article #read-h2,body.no-article #read-hint,
   body.no-article #article{{display:none}}
@@ -1020,7 +1023,8 @@ function savePdf(mode) {{
     margin:      [12, 10, 12, 10],
     filename:    filename,
     image:       {{ type: 'jpeg', quality: 0.98 }},
-    html2canvas: {{ scale: 2, useCORS: true, scrollY: 0 }},
+    html2canvas: {{ scale: 2, useCORS: true, scrollY: 0,
+                    windowWidth: 720, width: 680 }},
     jsPDF:       {{ unit: 'mm', format: 'a4', orientation: 'portrait' }},
     pagebreak:   {{ mode: ['avoid-all'] }}
   }};
