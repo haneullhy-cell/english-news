@@ -550,7 +550,7 @@ def call_gemini(prompt):
                     "responseMimeType": "application/json",
                 },
             },
-            timeout=120,
+            timeout=60,
         )
         if res.status_code == 200:
             log(f"  ({model} 사용)")
@@ -589,14 +589,14 @@ def make_content(title, body):
     """AI 호출 + JSON 파싱. 실패하면 최대 3번까지 다시 시도한다."""
     last_error = None
 
-    for attempt in range(1, 4):
+    for attempt in range(1, 6):
         log(f"AI로 아이 수준 자료 만드는 중... (시도 {attempt}/3)")
         try:
             text = call_gemini(PROMPT.format(title=title, body=body))
-        except RuntimeError as e:
+        except Exception as e:
             last_error = e
-            log(f"  AI 호출 실패 — 25초 쉬었다가 다시 시도합니다")
-            time.sleep(25)
+            log(f"  AI 호출 실패({e}) — 20초 쉬었다가 다시 시도")
+            time.sleep(20)
             continue
         text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
 
@@ -627,7 +627,7 @@ def make_content(title, body):
 
         return data
 
-    raise RuntimeError(f"3번 시도했지만 자료를 만들지 못했습니다: {last_error}")
+    raise RuntimeError(f"5번 시도했지만 자료를 만들지 못했습니다: {last_error}")
 
 
 # ─────────────────────────────────────────────────────────────
