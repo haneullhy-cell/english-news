@@ -771,7 +771,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   body.pdf-mode{{padding-bottom:0;width:680px;max-width:680px}}
   body.pdf-mode table{{table-layout:fixed;width:100%}}
   body.pdf-mode td,body.pdf-mode th{{word-break:keep-all;overflow-wrap:anywhere}}
-  body.pdf-mode td:first-child{{width:22%}}
+  body.pdf-mode td:first-child{{width:15%}}
+  body.pdf-mode .parent table{{font-size:13px}}
+  body.pdf-mode .parent td{{padding:7px 9px;line-height:1.5}}
   body.pdf-mode .w{{background:none}}
   body.no-article #read-h2,body.no-article #read-hint,
   body.no-article #article{{display:none}}
@@ -857,7 +859,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
   <h3>원문</h3>
   <p style="font-size:15px">
-    이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.
+    원문 주소<br>
     원래 글은 여기서 보실 수 있어요:<br>
     <a href="{source_url}" target="_blank" rel="noopener">{source_url}</a>
   </p>
@@ -871,7 +873,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <div id="pdf-msg"></div>
 
 <footer>
-  출처: <a href="{source_url}">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
+  출처: <a href="{source_url}">DOGOnews</a> · 쉬운 영어로 다시 썼습니다.<br>
   <a href="./">지난 신문 보기</a>
 </footer>
 
@@ -1164,15 +1166,17 @@ def render_html(c, source_url, art=None):
 
     # 읽기 난이도
     lv = reading_level(c["article_en"])
+    orig_lv = reading_level([art.get("body", "")]) if art.get("body") else None
     if lv:
         level_badge = f"읽기 레벨 약 {lv['grade']} (AR 환산 추정)"
         level_note = (
-            f"이 글의 읽기 레벨은 <b>약 {lv['grade']}</b>입니다. "
-            f"단어 {lv['words']}개, 문장 {lv['sentences']}개.<br><br>"
-            "Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. "
-            "르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> "
-            "숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. "
-            "아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요."
+            f"<b>원문</b>  {orig_lv['grade'] if orig_lv else '-'} 수준"
+            f"  ({orig_lv['words'] if orig_lv else '-'}단어)<br>"
+            f"<b>이 글</b>  {lv['grade']} 수준"
+            f"  ({lv['words']}단어, {lv['sentences']}문장)<br><br>"
+            "Flesch-Kincaid 방식으로 문장 길이와 단어 길이를 계산한 추정치예요. "
+            "르네상스러닝의 공식 AR(ATOS) 지수는 아닙니다. "
+            "아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요."
         )
     else:
         level_badge = "읽기 레벨 측정 불가"
