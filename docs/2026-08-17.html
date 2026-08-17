@@ -82,6 +82,13 @@
   #wb-ko{font-size:16px;color:#ffe9a8}
   #wb-x{float:right;font-size:20px;color:#888;cursor:pointer;line-height:1.2}
   .btns{display:flex;flex-wrap:wrap;gap:10px;margin:40px 0 0}
+  body.pdf-mode .btns,body.pdf-mode .say-btn,body.pdf-mode .hint,
+  body.pdf-mode #wordbar,body.pdf-mode .orig-btn,body.pdf-mode .vid-btn,
+  body.pdf-mode #pdf-msg,body.pdf-mode .orig-note,
+  body.pdf-mode .meta-row{display:none !important}
+  body.pdf-mode footer{margin-top:16px;padding-top:10px}
+  body.pdf-mode{padding-bottom:0}
+  body.pdf-mode .w{background:none}
   body.no-article #read-h2,body.no-article #read-hint,
   body.no-article #article{display:none}
   @media print{ .say-btn,.hint,#wordbar,.orig-btn,.orig-note{display:none}
@@ -89,7 +96,10 @@
   .print-btn{flex:1;padding:15px;font-size:15px;font-weight:700;background:#1a1a1a;
     color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit}
   .print-btn.alt{background:#fff;color:#1a1a1a;border:1.5px solid #1a1a1a}
-  #pdf-msg{margin-top:12px;font-size:14px;color:#666;text-align:center}
+  #pdf-msg{position:fixed;left:0;right:0;bottom:0;z-index:120;
+    background:#1a1a1a;color:#fff;padding:14px;font-size:15px;
+    text-align:center;display:none}
+  #pdf-msg.on{display:block}
   footer{margin-top:36px;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#aaa}
   footer a{color:#aaa}
   body.kid-only .parent{display:none}
@@ -107,14 +117,14 @@
 <body>
 
 <div class="date">Monday, August 17, 2026</div>
-<h1>Super Mario Flies into Space</h1>
+<h1>Why Do We Need Sunscreen?</h1>
 <div class="meta-row">
-  <span class="level">읽기 레벨 약 4.5 (AR 환산 추정)</span>
+  <span class="level">읽기 레벨 약 1.5 (AR 환산 추정)</span>
 </div>
 
-<a class="vid-btn" href="https://www.youtube.com/watch?v=GuCejewteF8" target="_blank" rel="noopener">▶ 오늘의 영상 보기</a>
 
-<a class="orig-btn" href="https://www.dogonews.com/2026/4/27/the-super-mario-galaxy-movie-sets-box-office-records" target="_blank" rel="noopener">
+
+<a class="orig-btn" href="https://www.bbc.co.uk/newsround/69138626" target="_blank" rel="noopener">
   원문 기사 보기 (사진 더 있음)
 </a>
 <hr>
@@ -122,84 +132,87 @@
 <h2 id="read-h2">READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
 <p id="read-hint" class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
 <div class="article" id="article">
-  <p>The <span class="w" onclick="tapWord(this)">Super</span> <span class="w" onclick="tapWord(this)">Mario</span> <span class="w" onclick="tapWord(this)">Galaxy</span> <span class="w" onclick="tapWord(this)">Movie</span> is a <span class="w" onclick="tapWord(this)">huge</span> <span class="w" onclick="tapWord(this)">hit</span>! <span class="w" onclick="tapWord(this)">It</span> <span class="w" onclick="tapWord(this)">came</span> <span class="w" onclick="tapWord(this)">out</span> in <span class="w" onclick="tapWord(this)">April</span> and <span class="w" onclick="tapWord(this)">made</span> <span class="w" onclick="tapWord(this)">over</span> 750 <span class="w" onclick="tapWord(this)">million</span> <span class="w" onclick="tapWord(this)">dollars</span> in <span class="w" onclick="tapWord(this)">less</span> <span class="w" onclick="tapWord(this)">than</span> a <span class="w" onclick="tapWord(this)">month</span>. <span class="w" onclick="tapWord(this)">It</span> is <span class="w" onclick="tapWord(this)">already</span> the <span class="w" onclick="tapWord(this)">biggest</span> <span class="w" onclick="tapWord(this)">movie</span> of the <span class="w" onclick="tapWord(this)">year</span>. <span class="w" onclick="tapWord(this)">People</span> <span class="w" onclick="tapWord(this)">all</span> <span class="w" onclick="tapWord(this)">over</span> the <span class="w" onclick="tapWord(this)">world</span> <span class="w" onclick="tapWord(this)">love</span> <span class="w" onclick="tapWord(this)">watching</span> <span class="w" onclick="tapWord(this)">Mario</span> on the <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">screen</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">This</span> <span class="w" onclick="tapWord(this)">new</span> <span class="w" onclick="tapWord(this)">movie</span> <span class="w" onclick="tapWord(this)">takes</span> <span class="w" onclick="tapWord(this)">Mario</span> <span class="w" onclick="tapWord(this)">into</span> <span class="w" onclick="tapWord(this)">space</span>. <span class="w" onclick="tapWord(this)">Mario</span> and <span class="w" onclick="tapWord(this)">his</span> <span class="w" onclick="tapWord(this)">brother</span> <span class="w" onclick="tapWord(this)">Luigi</span> <span class="w" onclick="tapWord(this)">leave</span> the <span class="w" onclick="tapWord(this)">Mushroom</span> <span class="w" onclick="tapWord(this)">Kingdom</span>. <span class="w" onclick="tapWord(this)">They</span> <span class="w" onclick="tapWord(this)">travel</span> <span class="w" onclick="tapWord(this)">across</span> <span class="w" onclick="tapWord(this)">many</span> <span class="w" onclick="tapWord(this)">colorful</span> <span class="w" onclick="tapWord(this)">planets</span> and <span class="w" onclick="tapWord(this)">star</span> <span class="w" onclick="tapWord(this)">systems</span>. <span class="w" onclick="tapWord(this)">Princess</span> <span class="w" onclick="tapWord(this)">Peach</span> <span class="w" onclick="tapWord(this)">joins</span> <span class="w" onclick="tapWord(this)">them</span> on <span class="w" onclick="tapWord(this)">their</span> <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">adventure</span>. <span class="w" onclick="tapWord(this)">Together</span>, <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">must</span> <span class="w" onclick="tapWord(this)">stop</span> <span class="w" onclick="tapWord(this)">Bowser</span> and <span class="w" onclick="tapWord(this)">Bowser</span> <span class="w" onclick="tapWord(this)">Jr</span>. <span class="w" onclick="tapWord(this)">from</span> <span class="w" onclick="tapWord(this)">hurting</span> the <span class="w" onclick="tapWord(this)">galaxy</span>.</p>
-  <p>The <span class="w" onclick="tapWord(this)">movie</span> is <span class="w" onclick="tapWord(this)">fast</span> and <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">exciting</span>. <span class="w" onclick="tapWord(this)">It</span> <span class="w" onclick="tapWord(this)">has</span> <span class="w" onclick="tapWord(this)">bright</span> <span class="w" onclick="tapWord(this)">worlds</span> and <span class="w" onclick="tapWord(this)">fun</span> <span class="w" onclick="tapWord(this)">music</span>. <span class="w" onclick="tapWord(this)">People</span> <span class="w" onclick="tapWord(this)">who</span> <span class="w" onclick="tapWord(this)">play</span> the <span class="w" onclick="tapWord(this)">video</span> <span class="w" onclick="tapWord(this)">games</span> <span class="w" onclick="tapWord(this)">love</span> <span class="w" onclick="tapWord(this)">seeing</span> <span class="w" onclick="tapWord(this)">their</span> <span class="w" onclick="tapWord(this)">favorite</span> <span class="w" onclick="tapWord(this)">heroes</span>. <span class="w" onclick="tapWord(this)">Even</span> <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">who</span> <span class="w" onclick="tapWord(this)">do</span> <span class="w" onclick="tapWord(this)">not</span> <span class="w" onclick="tapWord(this)">play</span> <span class="w" onclick="tapWord(this)">games</span> <span class="w" onclick="tapWord(this)">enjoy</span> the <span class="w" onclick="tapWord(this)">fun</span> <span class="w" onclick="tapWord(this)">story</span>. <span class="w" onclick="tapWord(this)">Parents</span> <span class="w" onclick="tapWord(this)">who</span> <span class="w" onclick="tapWord(this)">played</span> <span class="w" onclick="tapWord(this)">Mario</span> <span class="w" onclick="tapWord(this)">when</span> <span class="w" onclick="tapWord(this)">they</span> <span class="w" onclick="tapWord(this)">were</span> <span class="w" onclick="tapWord(this)">young</span> <span class="w" onclick="tapWord(this)">now</span> <span class="w" onclick="tapWord(this)">bring</span> <span class="w" onclick="tapWord(this)">their</span> <span class="w" onclick="tapWord(this)">kids</span> to the <span class="w" onclick="tapWord(this)">theater</span>.</p>
-  <p><span class="w" onclick="tapWord(this)">Mario</span> is <span class="w" onclick="tapWord(this)">not</span> <span class="w" onclick="tapWord(this)">new</span>. A <span class="w" onclick="tapWord(this)">game</span> <span class="w" onclick="tapWord(this)">maker</span> <span class="w" onclick="tapWord(this)">created</span> <span class="w" onclick="tapWord(this)">this</span> <span class="w" onclick="tapWord(this)">friendly</span> <span class="w" onclick="tapWord(this)">plumber</span> <span class="w" onclick="tapWord(this)">back</span> in 1981. <span class="w" onclick="tapWord(this)">He</span> <span class="w" onclick="tapWord(this)">started</span> <span class="w" onclick="tapWord(this)">as</span> a <span class="w" onclick="tapWord(this)">simple</span> <span class="w" onclick="tapWord(this)">character</span> in <span class="w" onclick="tapWord(this)">old</span> <span class="w" onclick="tapWord(this)">arcade</span> <span class="w" onclick="tapWord(this)">games</span>. <span class="w" onclick="tapWord(this)">Now</span>, <span class="w" onclick="tapWord(this)">more</span> <span class="w" onclick="tapWord(this)">than</span> <span class="w" onclick="tapWord(this)">forty</span> <span class="w" onclick="tapWord(this)">years</span> <span class="w" onclick="tapWord(this)">later</span>, <span class="w" onclick="tapWord(this)">Mario</span> is <span class="w" onclick="tapWord(this)">one</span> of the <span class="w" onclick="tapWord(this)">most</span> <span class="w" onclick="tapWord(this)">famous</span> <span class="w" onclick="tapWord(this)">heroes</span> in the <span class="w" onclick="tapWord(this)">world</span>!</p>
+  <p><span class="w" onclick="tapWord(this)">Summer</span> is <span class="w" onclick="tapWord(this)">here</span>! The <span class="w" onclick="tapWord(this)">days</span> are <span class="w" onclick="tapWord(this)">long</span> and <span class="w" onclick="tapWord(this)">hot</span>. <span class="w" onclick="tapWord(this)">We</span> <span class="w" onclick="tapWord(this)">see</span> the <span class="w" onclick="tapWord(this)">bright</span> <span class="w" onclick="tapWord(this)">sun</span> in the <span class="w" onclick="tapWord(this)">sky</span>. <span class="w" onclick="tapWord(this)">Many</span> <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">go</span> <span class="w" onclick="tapWord(this)">outside</span> to <span class="w" onclick="tapWord(this)">play</span>. But <span class="w" onclick="tapWord(this)">we</span> <span class="w" onclick="tapWord(this)">must</span> <span class="w" onclick="tapWord(this)">be</span> <span class="w" onclick="tapWord(this)">careful</span> <span class="w" onclick="tapWord(this)">when</span> <span class="w" onclick="tapWord(this)">we</span> <span class="w" onclick="tapWord(this)">play</span> in the <span class="w" onclick="tapWord(this)">sun</span>.</p>
+  <p>The <span class="w" onclick="tapWord(this)">sun</span> <span class="w" onclick="tapWord(this)">gives</span> <span class="w" onclick="tapWord(this)">us</span> <span class="w" onclick="tapWord(this)">light</span> and <span class="w" onclick="tapWord(this)">keeps</span> <span class="w" onclick="tapWord(this)">us</span> <span class="w" onclick="tapWord(this)">warm</span>. <span class="w" onclick="tapWord(this)">That</span> is <span class="w" onclick="tapWord(this)">good</span>. But the <span class="w" onclick="tapWord(this)">sun</span> <span class="w" onclick="tapWord(this)">also</span> <span class="w" onclick="tapWord(this)">sends</span> <span class="w" onclick="tapWord(this)">down</span> <span class="w" onclick="tapWord(this)">strong</span> <span class="w" onclick="tapWord(this)">rays</span>. <span class="w" onclick="tapWord(this)">These</span> <span class="w" onclick="tapWord(this)">rays</span> are <span class="w" onclick="tapWord(this)">like</span> <span class="w" onclick="tapWord(this)">invisible</span> <span class="w" onclick="tapWord(this)">lines</span> of <span class="w" onclick="tapWord(this)">light</span>. <span class="w" onclick="tapWord(this)">If</span> <span class="w" onclick="tapWord(this)">we</span> <span class="w" onclick="tapWord(this)">stay</span> in the <span class="w" onclick="tapWord(this)">sun</span> <span class="w" onclick="tapWord(this)">for</span> <span class="w" onclick="tapWord(this)">too</span> <span class="w" onclick="tapWord(this)">long</span>, <span class="w" onclick="tapWord(this)">these</span> <span class="w" onclick="tapWord(this)">rays</span> <span class="w" onclick="tapWord(this)">can</span> <span class="w" onclick="tapWord(this)">hurt</span> <span class="w" onclick="tapWord(this)">our</span> <span class="w" onclick="tapWord(this)">skin</span>. <span class="w" onclick="tapWord(this)">Our</span> <span class="w" onclick="tapWord(this)">skin</span> <span class="w" onclick="tapWord(this)">can</span> <span class="w" onclick="tapWord(this)">get</span> <span class="w" onclick="tapWord(this)">red</span> and <span class="w" onclick="tapWord(this)">hot</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">How</span> <span class="w" onclick="tapWord(this)">can</span> <span class="w" onclick="tapWord(this)">we</span> <span class="w" onclick="tapWord(this)">stay</span> <span class="w" onclick="tapWord(this)">safe</span>? <span class="w" onclick="tapWord(this)">We</span> <span class="w" onclick="tapWord(this)">can</span> <span class="w" onclick="tapWord(this)">use</span> <span class="w" onclick="tapWord(this)">sunscreen</span>. <span class="w" onclick="tapWord(this)">Sunscreen</span> is a <span class="w" onclick="tapWord(this)">special</span> <span class="w" onclick="tapWord(this)">cream</span>. <span class="w" onclick="tapWord(this)">We</span> <span class="w" onclick="tapWord(this)">put</span> <span class="w" onclick="tapWord(this)">it</span> on <span class="w" onclick="tapWord(this)">our</span> <span class="w" onclick="tapWord(this)">face</span>, <span class="w" onclick="tapWord(this)">arms</span>, and <span class="w" onclick="tapWord(this)">legs</span>. <span class="w" onclick="tapWord(this)">It</span> <span class="w" onclick="tapWord(this)">works</span> <span class="w" onclick="tapWord(this)">like</span> a <span class="w" onclick="tapWord(this)">magic</span> <span class="w" onclick="tapWord(this)">shield</span>. <span class="w" onclick="tapWord(this)">It</span> <span class="w" onclick="tapWord(this)">protects</span> <span class="w" onclick="tapWord(this)">us</span> <span class="w" onclick="tapWord(this)">from</span> the <span class="w" onclick="tapWord(this)">bad</span> <span class="w" onclick="tapWord(this)">rays</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Children</span> at a <span class="w" onclick="tapWord(this)">school</span> in a <span class="w" onclick="tapWord(this)">city</span> <span class="w" onclick="tapWord(this)">called</span> <span class="w" onclick="tapWord(this)">Manchester</span> are <span class="w" onclick="tapWord(this)">learning</span> <span class="w" onclick="tapWord(this)">about</span> <span class="w" onclick="tapWord(this)">this</span>. <span class="w" onclick="tapWord(this)">They</span> are <span class="w" onclick="tapWord(this)">finding</span> <span class="w" onclick="tapWord(this)">out</span> <span class="w" onclick="tapWord(this)">why</span> <span class="w" onclick="tapWord(this)">sunscreen</span> is <span class="w" onclick="tapWord(this)">so</span> <span class="w" onclick="tapWord(this)">important</span>. <span class="w" onclick="tapWord(this)">They</span> <span class="w" onclick="tapWord(this)">learn</span> <span class="w" onclick="tapWord(this)">that</span> <span class="w" onclick="tapWord(this)">everyone</span> <span class="w" onclick="tapWord(this)">needs</span> to <span class="w" onclick="tapWord(this)">use</span> <span class="w" onclick="tapWord(this)">it</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">People</span> <span class="w" onclick="tapWord(this)">have</span> <span class="w" onclick="tapWord(this)">different</span> <span class="w" onclick="tapWord(this)">skin</span> <span class="w" onclick="tapWord(this)">colors</span>. <span class="w" onclick="tapWord(this)">Some</span> <span class="w" onclick="tapWord(this)">have</span> <span class="w" onclick="tapWord(this)">light</span> <span class="w" onclick="tapWord(this)">skin</span>, and <span class="w" onclick="tapWord(this)">some</span> <span class="w" onclick="tapWord(this)">have</span> <span class="w" onclick="tapWord(this)">dark</span> <span class="w" onclick="tapWord(this)">skin</span>. But the <span class="w" onclick="tapWord(this)">sun</span> <span class="w" onclick="tapWord(this)">can</span> <span class="w" onclick="tapWord(this)">hurt</span> <span class="w" onclick="tapWord(this)">all</span> <span class="w" onclick="tapWord(this)">skin</span> <span class="w" onclick="tapWord(this)">types</span>. <span class="w" onclick="tapWord(this)">So</span>, <span class="w" onclick="tapWord(this)">every</span> <span class="w" onclick="tapWord(this)">child</span> and <span class="w" onclick="tapWord(this)">adult</span> <span class="w" onclick="tapWord(this)">must</span> <span class="w" onclick="tapWord(this)">wear</span> <span class="w" onclick="tapWord(this)">sunscreen</span>. <span class="w" onclick="tapWord(this)">Let&#x27;s</span> <span class="w" onclick="tapWord(this)">put</span> on <span class="w" onclick="tapWord(this)">some</span> <span class="w" onclick="tapWord(this)">sunscreen</span> and <span class="w" onclick="tapWord(this)">have</span> <span class="w" onclick="tapWord(this)">fun</span> <span class="w" onclick="tapWord(this)">outside</span>!</p>
 </div>
 
 <h2>WORDS <span class="hint">단어를 누르면 소리가 나요</span></h2>
 <dl class="words-def">
-<dt onclick="sayWord(this)">hit</dt><dd>a thing or movie that many people like</dd>
-<dt onclick="sayWord(this)">space</dt><dd>the huge area outside Earth where stars and planets are</dd>
-<dt onclick="sayWord(this)">adventure</dt><dd>an exciting trip with fun and danger</dd>
-<dt onclick="sayWord(this)">galaxy</dt><dd>a very large group of stars and planets</dd>
-<dt onclick="sayWord(this)">theater</dt><dd>a big room where people watch movies on a screen</dd>
-<dt onclick="sayWord(this)">plumber</dt><dd>a person who fixes water pipes in houses</dd>
-<dt onclick="sayWord(this)">hero</dt><dd>a brave person who helps others</dd>
-<dt onclick="sayWord(this)">character</dt><dd>a person or animal in a story or game</dd>
+<dt onclick="sayWord(this)">careful</dt><dd>trying hard not to make a mistake or get hurt</dd>
+<dt onclick="sayWord(this)">invisible</dt><dd>something you cannot see with your eyes</dd>
+<dt onclick="sayWord(this)">hurt</dt><dd>to make someone feel pain</dd>
+<dt onclick="sayWord(this)">shield</dt><dd>a thing that stops something bad from hitting you</dd>
+<dt onclick="sayWord(this)">protect</dt><dd>to keep someone or something safe</dd>
+<dt onclick="sayWord(this)">important</dt><dd>having great meaning or value</dd>
+<dt onclick="sayWord(this)">different</dt><dd>not the same as another thing</dd>
+<dt onclick="sayWord(this)">adult</dt><dd>a person who is fully grown, like a mother or father</dd>
+<dt onclick="sayWord(this)">wear</dt><dd>to put clothes or cream on your body</dd>
 </dl>
 
 <h2>QUIZ <span class="hint">답을 골라보세요</span></h2>
-  <div class="qz" data-a="0">
-    <p class="qz-q">1. Where do Mario and Luigi go in the new movie?</p>
-    <button class="qz-c" onclick="pick(this,0)">A. Into space</button>
-    <button class="qz-c" onclick="pick(this,1)">B. Under the ocean</button>
-    <button class="qz-c" onclick="pick(this,2)">C. Into the jungle</button>
-  </div>
   <div class="qz" data-a="1">
-    <p class="qz-q">2. Who joins Mario and Luigi on their big adventure?</p>
-    <button class="qz-c" onclick="pick(this,0)">A. Bowser</button>
-    <button class="qz-c" onclick="pick(this,1)">B. Princess Peach</button>
-    <button class="qz-c" onclick="pick(this,2)">C. Bowser Jr.</button>
+    <p class="qz-q">1. What does the sun send down?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. Rain and snow</button>
+    <button class="qz-c" onclick="pick(this,1)">B. Strong rays</button>
+    <button class="qz-c" onclick="pick(this,2)">C. Magic shields</button>
   </div>
   <div class="qz" data-a="0">
-    <p class="qz-q">3. Why do parents bring their kids to the theater?</p>
-    <button class="qz-c" onclick="pick(this,0)">A. They played Mario games when they were young.</button>
-    <button class="qz-c" onclick="pick(this,1)">B. They want to make a space rocket.</button>
-    <button class="qz-c" onclick="pick(this,2)">C. They do not like playing games.</button>
+    <p class="qz-q">2. Where do we put sunscreen?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. On our face, arms, and legs</button>
+    <button class="qz-c" onclick="pick(this,1)">B. Only on our face</button>
+    <button class="qz-c" onclick="pick(this,2)">C. On our clothes</button>
+  </div>
+  <div class="qz" data-a="2">
+    <p class="qz-q">3. Who needs to wear sunscreen?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. Only children</button>
+    <button class="qz-c" onclick="pick(this,1)">B. Only people with light skin</button>
+    <button class="qz-c" onclick="pick(this,2)">C. Every child and adult</button>
   </div>
 
 <h2>THINK</h2>
 <div class="question">
-  <div class="en">If you could visit any planet with Mario, what kind of planet would you visit?</div>
+  <div class="en">Where do you like to play when it is sunny outside?</div>
 </div>
 
 <div class="parent">
   <div class="parent-tag">엄마 보는 곳</div>
-  <h3>우주로 날아간 슈퍼 마리오 영화 대흥행!</h3>
+  <h3>선크림은 왜 발라야 할까요?</h3>
 
-  <div class="summary">새로운 슈퍼 마리오 영화가 개봉 한 달도 안 되어 전 세계에서 큰 인기를 얻고 있습니다. 마리오와 친구들이 우주를 모험하는 이 영화는 게임 팬뿐만 아니라 아이와 부모님 모두에게 큰 사랑을 받고 있습니다.</div>
+  <div class="summary">여름이 되어 햇빛이 강해질 때 선크림을 바르는 것이 왜 중요한지 설명하는 기사입니다. 선크림은 보이지 않는 태양 광선으로부터 우리 피부를 보호하는 방패 역할을 합니다. 피부색에 상관없이 모든 사람이 선크림을 발라야 한다는 내용을 담고 있습니다.</div>
 
   <h3>단어 한국어 뜻</h3>
   <table>
   <tr><th>영어</th><th>뜻</th></tr>
-  <tr><td>hit</td><td>인기작, 대히트작</td></tr>
-<tr><td>space</td><td>우주</td></tr>
-<tr><td>adventure</td><td>모험</td></tr>
-<tr><td>galaxy</td><td>은하계</td></tr>
-<tr><td>theater</td><td>영화관</td></tr>
-<tr><td>plumber</td><td>배관공</td></tr>
-<tr><td>hero</td><td>영웅</td></tr>
-<tr><td>character</td><td>캐릭터, 인물</td></tr>
+  <tr><td>careful</td><td>조심하는</td></tr>
+<tr><td>invisible</td><td>보이지 않는</td></tr>
+<tr><td>hurt</td><td>다치게 하다, 아프게 하다</td></tr>
+<tr><td>shield</td><td>방패</td></tr>
+<tr><td>protect</td><td>보호하다</td></tr>
+<tr><td>important</td><td>중요한</td></tr>
+<tr><td>different</td><td>다른</td></tr>
+<tr><td>adult</td><td>어른</td></tr>
+<tr><td>wear</td><td>(선크림 등을) 바르다, 입다</td></tr>
   </table>
 
   <h3>오늘의 질문</h3>
-  <p style="font-size:15px;margin-bottom:14px">마리오와 함께 어떤 행성이든 갈 수 있다면, 어떤 행성에 가보고 싶나요?</p>
+  <p style="font-size:15px;margin-bottom:14px">밖이 화창할 때 당신은 어디에서 노는 것을 좋아하나요?</p>
 
-  <div class="tip">아이에게 가장 좋아하는 마리오 캐릭터나 영화 속 가보고 싶은 우주 행성에 대해 물어보며 대화를 나눠보세요.</div>
+  <div class="tip">아이가 외출하기 전에 직접 선크림을 바를 수 있도록 격려하면서 피부를 보호하는 이유를 이야기해 보세요.</div>
 
   <h3>퀴즈 정답과 해설</h3>
-  <table><tr><th>문제</th><th>정답과 해설</th></tr><tr><td>1번</td><td><b>A. Into space</b><br><span style='color:#777;font-size:14px'>기사에서 마리오와 루이지가 우주(space)로 모험을 떠난다고 나와요.</span></td></tr><tr><td>2번</td><td><b>B. Princess Peach</b><br><span style='color:#777;font-size:14px'>피치 공주(Princess Peach)가 모험에 함께한다고 기사에 적혀 있어요.</span></td></tr><tr><td>3번</td><td><b>A. They played Mario games when they were young.</b><br><span style='color:#777;font-size:14px'>부모님들도 어릴 때 마리오 게임을 하며 자랐기 때문에 아이들을 극장에 데려온다고 설명해요.</span></td></tr></table>
+  <table><tr><th>문제</th><th>정답과 해설</th></tr><tr><td>1번</td><td><b>B. Strong rays</b><br><span style='color:#777;font-size:14px'>기사 두 번째 문단에 태양이 강한 광선(strong rays)을 내려보낸다고 나와 있어요.</span></td></tr><tr><td>2번</td><td><b>A. On our face, arms, and legs</b><br><span style='color:#777;font-size:14px'>기사 세 번째 문단에 선크림을 얼굴, 팔, 다리에 바른다고 적혀 있어요.</span></td></tr><tr><td>3번</td><td><b>C. Every child and adult</b><br><span style='color:#777;font-size:14px'>기사 마지막 문단에 피부색에 상관없이 모든 아이와 어른이 선크림을 발라야 한다고 설명해요.</span></td></tr></table>
 
   <h3>읽기 레벨</h3>
-  <div class="level-note">이 글의 읽기 레벨은 <b>약 4.5</b>입니다. 단어 181개, 문장 19개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요.</div>
+  <div class="level-note">이 글의 읽기 레벨은 <b>약 1.5</b>입니다. 단어 189개, 문장 25개.<br><br>Flesch-Kincaid 방식으로 <b>문장 길이와 단어 길이를 계산한 추정치</b>예요. 르네상스러닝이 매기는 <b>공식 AR(ATOS) 지수는 아닙니다.</b> 숫자가 비슷한 범위로 나오긴 하지만 참고용으로만 봐주세요. 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요. 더 쉽게 조정할게요.</div>
 
   <h3>원문</h3>
   <p style="font-size:15px">
     이 기사는 원문을 9살 수준으로 다시 쓴 것입니다.
     원래 글은 여기서 보실 수 있어요:<br>
-    <a href="https://www.dogonews.com/2026/4/27/the-super-mario-galaxy-movie-sets-box-office-records" target="_blank" rel="noopener">https://www.dogonews.com/2026/4/27/the-super-mario-galaxy-movie-sets-box-office-records</a>
+    <a href="https://www.bbc.co.uk/newsround/69138626" target="_blank" rel="noopener">https://www.bbc.co.uk/newsround/69138626</a>
   </p>
 </div>
 
@@ -211,7 +224,7 @@
 <div id="pdf-msg"></div>
 
 <footer>
-  출처: <a href="https://www.dogonews.com/2026/4/27/the-super-mario-galaxy-movie-sets-box-office-records">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
+  출처: <a href="https://www.bbc.co.uk/newsround/69138626">DOGOnews</a> · 9살 수준에 맞춰 쉬운 영어로 다시 썼습니다.<br>
   <a href="./">지난 신문 보기</a>
 </footer>
 
@@ -223,7 +236,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 var PDF_DATE  = "2026-08-17";
-var GLOSSARY  = {"super": "슈퍼의", "galaxy": "은하계", "movie": "영화", "huge": "엄청나게 큰", "hit": "인기작", "it": "그것은", "came": "나왔다", "out": "밖으로", "april": "4월", "made": "벌었다", "over": "~이상", "million": "백만", "dollars": "달러", "less": "더 적은", "than": "~보다", "month": "한 달", "already": "이미", "biggest": "가장 큰", "year": "올해", "people": "사람들", "all": "모든", "world": "세상", "love": "좋아하다", "watching": "보는 것", "mario": "마리오", "big": "큰", "screen": "화면, 스크린", "this": "이", "new": "새로운", "takes": "데려가다", "into": "~속으로", "space": "우주", "his": "그의", "brother": "형제", "luigi": "루이지", "leave": "떠나다", "mushroom": "버섯", "kingdom": "왕국", "they": "그들은", "travel": "여행하다", "across": "~을 가로질러", "many": "많은", "colorful": "알록달록한", "planets": "행성들", "star": "별", "systems": "항성계들", "princess": "공주", "peach": "피치", "joins": "함께하다", "them": "그들과", "their": "그들의", "adventure": "모험", "together": "함께", "must": "~해야 한다", "stop": "막다", "bowser": "쿠파", "jr": "주니어", "from": "~로부터", "hurting": "해치는 것", "fast": "빠른", "very": "매우", "exciting": "흥미진진한", "has": "가지고 있다", "bright": "밝은", "worlds": "세계들", "fun": "재미있는", "music": "음악", "who": "~하는 (사람들)", "play": "플레이하다", "video": "비디오", "games": "게임들", "seeing": "보는 것", "favorite": "가장 좋아하는", "heroes": "영웅들", "even": "심지어", "do": "하다", "not": "않다", "enjoy": "즐기다", "story": "이야기", "parents": "부모님들", "played": "플레이했던", "when": "~할 때", "were": "~였다", "young": "어린", "now": "지금", "bring": "데려오다", "kids": "아이들", "theater": "영화관", "game": "게임", "maker": "제작자", "created": "만들었다", "friendly": "친근한", "plumber": "배관공", "back": "과거에", "he": "그는", "started": "시작했다", "as": "~로서", "simple": "단순한", "character": "캐릭터", "old": "옛날의", "arcade": "오락실", "more": "더", "forty": "40", "years": "년", "later": "후에", "one": "하나", "most": "가장", "famous": "유명한"};
+var GLOSSARY  = {"summer": "여름", "here": "여기에 (시작된)", "days": "날들", "long": "긴", "hot": "더운", "we": "우리는", "see": "보다", "bright": "밝은", "sun": "태양", "sky": "하늘", "many": "많은", "people": "사람들", "go": "가다", "outside": "밖으로", "play": "놀다", "must": "~해야 한다", "be": "되다, 있다", "careful": "조심하는", "when": "~할 때", "gives": "주다", "us": "우리에게", "light": "빛", "keeps": "유지하다", "warm": "따뜻한", "that": "그것은", "good": "좋은", "also": "또한", "sends": "보내다", "down": "아래로", "strong": "강한", "rays": "광선들", "these": "이것들은", "like": "~와 같은", "invisible": "보이지 않는", "lines": "선들", "if": "만약 ~라면", "stay": "머물다", "for": "~동안", "too": "너무", "can": "~할 수 있다", "hurt": "다치게 하다", "our": "우리의", "skin": "피부", "get": "~게 되다", "red": "빨간", "how": "어떻게", "safe": "안전한", "use": "사용하다", "sunscreen": "자외선 차단제 (선크림)", "special": "특별한", "cream": "크림", "put": "바르다", "it": "그것을", "face": "얼굴", "arms": "팔", "legs": "다리", "works": "작용하다", "magic": "마법의", "shield": "방패", "protects": "보호하다", "from": "~로부터", "bad": "나쁜", "children": "아이들", "school": "학교", "city": "도시", "called": "~라고 불리는", "manchester": "맨체스터 (도시 이름)", "learning": "배우는 중인", "about": "~에 대하여", "this": "이것", "they": "그들은", "finding": "알아내는 중인", "out": "(find out) 알아내다", "why": "왜", "so": "아주", "important": "중요한", "learn": "배우다", "everyone": "모든 사람", "needs": "필요하다", "have": "가지다", "different": "다른", "colors": "색깔들", "some": "어떤 사람들", "dark": "어두운", "all": "모든", "types": "종류들", "every": "모든", "child": "아이", "adult": "어른", "wear": "(선크림을) 바르다", "let's": "~하자", "fun": "재미"};
 
 /* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
 
@@ -347,10 +360,14 @@ function savePdf(mode) {
     return;
   }
 
+  var bar = document.getElementById('wordbar');
+  if (bar && bar.parentNode) { bar.parentNode.removeChild(bar); }
+  document.body.classList.add('pdf-mode');
   if (mode !== 'all') { document.body.classList.add('kid-only'); }
   if (mode === 'quiz') { document.body.classList.add('no-article'); }
   btns.style.display = 'none';
   msg.textContent = 'PDF 만드는 중... 잠시만요';
+  msg.classList.add('on');
 
   var filename = PDF_DATE + '-영어신문-' +
     (mode === 'kid' ? '지문문제' : mode === 'quiz' ? '문제만' : '전체') + '.pdf';
@@ -361,14 +378,17 @@ function savePdf(mode) {
     image:       { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
     jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak:   { mode: ['css', 'legacy'], before: '.parent' }
+    pagebreak:   { mode: ['avoid-all'] }
   };
 
   function done() {
     btns.style.display = '';
+    document.body.classList.remove('pdf-mode');
     document.body.classList.remove('kid-only');
     document.body.classList.remove('no-article');
     msg.textContent = '';
+    msg.classList.remove('on');
+    if (bar) { document.body.appendChild(bar); }
   }
 
   html2pdf().set(opt).from(document.body).save().then(done).catch(function(e) {
