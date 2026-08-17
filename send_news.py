@@ -729,7 +729,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .say-btn.playing{{background:#c0392b}}
   .hint{{float:right;font-size:11px;color:#aaa;font-weight:400;letter-spacing:0;
     padding-top:4px}}
-  .words-def{{font-size:17px}}
+  .words-def{{font-size:16px;column-count:2;column-gap:26px}}
+  .words-def dt,.words-def dd{{break-inside:avoid}}
   .words-def dt{{font-weight:700;margin-top:14px;cursor:pointer;display:inline-block;
     border-bottom:2px dotted #bbb}}
   .words-def dt:active{{color:#c0392b}}
@@ -775,6 +776,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   body.pdf-mode .parent table{{font-size:13px}}
   body.pdf-mode .parent td{{padding:7px 9px;line-height:1.5}}
   body.pdf-mode .w{{background:none}}
+  body.no-article #p-title,body.no-article #p-summary,
+  body.no-article #p-words-h,body.no-article #p-words,
+  body.no-article #p-q-h,body.no-article #p-q,body.no-article #p-tip,
+  body.no-article #p-lv-h,body.no-article #p-lv,
+  body.no-article #p-src-h,body.no-article #p-src{{display:none}}
   body.no-article #read-h2,body.no-article #read-hint,
   body.no-article #article{{display:none}}
   @media print{{ .say-btn,.hint,#wordbar,.orig-btn,.orig-note{{display:none}}
@@ -836,29 +842,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 <div class="parent">
   <div class="parent-tag">엄마 보는 곳</div>
-  <h3>{title_ko}</h3>
+  <h3 id="p-title">{title_ko}</h3>
 
-  <div class="summary">{summary_ko}</div>
+  <div id="p-summary" class="summary">{summary_ko}</div>
 
-  <h3>단어 한국어 뜻</h3>
-  <table>
+  <h3 id="p-words-h">단어 한국어 뜻</h3>
+  <table id="p-words">
   <tr><th>영어</th><th>뜻</th></tr>
   {words_ko_html}
   </table>
 
-  <h3>오늘의 질문</h3>
-  <p style="font-size:15px;margin-bottom:14px">{question_ko}</p>
+  <h3 id="p-q-h">오늘의 질문</h3>
+  <p id="p-q" style="font-size:15px;margin-bottom:14px">{question_ko}</p>
 
-  <div class="tip">{tip_ko}</div>
+  <div id="p-tip" class="tip">{tip_ko}</div>
 
   <h3>퀴즈 정답과 해설</h3>
   {quiz_answers_html}
 
-  <h3>읽기 레벨</h3>
-  <div class="level-note">{level_note}</div>
+  <h3 id="p-lv-h">읽기 레벨</h3>
+  <div id="p-lv" class="level-note">{level_note}</div>
 
-  <h3>원문</h3>
-  <p style="font-size:15px">
+  <h3 id="p-src-h">원문</h3>
+  <p id="p-src" style="font-size:15px">
     원문 주소<br>
     원래 글은 여기서 보실 수 있어요:<br>
     <a href="{source_url}" target="_blank" rel="noopener">{source_url}</a>
@@ -1012,7 +1018,7 @@ function savePdf(mode) {{
   var bar = document.getElementById('wordbar');
   if (bar && bar.parentNode) {{ bar.parentNode.removeChild(bar); }}
   document.body.classList.add('pdf-mode');
-  if (mode !== 'all') {{ document.body.classList.add('kid-only'); }}
+  if (mode === 'kid') {{ document.body.classList.add('kid-only'); }}
   if (mode === 'quiz') {{ document.body.classList.add('no-article'); }}
   btns.style.display = 'none';
   msg.textContent = 'PDF 만드는 중... 잠시만요';
