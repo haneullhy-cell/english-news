@@ -16,7 +16,8 @@
     "https://www.bbc.co.uk/newsround/69138626",
     "https://www.bbc.co.uk/newsround/44630436",
     "https://www.bbc.co.uk/newsround/49552043",
-    "https://www.bbc.co.uk/newsround/39691274"
+    "https://www.bbc.co.uk/newsround/39691274",
+    "https://www.bbc.co.uk/newsround/67496949"
   ],
   "issues": [
     {
@@ -120,6 +121,12 @@
       "file": "2026-08-18.html",
       "title_en": "Advice for Starting a Brand New School",
       "title_ko": "새로운 학교를 시작하는 학생들을 위한 조언"
+    },
+    {
+      "date": "2026-08-18",
+      "file": "2026-08-18.html",
+      "title_en": "Fun Adventures on a School Residential Trip",
+      "title_ko": "학교 숙박 여행에서의 즐거운 모험"
     }
   ]
 }
