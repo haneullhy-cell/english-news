@@ -15,7 +15,8 @@
     "https://www.dogonews.com/2026/4/27/the-super-mario-galaxy-movie-sets-box-office-records",
     "https://www.bbc.co.uk/newsround/69138626",
     "https://www.bbc.co.uk/newsround/44630436",
-    "https://www.bbc.co.uk/newsround/49552043"
+    "https://www.bbc.co.uk/newsround/49552043",
+    "https://www.bbc.co.uk/newsround/39691274"
   ],
   "issues": [
     {
@@ -113,6 +114,12 @@
       "file": "2026-08-18.html",
       "title_en": "Great Sleep Tips for School Kids",
       "title_ko": "새 학기 꿀잠을 위한 수면 팁"
+    },
+    {
+      "date": "2026-08-18",
+      "file": "2026-08-18.html",
+      "title_en": "Advice for Starting a Brand New School",
+      "title_ko": "새로운 학교를 시작하는 학생들을 위한 조언"
     }
   ]
 }
