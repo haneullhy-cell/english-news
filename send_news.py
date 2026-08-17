@@ -765,7 +765,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .btns{{display:flex;flex-wrap:wrap;gap:10px;margin:40px 0 0}}
   body.pdf-mode .btns,body.pdf-mode .say-btn,body.pdf-mode .hint,
   body.pdf-mode #wordbar,body.pdf-mode .orig-btn,body.pdf-mode .vid-btn,
-  body.pdf-mode #pdf-msg{{display:none}}
+  body.pdf-mode #pdf-msg,body.pdf-mode .orig-note,
+  body.pdf-mode .meta-row{{display:none !important}}
+  body.pdf-mode footer{{margin-top:16px;padding-top:10px}}
+  body.pdf-mode{{padding-bottom:0}}
   body.pdf-mode .w{{background:none}}
   body.no-article #read-h2,body.no-article #read-hint,
   body.no-article #article{{display:none}}
@@ -774,7 +777,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .print-btn{{flex:1;padding:15px;font-size:15px;font-weight:700;background:#1a1a1a;
     color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit}}
   .print-btn.alt{{background:#fff;color:#1a1a1a;border:1.5px solid #1a1a1a}}
-  #pdf-msg{{margin-top:12px;font-size:14px;color:#666;text-align:center}}
+  #pdf-msg{{position:fixed;left:0;right:0;bottom:0;z-index:120;
+    background:#1a1a1a;color:#fff;padding:14px;font-size:15px;
+    text-align:center;display:none}}
+  #pdf-msg.on{{display:block}}
   footer{{margin-top:36px;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#aaa}}
   footer a{{color:#aaa}}
   body.kid-only .parent{{display:none}}
@@ -998,11 +1004,14 @@ function savePdf(mode) {{
     return;
   }}
 
+  var bar = document.getElementById('wordbar');
+  if (bar && bar.parentNode) {{ bar.parentNode.removeChild(bar); }}
   document.body.classList.add('pdf-mode');
   if (mode !== 'all') {{ document.body.classList.add('kid-only'); }}
   if (mode === 'quiz') {{ document.body.classList.add('no-article'); }}
   btns.style.display = 'none';
   msg.textContent = 'PDF 만드는 중... 잠시만요';
+  msg.classList.add('on');
 
   var filename = PDF_DATE + '-영어신문-' +
     (mode === 'kid' ? '지문문제' : mode === 'quiz' ? '문제만' : '전체') + '.pdf';
@@ -1022,6 +1031,8 @@ function savePdf(mode) {{
     document.body.classList.remove('kid-only');
     document.body.classList.remove('no-article');
     msg.textContent = '';
+    msg.classList.remove('on');
+    if (bar) {{ document.body.appendChild(bar); }}
   }}
 
   html2pdf().set(opt).from(document.body).save().then(done).catch(function(e) {{
