@@ -540,6 +540,26 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 """
 
 
+# 난이도가 목표를 벗어났을 때 다시 쓰게 하는 프롬프트
+REWRITE_PROMPT = """아래 영어 글은 9살 아이가 읽을 신문 기사입니다.
+지금 Flesch-Kincaid 읽기 레벨이 {level}인데, 목표는 3.0~3.5입니다.
+{direction} 고쳐 써 주세요.
+
+반드시 지킬 것:
+- 내용과 사실(숫자, 이름, 예시)은 절대 바꾸지 마세요. 빼지도 마세요.
+- 전체 250~320 단어, 문단 5~7개를 그대로 유지하세요.
+- 다음 단어들은 반드시 글 안에 그대로 남겨두세요: {keep}
+- 쉽게 만들 때: 한 문장을 10~13단어로 줄이고, 어려운 긴 단어를 쉬운 말로 바꾸세요.
+- 어렵게 만들 때: and, but, because, so, when, if 로 짧은 문장들을 자연스럽게 이어 붙이세요.
+
+JSON만 출력하세요. 다른 말은 쓰지 마세요.
+{{"article_en": ["문단1", "문단2", "문단3", "문단4", "문단5"]}}
+
+지금 글:
+{article}
+"""
+
+
 def call_gemini(prompt):
     """Gemini 무료 등급 호출. 모델 이름이 바뀌었을 수 있으니 차례로 시도한다."""
     last_error = ""
@@ -631,6 +651,37 @@ def make_content(title, body):
             last_error = RuntimeError(f"빠진 항목: {missing}")
             log(f"  항목이 빠졌습니다 {missing}, 다시 시도합니다")
             continue
+
+        # 읽기 레벨이 목표(3.0~3.5)를 벗어나면 한 번만 고쳐 쓴다
+        try:
+            lv_now = (reading_level(data["article_en"]) or {}).get("grade")
+        except Exception:
+            lv_now = None
+
+        if lv_now is not None and (lv_now > 3.8 or lv_now < 2.8):
+            keep = ", ".join(
+                (w.get("en", "") if isinstance(w, dict) else str(w))
+                for w in (data.get("words") or [])
+            )
+            log(f"  읽기 레벨 {lv_now} — 목표 3.0~3.5를 벗어나 한 번 고쳐 씁니다")
+            try:
+                fixed = call_gemini(REWRITE_PROMPT.format(
+                    level=lv_now,
+                    direction=("더 쉽게" if lv_now > 3.8 else "조금 더 어렵게"),
+                    keep=keep,
+                    article=json.dumps(data["article_en"], ensure_ascii=False),
+                ))
+                fixed = re.sub(r"^```(?:json)?\s*|\s*```$", "", fixed).strip()
+                new_paras = json.loads(fixed).get("article_en")
+                if new_paras:
+                    lv_new = (reading_level(new_paras) or {}).get("grade")
+                    log(f"  고쳐 쓴 글의 레벨: {lv_new}")
+                    if lv_new is not None and abs(lv_new - 3.25) < abs(lv_now - 3.25):
+                        data["article_en"] = new_paras
+                    else:
+                        log("  더 나아지지 않아 원래 글을 그대로 씁니다")
+            except Exception as e:
+                log(f"  고쳐 쓰기 실패({e}) — 원래 글을 그대로 씁니다")
 
         return data
 
