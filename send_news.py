@@ -502,9 +502,11 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 - **난이도 목표: Flesch-Kincaid 3.0~3.5 (미국 초등3학년)**. 이게 가장 중요합니다.
   · 평균 문장 길이를 **10~13단어**로 맞추세요. 너무 짧은 문장만 쓰지 마세요.
   · and, but, because, so, when, if 같은 연결어로 문장을 자연스럽게 엮으세요.
-  · 2음절 이상 단어도 적당히 쓰세요 (important, discover, protect 같은 수준).
-  · 너무 쉬우면(2.0 수준) 아이가 지루해합니다. 살짝 도전되게 쓰세요.
-  문장은 여전히 짧고 쉽게 유지하면서, 내용을 더 자세히 담으세요.
+  · **가장 중요 — 단어를 짧게 쓰세요.** 대부분 1음절 단어로 쓰고,
+    3음절 이상 긴 단어는 글 전체에서 8개를 넘기지 마세요.
+    (쓰지 말 것: immediately, opportunity, environment)
+    (대신 쓸 것: soon, chance, nature)
+  · 단어만 쉽게 하고, 내용은 알차게 담으세요. 유치하면 안 됩니다.
   원문을 그대로 베끼지 말고 다시 쓰세요.
 - words는 7~9개. 기사에 실제로 나온 단어만 고르세요.
 - def_en(영영 뜻)이 이 자료의 핵심입니다. 아주 쉽게 쓰세요:
@@ -549,7 +551,8 @@ REWRITE_PROMPT = """아래 영어 글은 9살 아이가 읽을 신문 기사입�
 - 내용과 사실(숫자, 이름, 예시)은 절대 바꾸지 마세요. 빼지도 마세요.
 - 전체 250~320 단어, 문단 5~7개를 그대로 유지하세요.
 - 다음 단어들은 반드시 글 안에 그대로 남겨두세요: {keep}
-- 쉽게 만들 때: 한 문장을 10~13단어로 줄이고, 어려운 긴 단어를 쉬운 말로 바꾸세요.
+- 쉽게 만들 때: 긴 단어를 짧은 단어로 바꾸는 게 가장 중요합니다.
+  3음절 이상 단어를 1~2음절 쉬운 말로 바꾸고, 한 문장은 10~13단어로 맞추세요.
 - 어렵게 만들 때: and, but, because, so, when, if 로 짧은 문장들을 자연스럽게 이어 붙이세요.
 
 JSON만 출력하세요. 다른 말은 쓰지 마세요.
@@ -652,36 +655,48 @@ def make_content(title, body):
             log(f"  항목이 빠졌습니다 {missing}, 다시 시도합니다")
             continue
 
-        # 읽기 레벨이 목표(3.0~3.5)를 벗어나면 한 번만 고쳐 쓴다
+        # 읽기 레벨이 목표(3.0~3.5)를 벗어나면 최대 3번까지 고쳐 쓴다
         try:
             lv_now = (reading_level(data["article_en"]) or {}).get("grade")
         except Exception:
             lv_now = None
 
-        if lv_now is not None and (lv_now > 3.8 or lv_now < 2.8):
+        for fix_try in range(1, 4):
+            if lv_now is None or 2.8 <= lv_now <= 3.6:
+                break
             keep = ", ".join(
                 (w.get("en", "") if isinstance(w, dict) else str(w))
                 for w in (data.get("words") or [])
             )
-            log(f"  읽기 레벨 {lv_now} — 목표 3.0~3.5를 벗어나 한 번 고쳐 씁니다")
+            log(f"  읽기 레벨 {lv_now} — 3.0~3.5로 맞추려고 고쳐 씁니다 ({fix_try}/3)")
             try:
                 fixed = call_gemini(REWRITE_PROMPT.format(
                     level=lv_now,
-                    direction=("더 쉽게" if lv_now > 3.8 else "조금 더 어렵게"),
+                    direction=("더 쉽게" if lv_now > 3.6 else "조금 더 어렵게"),
                     keep=keep,
                     article=json.dumps(data["article_en"], ensure_ascii=False),
                 ))
                 fixed = re.sub(r"^```(?:json)?\s*|\s*```$", "", fixed).strip()
                 new_paras = json.loads(fixed).get("article_en")
-                if new_paras:
-                    lv_new = (reading_level(new_paras) or {}).get("grade")
-                    log(f"  고쳐 쓴 글의 레벨: {lv_new}")
-                    if lv_new is not None and abs(lv_new - 3.25) < abs(lv_now - 3.25):
-                        data["article_en"] = new_paras
-                    else:
-                        log("  더 나아지지 않아 원래 글을 그대로 씁니다")
             except Exception as e:
-                log(f"  고쳐 쓰기 실패({e}) — 원래 글을 그대로 씁니다")
+                log(f"  고쳐 쓰기 실패({e}) — 지금 글을 그대로 씁니다")
+                break
+
+            if not new_paras:
+                break
+            lv_new = (reading_level(new_paras) or {}).get("grade")
+            log(f"  고쳐 쓴 글의 레벨: {lv_new}")
+            if lv_new is None:
+                break
+            if abs(lv_new - 3.25) < abs(lv_now - 3.25):
+                data["article_en"] = new_paras
+                lv_now = lv_new
+            else:
+                log("  더 나아지지 않아 여기서 멈춥니다")
+                break
+
+        if lv_now is not None:
+            log(f"  최종 읽기 레벨: {lv_now}")
 
         return data
 
