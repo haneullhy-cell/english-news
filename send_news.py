@@ -499,14 +499,17 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 - article_en은 전체 합쳐서 반드시 **250~320 단어**. 문단은 5~7개.
   원문의 내용을 충분히 담으세요. 어떻게/왜에 해당하는 설명과
   구체적인 숫자·예시를 빼지 말고 넣으세요.
-- **난이도 목표: Flesch-Kincaid 3.0~3.5 (미국 초등3학년)**. 이게 가장 중요합니다.
-  · 평균 문장 길이를 **10~13단어**로 맞추세요. 너무 짧은 문장만 쓰지 마세요.
-  · and, but, because, so, when, if 같은 연결어로 문장을 자연스럽게 엮으세요.
-  · **가장 중요 — 단어를 짧게 쓰세요.** 대부분 1음절 단어로 쓰고,
-    3음절 이상 긴 단어는 글 전체에서 8개를 넘기지 마세요.
+- **난이도 목표: Flesch-Kincaid 3.5~4.2**. 이게 가장 중요합니다.
+  · 평균 문장 길이를 **15단어**로 맞추세요.
+  · **5~7단어짜리 짧은 문장을 쓰지 마세요.** 가장 짧은 문장도 9단어 이상이어야 합니다.
+    (이렇게 쓰지 마세요: "It is one hundred years old!")
+    (이렇게 쓰세요: "Disney is one hundred years old, and that is a very long time.")
+  · and, but, because, so, when, if, that, who 로 문장을 자연스럽게 이어 붙이세요.
+  · 단어는 짧고 쉽게 쓰세요. 단어 하나당 평균 1.2음절 정도.
+    3음절 이상 긴 단어는 글 전체에서 10개를 넘기지 마세요.
     (쓰지 말 것: immediately, opportunity, environment)
     (대신 쓸 것: soon, chance, nature)
-  · 단어만 쉽게 하고, 내용은 알차게 담으세요. 유치하면 안 됩니다.
+  · **문장은 길게, 단어는 쉽게** — 이게 핵심입니다.
   원문을 그대로 베끼지 말고 다시 쓰세요.
 - words는 7~9개. 기사에 실제로 나온 단어만 고르세요.
 - def_en(영영 뜻)이 이 자료의 핵심입니다. 아주 쉽게 쓰세요:
@@ -547,9 +550,9 @@ REWRITE_PROMPT = """아래 영어 글은 9살 아이가 읽을 신문 기사입�
 읽기 난이도를 정확히 맞추려고 합니다.
 
 지금 이 글의 상태:
-- Flesch-Kincaid 레벨 {level}  (목표는 3.0~3.5)
-- 한 문장 평균 {wps}단어  (목표: 12단어)
-- 단어 하나당 평균 {spw}음절  (목표: 1.24음절)
+- Flesch-Kincaid 레벨 {level}  (목표는 3.5~4.2)
+- 한 문장 평균 {wps}단어  (목표: 15단어)
+- 단어 하나당 평균 {spw}음절  (목표: 1.19음절)
 
 {direction}
 
@@ -557,9 +560,8 @@ REWRITE_PROMPT = """아래 영어 글은 9살 아이가 읽을 신문 기사입�
 - 내용과 사실(숫자, 이름, 예시)은 절대 바꾸지 마세요. 빼지도 마세요.
 - 전체 250~320 단어, 문단 5~7개를 그대로 유지하세요.
 - 다음 단어들은 반드시 글 안에 그대로 남겨두세요: {keep}
+- **5~7단어짜리 짧은 문장을 남기지 마세요.** 가장 짧은 문장도 9단어 이상.
 - **살짝만** 고치세요. 목표를 지나쳐 버리면 안 됩니다.
-  너무 쉽게 만들면(2점대) 아이가 지루해합니다.
-  너무 어렵게 만들면(4점대) 아이가 못 읽습니다.
 
 JSON만 출력하세요. 다른 말은 쓰지 마세요.
 {{"article_en": ["문단1", "문단2", "문단3", "문단4", "문단5"]}}
@@ -661,7 +663,7 @@ def make_content(title, body):
             log(f"  항목이 빠졌습니다 {missing}, 다시 시도합니다")
             continue
 
-        # 읽기 레벨을 재고, 목표(3.0~3.5)를 벗어나면 최대 3번까지 고쳐 쓴다
+        # 읽기 레벨을 재고, 목표(3.5~4.2)를 벗어나면 최대 3번까지 고쳐 쓴다
         def _measure(paras):
             r = reading_level(paras) or {}
             g = r.get("grade")
@@ -675,12 +677,12 @@ def make_content(title, body):
         best_lv, wps, spw = _measure(best_paras)
 
         for fix_try in range(1, 4):
-            if best_lv is None or 2.9 <= best_lv <= 3.5:
+            if best_lv is None or 3.4 <= best_lv <= 4.3:
                 break
-            if best_lv > 3.5:
-                direction = "이 글을 **조금만 더 쉽게** 고쳐 주세요. 긴 단어를 짧은 단어로 바꾸는 게 가장 효과적입니다."
+            if best_lv > 4.3:
+                direction = "이 글을 **조금만 더 쉽게** 고쳐 주세요. 문장 길이는 그대로 두고, 긴 단어를 짧은 단어로 바꾸는 게 가장 효과적입니다."
             else:
-                direction = "이 글을 **조금만 더 어렵게** 고쳐 주세요. 짧은 문장들을 and, but, because, so, when, if 로 이어 붙이고, 단어를 조금 더 정확한 말로 바꾸세요."
+                direction = "이 글을 **조금만 더 어렵게** 고쳐 주세요. 짧은 문장들을 and, but, because, so, when, if, that 로 이어 붙여서 문장을 길게 만드세요. 단어는 지금처럼 쉽게 두세요."
             keep = ", ".join(
                 (w.get("en", "") if isinstance(w, dict) else str(w))
                 for w in (data.get("words") or [])
@@ -704,14 +706,14 @@ def make_content(title, body):
             log(f"  고쳐 쓴 글의 레벨: {lv_new}")
             if lv_new is None:
                 break
-            if abs(lv_new - 3.25) < abs(best_lv - 3.25):
+            if abs(lv_new - 3.85) < abs(best_lv - 3.85):
                 best_paras, best_lv, wps, spw = new_paras, lv_new, wps_new, spw_new
             else:
                 log("  더 나아지지 않아 이전 글을 유지합니다")
 
         data["article_en"] = best_paras
         if best_lv is not None:
-            log(f"  최종 읽기 레벨: {best_lv}")
+            log(f"  최종 읽기 레벨: {best_lv} (문장 평균 {wps}단어)")
 
         return data
 
