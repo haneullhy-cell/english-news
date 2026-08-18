@@ -250,8 +250,12 @@ def _newsround_candidates(used):
     return out
 
 
+# 원문이 이보다 짧으면 알맹이 없는 페이지(퀴즈·모음글)로 봅니다
+MIN_BODY_WORDS = 220
+
+
 def pick_article(history):
-    """기사를 고른다. DOGOnews를 먼저 보고, 없으면 BBC Newsround."""
+    """쓸 만한 기사 후보 목록. DOGOnews를 먼저 보고, 없으면 BBC Newsround."""
     used = set(history.get("used_urls", []))
 
     log("DOGOnews에서 기사 목록 가져오는 중...")
@@ -261,22 +265,47 @@ def pick_article(history):
         log(f"  DOGOnews 실패: {e}")
         candidates = []
 
-    if candidates:
-        log(f"후보 {len(candidates)}개 중 첫 번째 선택")
-        return candidates[0]
-
-    log("DOGOnews에 새 기사가 없어 BBC Newsround로 넘어갑니다...")
-    try:
-        candidates = _newsround_candidates(used)
-    except Exception as e:
-        log(f"  Newsround 실패: {e}")
-        candidates = []
+    if not candidates:
+        log("DOGOnews에 새 기사가 없어 BBC Newsround로 넘어갑니다...")
+        try:
+            candidates = _newsround_candidates(used)
+        except Exception as e:
+            log(f"  Newsround 실패: {e}")
+            candidates = []
 
     if not candidates:
         raise RuntimeError("두 곳 모두에서 쓸 만한 새 기사를 찾지 못했습니다.")
 
-    log(f"Newsround 후보 {len(candidates)}개 중 첫 번째 선택")
-    return candidates[0]
+    log(f"후보 {len(candidates)}개를 찾았습니다")
+    return candidates
+
+
+def pick_and_fetch(history):
+    """본문이 충분히 긴 기사가 나올 때까지 후보를 차례로 열어본다."""
+    candidates = pick_article(history)
+    best, best_n = None, -1
+
+    for i, url in enumerate(candidates[:8], 1):
+        try:
+            art = fetch_article(url)
+        except Exception as e:
+            log(f"  [{i}] 여는 데 실패({e}) — 다음 기사로")
+            continue
+
+        n = len((art.get("body") or "").split())
+        if n >= MIN_BODY_WORDS:
+            log(f"  [{i}] 원문 {n}단어 — 이 기사로 정합니다")
+            return art
+
+        log(f"  [{i}] 원문이 {n}단어뿐이라 건너뜁니다 (최소 {MIN_BODY_WORDS}단어)")
+        if n > best_n:
+            best, best_n = art, n
+
+    if best is None:
+        raise RuntimeError("본문을 읽을 수 있는 기사를 찾지 못했습니다.")
+
+    log(f"  충분히 긴 기사가 없어 그중 가장 긴 것({best_n}단어)을 씁니다")
+    return best
 
 
 # 저작권 걱정 없이 쓸 수 있는 사진의 출처 표기
@@ -496,7 +525,7 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 }}
 
 [아이용 규칙 — 여기엔 한국어 금지]
-- article_en은 전체 합쳐서 반드시 **250~320 단어**. 문단은 5~7개.
+- article_en은 전체 합쳐서 반드시 **380~460 단어**. 문단은 7~9개.
   원문의 내용을 충분히 담으세요. 어떻게/왜에 해당하는 설명과
   구체적인 숫자·예시를 빼지 말고 넣으세요.
 - **난이도 목표: Flesch-Kincaid 3.5~4.2**. 이게 가장 중요합니다.
@@ -560,7 +589,7 @@ REWRITE_PROMPT = """아래 영어 글은 9살 아이가 읽을 신문 기사입�
 
 반드시 지킬 것:
 - 내용과 사실(숫자, 이름, 예시)은 절대 바꾸지 마세요. 빼지도 마세요.
-- 전체 250~320 단어, 문단 5~7개를 그대로 유지하세요.
+- 전체 380~460 단어, 문단 7~9개를 그대로 유지하세요.
 - 다음 단어들은 반드시 글 안에 그대로 남겨두세요: {keep}
 - **5~7단어짜리 짧은 문장을 남기지 마세요.** 가장 짧은 문장도 9단어 이상.
 - **살짝만** 고치세요. 목표를 지나쳐 버리면 안 됩니다.
@@ -1409,8 +1438,7 @@ def main():
         update_github_secret("KAKAO_REFRESH_TOKEN", new_refresh)
 
     history = load_history()
-    url = pick_article(history)
-    art = fetch_article(url)
+    art = pick_and_fetch(history)
     source_url = art["url"]
     content = make_content(art["title"], art["body"])
 
