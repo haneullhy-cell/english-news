@@ -501,6 +501,7 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
   구체적인 숫자·예시를 빼지 말고 넣으세요.
 - **난이도 목표: Flesch-Kincaid 3.5~4.2**. 이게 가장 중요합니다.
   · 평균 문장 길이를 **15단어**로 맞추세요.
+  · **한 문장이 18단어를 넘지 마세요.** 너무 길면 아이가 숨차합니다.
   · **5~7단어짜리 짧은 문장을 쓰지 마세요.** 가장 짧은 문장도 9단어 이상이어야 합니다.
     (이렇게 쓰지 마세요: "It is one hundred years old!")
     (이렇게 쓰세요: "Disney is one hundred years old, and that is a very long time.")
@@ -552,6 +553,7 @@ REWRITE_PROMPT = """아래 영어 글은 9살 아이가 읽을 신문 기사입�
 지금 이 글의 상태:
 - Flesch-Kincaid 레벨 {level}  (목표는 3.5~4.2)
 - 한 문장 평균 {wps}단어  (목표: 15단어)
+  (가장 긴 문장도 18단어를 넘으면 안 됩니다)
 - 단어 하나당 평균 {spw}음절  (목표: 1.19음절)
 
 {direction}
@@ -677,9 +679,9 @@ def make_content(title, body):
         best_lv, wps, spw = _measure(best_paras)
 
         for fix_try in range(1, 4):
-            if best_lv is None or 3.4 <= best_lv <= 4.3:
+            if best_lv is None or 3.5 <= best_lv <= 4.5:
                 break
-            if best_lv > 4.3:
+            if best_lv > 4.5:
                 direction = "이 글을 **조금만 더 쉽게** 고쳐 주세요. 문장 길이는 그대로 두고, 긴 단어를 짧은 단어로 바꾸는 게 가장 효과적입니다."
             else:
                 direction = "이 글을 **조금만 더 어렵게** 고쳐 주세요. 짧은 문장들을 and, but, because, so, when, if, that 로 이어 붙여서 문장을 길게 만드세요. 단어는 지금처럼 쉽게 두세요."
@@ -697,8 +699,9 @@ def make_content(title, body):
                 fixed = re.sub(r"^```(?:json)?\s*|\s*```$", "", fixed).strip()
                 new_paras = json.loads(fixed).get("article_en")
             except Exception as e:
-                log(f"  고쳐 쓰기 실패({e}) — 지금까지 중 가장 좋은 글을 씁니다")
-                break
+                log(f"  고쳐 쓰기 {fix_try}번째 실패({e}) — 20초 쉬었다가 다시 시도")
+                time.sleep(20)
+                continue
 
             if not new_paras:
                 break
@@ -706,7 +709,7 @@ def make_content(title, body):
             log(f"  고쳐 쓴 글의 레벨: {lv_new}")
             if lv_new is None:
                 break
-            if abs(lv_new - 3.85) < abs(best_lv - 3.85):
+            if abs(lv_new - 4.0) < abs(best_lv - 4.0):
                 best_paras, best_lv, wps, spw = new_paras, lv_new, wps_new, spw_new
             else:
                 log("  더 나아지지 않아 이전 글을 유지합니다")
