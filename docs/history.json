@@ -19,7 +19,8 @@
     "https://www.bbc.co.uk/newsround/39691274",
     "https://www.bbc.co.uk/newsround/67496949",
     "https://www.bbc.co.uk/newsround/68010461",
-    "https://www.bbc.co.uk/newsround/52023721"
+    "https://www.bbc.co.uk/newsround/52023721",
+    "https://www.bbc.co.uk/newsround/64987543"
   ],
   "issues": [
     {
@@ -141,6 +142,12 @@
       "file": "2026-08-18.html",
       "title_en": "A Big Quiz for One Hundred Years",
       "title_ko": "디즈니 100주년 기념 퀴즈"
+    },
+    {
+      "date": "2026-08-18",
+      "file": "2026-08-18.html",
+      "title_en": "Why We Need Global Recycling Day",
+      "title_ko": "우리가 세계 재활용의 날을 챙겨야 하는 이유"
     }
   ]
 }
