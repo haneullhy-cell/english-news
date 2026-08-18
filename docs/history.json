@@ -20,7 +20,8 @@
     "https://www.bbc.co.uk/newsround/67496949",
     "https://www.bbc.co.uk/newsround/68010461",
     "https://www.bbc.co.uk/newsround/52023721",
-    "https://www.bbc.co.uk/newsround/64987543"
+    "https://www.bbc.co.uk/newsround/64987543",
+    "https://www.bbc.co.uk/newsround/45024727"
   ],
   "issues": [
     {
@@ -148,6 +149,12 @@
       "file": "2026-08-18.html",
       "title_en": "Why We Need Global Recycling Day",
       "title_ko": "우리가 세계 재활용의 날을 챙겨야 하는 이유"
+    },
+    {
+      "date": "2026-08-18",
+      "file": "2026-08-18.html",
+      "title_en": "Fun News About Magic, Sports, and Cartoons",
+      "title_ko": "마법, 스포츠, 애니메이션의 신나는 소식들"
     }
   ]
 }
