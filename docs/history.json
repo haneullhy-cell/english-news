@@ -18,7 +18,8 @@
     "https://www.bbc.co.uk/newsround/49552043",
     "https://www.bbc.co.uk/newsround/39691274",
     "https://www.bbc.co.uk/newsround/67496949",
-    "https://www.bbc.co.uk/newsround/68010461"
+    "https://www.bbc.co.uk/newsround/68010461",
+    "https://www.bbc.co.uk/newsround/52023721"
   ],
   "issues": [
     {
@@ -134,6 +135,12 @@
       "file": "2026-08-18.html",
       "title_en": "Fun News From Around the World",
       "title_ko": "세계의 재미있는 뉴스들"
+    },
+    {
+      "date": "2026-08-18",
+      "file": "2026-08-18.html",
+      "title_en": "A Big Quiz for One Hundred Years",
+      "title_ko": "디즈니 100주년 기념 퀴즈"
     }
   ]
 }
