@@ -544,16 +544,22 @@ PROMPT = """당신은 한국에 사는 9살(초등 3학년) 아이를 위한 영
 
 # 난이도가 목표를 벗어났을 때 다시 쓰게 하는 프롬프트
 REWRITE_PROMPT = """아래 영어 글은 9살 아이가 읽을 신문 기사입니다.
-지금 Flesch-Kincaid 읽기 레벨이 {level}인데, 목표는 3.0~3.5입니다.
-{direction} 고쳐 써 주세요.
+읽기 난이도를 정확히 맞추려고 합니다.
+
+지금 이 글의 상태:
+- Flesch-Kincaid 레벨 {level}  (목표는 3.0~3.5)
+- 한 문장 평균 {wps}단어  (목표: 12단어)
+- 단어 하나당 평균 {spw}음절  (목표: 1.24음절)
+
+{direction}
 
 반드시 지킬 것:
 - 내용과 사실(숫자, 이름, 예시)은 절대 바꾸지 마세요. 빼지도 마세요.
 - 전체 250~320 단어, 문단 5~7개를 그대로 유지하세요.
 - 다음 단어들은 반드시 글 안에 그대로 남겨두세요: {keep}
-- 쉽게 만들 때: 긴 단어를 짧은 단어로 바꾸는 게 가장 중요합니다.
-  3음절 이상 단어를 1~2음절 쉬운 말로 바꾸고, 한 문장은 10~13단어로 맞추세요.
-- 어렵게 만들 때: and, but, because, so, when, if 로 짧은 문장들을 자연스럽게 이어 붙이세요.
+- **살짝만** 고치세요. 목표를 지나쳐 버리면 안 됩니다.
+  너무 쉽게 만들면(2점대) 아이가 지루해합니다.
+  너무 어렵게 만들면(4점대) 아이가 못 읽습니다.
 
 JSON만 출력하세요. 다른 말은 쓰지 마세요.
 {{"article_en": ["문단1", "문단2", "문단3", "문단4", "문단5"]}}
@@ -655,48 +661,57 @@ def make_content(title, body):
             log(f"  항목이 빠졌습니다 {missing}, 다시 시도합니다")
             continue
 
-        # 읽기 레벨이 목표(3.0~3.5)를 벗어나면 최대 3번까지 고쳐 쓴다
-        try:
-            lv_now = (reading_level(data["article_en"]) or {}).get("grade")
-        except Exception:
-            lv_now = None
+        # 읽기 레벨을 재고, 목표(3.0~3.5)를 벗어나면 최대 3번까지 고쳐 쓴다
+        def _measure(paras):
+            r = reading_level(paras) or {}
+            g = r.get("grade")
+            if g is None or not r.get("sentences"):
+                return None, None, None
+            wps = r["words"] / r["sentences"]
+            spw = (g + 15.59 - 0.39 * wps) / 11.8
+            return g, round(wps, 1), round(spw, 2)
+
+        best_paras = data["article_en"]
+        best_lv, wps, spw = _measure(best_paras)
 
         for fix_try in range(1, 4):
-            if lv_now is None or 2.8 <= lv_now <= 3.6:
+            if best_lv is None or 2.9 <= best_lv <= 3.5:
                 break
+            if best_lv > 3.5:
+                direction = "이 글을 **조금만 더 쉽게** 고쳐 주세요. 긴 단어를 짧은 단어로 바꾸는 게 가장 효과적입니다."
+            else:
+                direction = "이 글을 **조금만 더 어렵게** 고쳐 주세요. 짧은 문장들을 and, but, because, so, when, if 로 이어 붙이고, 단어를 조금 더 정확한 말로 바꾸세요."
             keep = ", ".join(
                 (w.get("en", "") if isinstance(w, dict) else str(w))
                 for w in (data.get("words") or [])
             )
-            log(f"  읽기 레벨 {lv_now} — 3.0~3.5로 맞추려고 고쳐 씁니다 ({fix_try}/3)")
+            log(f"  레벨 {best_lv} (문장 {wps}단어, 단어 {spw}음절) — 고쳐 씁니다 ({fix_try}/3)")
             try:
                 fixed = call_gemini(REWRITE_PROMPT.format(
-                    level=lv_now,
-                    direction=("더 쉽게" if lv_now > 3.6 else "조금 더 어렵게"),
-                    keep=keep,
-                    article=json.dumps(data["article_en"], ensure_ascii=False),
+                    level=best_lv, wps=wps, spw=spw,
+                    direction=direction, keep=keep,
+                    article=json.dumps(best_paras, ensure_ascii=False),
                 ))
                 fixed = re.sub(r"^```(?:json)?\s*|\s*```$", "", fixed).strip()
                 new_paras = json.loads(fixed).get("article_en")
             except Exception as e:
-                log(f"  고쳐 쓰기 실패({e}) — 지금 글을 그대로 씁니다")
+                log(f"  고쳐 쓰기 실패({e}) — 지금까지 중 가장 좋은 글을 씁니다")
                 break
 
             if not new_paras:
                 break
-            lv_new = (reading_level(new_paras) or {}).get("grade")
+            lv_new, wps_new, spw_new = _measure(new_paras)
             log(f"  고쳐 쓴 글의 레벨: {lv_new}")
             if lv_new is None:
                 break
-            if abs(lv_new - 3.25) < abs(lv_now - 3.25):
-                data["article_en"] = new_paras
-                lv_now = lv_new
+            if abs(lv_new - 3.25) < abs(best_lv - 3.25):
+                best_paras, best_lv, wps, spw = new_paras, lv_new, wps_new, spw_new
             else:
-                log("  더 나아지지 않아 여기서 멈춥니다")
-                break
+                log("  더 나아지지 않아 이전 글을 유지합니다")
 
-        if lv_now is not None:
-            log(f"  최종 읽기 레벨: {lv_now}")
+        data["article_en"] = best_paras
+        if best_lv is not None:
+            log(f"  최종 읽기 레벨: {best_lv}")
 
         return data
 
