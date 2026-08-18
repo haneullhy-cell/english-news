@@ -274,7 +274,24 @@ def pick_article(history):
             candidates = []
 
     if not candidates:
-        raise RuntimeError("두 곳 모두에서 쓸 만한 새 기사를 찾지 못했습니다.")
+        # 새 기사가 하나도 없을 때: 예전에 썼던 기사라도 다시 쓴다.
+        # (아침에 신문이 아예 안 오는 것보다는 낫습니다)
+        log("새 기사가 없습니다. 예전에 썼던 기사 중에서 다시 고릅니다...")
+        for fn in (_dogonews_candidates, _newsround_candidates):
+            try:
+                candidates = fn(set())
+            except Exception as e:
+                log(f"  실패: {e}")
+                candidates = []
+            if candidates:
+                break
+
+        # 가장 오래전에 썼던 것부터 다시 씁니다
+        order = {u: n for n, u in enumerate(history.get("used_urls", []))}
+        candidates.sort(key=lambda u: order.get(u, -1))
+
+    if not candidates:
+        raise RuntimeError("기사를 하나도 가져오지 못했습니다.")
 
     log(f"후보 {len(candidates)}개를 찾았습니다")
     return candidates
