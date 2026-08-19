@@ -197,9 +197,31 @@ def save_history(hist):
 
 def _dogonews_candidates(used):
     """DOGOnews 첫 화면에서 안 쓴 기사 목록을 뽑는다."""
-    res = requests.get("https://www.dogonews.com/", headers=UA, timeout=30)
-    res.raise_for_status()
-    soup = BeautifulSoup(res.text, "html.parser")
+    # 첫 화면 14개만 보면 금방 동이 납니다.
+    # 뒷 페이지와 분야별 페이지까지 훑어서 창고를 크게 만듭니다.
+    pages = [
+        "https://www.dogonews.com/",
+        "https://www.dogonews.com/page/2",
+        "https://www.dogonews.com/page/3",
+        "https://www.dogonews.com/page/4",
+        "https://www.dogonews.com/category/science",
+        "https://www.dogonews.com/category/environment",
+        "https://www.dogonews.com/category/world",
+    ]
+
+    html_parts = []
+    for page in pages:
+        try:
+            r = requests.get(page, headers=UA, timeout=30)
+            r.raise_for_status()
+            html_parts.append(r.text)
+        except Exception as e:
+            log(f"  {page} 못 읽음: {e}")
+
+    if not html_parts:
+        raise RuntimeError("DOGOnews를 한 곳도 열지 못했습니다.")
+
+    soup = BeautifulSoup("".join(html_parts), "html.parser")
 
     out, seen = [], set()
     for a in soup.find_all("a", href=True):
