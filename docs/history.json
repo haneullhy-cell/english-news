@@ -22,7 +22,8 @@
     "https://www.bbc.co.uk/newsround/52023721",
     "https://www.bbc.co.uk/newsround/64987543",
     "https://www.bbc.co.uk/newsround/45024727",
-    "https://www.dogonews.com/2026/8/10/look-up-the-perseid-meteor-shower-peaks-august-12-13"
+    "https://www.dogonews.com/2026/8/10/look-up-the-perseid-meteor-shower-peaks-august-12-13",
+    "https://www.dogonews.com/2026/6/18/elon-musk-becomes-the-worlds-first-trillionaire"
   ],
   "issues": [
     {
@@ -162,6 +163,12 @@
       "file": "2026-08-19.html",
       "title_en": "Look Up at the Night Sky Tonight",
       "title_ko": "오늘 밤 밤하늘의 별똥별 쇼를 만나요"
+    },
+    {
+      "date": "2026-08-19",
+      "file": "2026-08-19.html",
+      "title_en": "Elon Musk Becomes the First Trillionaire",
+      "title_ko": "세계 최초의 조만장자가 된 일론 머스크"
     }
   ]
 }
