@@ -24,7 +24,8 @@
     "https://www.bbc.co.uk/newsround/45024727",
     "https://www.dogonews.com/2026/8/10/look-up-the-perseid-meteor-shower-peaks-august-12-13",
     "https://www.dogonews.com/2026/6/18/elon-musk-becomes-the-worlds-first-trillionaire",
-    "https://www.dogonews.com/2026/8/19/gus-the-t-rex-fetches-a-staggering-50-dollars-1-cents-million-at-auction"
+    "https://www.dogonews.com/2026/8/19/gus-the-t-rex-fetches-a-staggering-50-dollars-1-cents-million-at-auction",
+    "https://www.dogonews.com/2026/6/17/the-june-solstice-explained"
   ],
   "issues": [
     {
@@ -176,6 +177,12 @@
       "file": "2026-08-20.html",
       "title_en": "A Famous T. Rex Sells For Big Money",
       "title_ko": "5000만 달러에 팔린 거대 공룡 티렉스 '거스'"
+    },
+    {
+      "date": "2026-08-21",
+      "file": "2026-08-21.html",
+      "title_en": "The Longest Day of the Year",
+      "title_ko": "일 년 중 낮이 가장 긴 날, 하지"
     }
   ]
 }
