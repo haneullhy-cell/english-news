@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 영어신문 — Monday, August 24, 2026</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:"Malgun Gothic","맑은 고딕",-apple-system,BlinkMacSystemFont,sans-serif;
+    max-width:680px;margin:0 auto;padding:32px 20px 60px;color:#1a1a1a;
+    line-height:1.75;background:#fff;-webkit-text-size-adjust:100%}
+  .date{font-size:13px;color:#888;letter-spacing:1px;margin-bottom:6px}
+  h1{font-size:27px;line-height:1.35;margin:0 0 6px;letter-spacing:-0.5px}
+  .title-ko{font-size:17px;color:#666;margin-bottom:24px;font-weight:500}
+  .meta-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 20px}
+  .src-badge{display:inline-block;background:#e8eef8;color:#2d4a7a;font-size:12px;
+    padding:5px 11px;border-radius:20px;font-weight:700;white-space:nowrap}
+  .level{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
+    padding:5px 11px;border-radius:20px;letter-spacing:0.3px;white-space:nowrap}
+  .src-link{font-size:13px;color:#666;text-decoration:none;border-bottom:1px solid #ccc}
+  .orig-btn{display:block;text-align:center;background:#2d6cdf;color:#fff;
+    text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
+    margin:4px 0 8px}
+  .orig-note{font-size:12px;color:#888;line-height:1.6;margin:0 0 22px;text-align:center}
+  .hero{width:100%;border-radius:8px;display:block;margin:0 0 6px}
+  .hero-cap{font-size:11px;color:#999;line-height:1.5;margin:0 0 16px;text-align:center}
+  .vid-btn{display:block;text-align:center;background:#c0392b;color:#fff;
+    text-decoration:none;padding:15px;border-radius:8px;font-size:16px;font-weight:700;
+    margin:0 0 10px}
+  .level-note{background:#f8f8f6;padding:14px 16px;font-size:13px;color:#666;
+    line-height:1.7;border-left:3px solid #ccc}
+  hr{border:none;border-top:2px solid #1a1a1a;margin:0 0 28px}
+  h2{font-size:15px;margin:36px 0 12px;padding-bottom:7px;border-bottom:1px solid #ddd;
+    letter-spacing:1px;color:#555}
+  .article{font-size:19px;line-height:2.0}
+  .article p{margin:0 0 16px}
+  table{width:100%;border-collapse:collapse;font-size:16px}
+  th{text-align:left;background:#f5f5f5;padding:10px 12px;font-size:13px;color:#555;
+    border-bottom:2px solid #ddd}
+  td{padding:10px 12px;border-bottom:1px solid #eee}
+  td:first-child{font-weight:700;width:32%}
+  td:nth-child(2){color:#999;width:24%;font-size:14px}
+  .summary{background:#f8f8f6;padding:20px;border-left:4px solid #1a1a1a;font-size:16px;
+    line-height:1.9}
+  .question{border:2px solid #1a1a1a;padding:22px;text-align:center}
+  .question .en{font-size:19px;font-weight:700;line-height:1.5}
+  .say-btn{float:right;font-family:inherit;font-size:12px;font-weight:700;
+    background:#1a1a1a;color:#fff;border:none;border-radius:20px;padding:6px 14px;
+    cursor:pointer;letter-spacing:0}
+  .say-btn.playing{background:#c0392b}
+  .hint{float:right;font-size:11px;color:#aaa;font-weight:400;letter-spacing:0;
+    padding-top:4px}
+  .words-def{font-size:16px;column-count:2;column-gap:26px}
+  .words-def dt,.words-def dd{break-inside:avoid}
+  .words-def dt{font-weight:700;margin-top:14px;cursor:pointer;display:inline-block;
+    border-bottom:2px dotted #bbb}
+  .words-def dt:active{color:#c0392b}
+  .words-def dd{margin:2px 0 0;padding-left:0;color:#444;line-height:1.65}
+  .parent{margin-top:56px;padding-top:0;border-top:6px double #ccc}
+  .parent-tag{display:inline-block;background:#1a1a1a;color:#fff;font-size:12px;
+    padding:5px 12px;border-radius:4px;letter-spacing:1px;margin:24px 0 4px}
+  .parent h3{font-size:16px;margin:24px 0 8px;color:#444}
+  .parent .summary{background:#f8f8f6;padding:18px;border-left:4px solid #1a1a1a;
+    font-size:15px;line-height:1.85}
+  .parent table{font-size:15px}
+  .parent .tip{background:#fffdf0;border:1px dashed #d8cb8a;padding:16px 18px;
+    font-size:15px;line-height:1.8}
+  .qz{margin:0 0 26px}
+  .qz-q{font-size:17px;font-weight:700;margin:0 0 10px;line-height:1.5}
+  .qz-c{display:block;width:100%;text-align:left;font-family:inherit;font-size:16px;
+    background:#fff;border:1.5px solid #ddd;border-radius:8px;padding:12px 14px;
+    margin:0 0 8px;cursor:pointer;line-height:1.4}
+  .qz-c.right{background:#e8f6ec;border-color:#4a9d6a;font-weight:700}
+  .qz-c.wrong{background:#fdecea;border-color:#d9534f;text-decoration:line-through;
+    color:#999}
+  .qz-done{font-size:14px;color:#4a9d6a;font-weight:700;margin:4px 0 0}
+  .w{cursor:pointer;border-radius:3px;padding:0 1px}
+  .w:active{background:#ffe9a8}
+  .w.on{background:#ffe9a8}
+  #wordbar{position:fixed;left:0;right:0;bottom:0;background:#1a1a1a;color:#fff;
+    padding:16px 20px;transform:translateY(110%);transition:transform .18s ease;
+    z-index:99;box-shadow:0 -2px 12px rgba(0,0,0,.2)}
+  #wordbar.show{transform:translateY(0)}
+  #wb-en{font-size:20px;font-weight:700;margin-right:12px}
+  #wb-ko{font-size:16px;color:#ffe9a8}
+  #wb-x{float:right;font-size:20px;color:#888;cursor:pointer;line-height:1.2}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin:40px 0 0}
+  body.pdf-mode .btns,body.pdf-mode .say-btn,body.pdf-mode .hint,
+  body.pdf-mode #wordbar,body.pdf-mode .orig-btn,body.pdf-mode .vid-btn,
+  body.pdf-mode #pdf-msg,body.pdf-mode .orig-note,
+  body.pdf-mode .meta-row{display:none !important}
+  body.pdf-mode footer{margin-top:16px;padding-top:10px}
+  body.pdf-mode{padding-bottom:0;width:680px;max-width:680px}
+  body.pdf-mode table{table-layout:fixed;width:100%}
+  body.pdf-mode td,body.pdf-mode th{word-break:keep-all;overflow-wrap:anywhere}
+  body.pdf-mode td:first-child{width:15%}
+  body.pdf-mode .parent table{font-size:13px}
+  body.pdf-mode .parent td{padding:7px 9px;line-height:1.5}
+  body.pdf-mode .w{background:none}
+  body.no-article #p-title,body.no-article #p-summary,
+  body.no-article #p-words-h,body.no-article #p-words,
+  body.no-article #p-q-h,body.no-article #p-q,body.no-article #p-tip,
+  body.no-article #p-lv-h,body.no-article #p-lv,
+  body.no-article #p-src-h,body.no-article #p-src{display:none}
+  body.no-article #read-h2,body.no-article #read-hint,
+  body.no-article #article{display:none}
+  @media print{ .say-btn,.hint,#wordbar,.orig-btn,.orig-note{display:none}
+    .w{background:none} }
+  .print-btn{flex:1;padding:15px;font-size:15px;font-weight:700;background:#1a1a1a;
+    color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit}
+  .print-btn.alt{background:#fff;color:#1a1a1a;border:1.5px solid #1a1a1a}
+  #pdf-msg{position:fixed;left:0;right:0;bottom:0;z-index:120;
+    background:#1a1a1a;color:#fff;padding:14px;font-size:15px;
+    text-align:center;display:none}
+  #pdf-msg.on{display:block}
+  footer{margin-top:36px;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#aaa}
+  footer a{color:#aaa}
+  body.kid-only .parent{display:none}
+  @media print{
+    body{padding:0;font-size:12pt;max-width:100%}
+    .article{font-size:13pt;line-height:1.8}
+    h1{font-size:19pt}
+    h2{margin:18px 0 9px}
+    .btns{display:none}
+    .parent{page-break-before:always;border-top:none;margin-top:0}
+    @page{margin:15mm}
+  }
+</style>
+</head>
+<body>
+
+<div class="date">Monday, August 24, 2026</div>
+<h1>Very Old Potatoes Found in South America</h1>
+<div class="meta-row">
+  <span class="src-badge">DOGOnews</span>
+  <span class="level">읽기 레벨 약 5.2 (AR 환산 추정)</span>
+</div>
+
+<a class="vid-btn" href="https://www.youtube.com/watch?v=Dji8VLUf_Ls" target="_blank" rel="noopener">▶ 오늘의 영상 보기</a>
+
+<a class="orig-btn" href="https://www.dogonews.com/2026/8/21/500-year-old-potatoes-found-intact-in-peru" target="_blank" rel="noopener">
+  원문 기사 보기 (사진 더 있음)
+</a>
+<hr>
+
+<h2 id="read-h2">READ <button class="say-btn" onclick="sayArticle(this)">🔊 들어보기</button></h2>
+<p id="read-hint" class="hint" style="float:none;text-align:right;margin:-6px 0 10px">모르는 단어를 누르면 뜻이 나와요</p>
+<div class="article" id="article">
+  <p><span class="w" onclick="tapWord(this)">Scientists</span> in <span class="w" onclick="tapWord(this)">South</span> <span class="w" onclick="tapWord(this)">America</span> <span class="w" onclick="tapWord(this)">found</span> <span class="w" onclick="tapWord(this)">two</span> <span class="w" onclick="tapWord(this)">old</span> <span class="w" onclick="tapWord(this)">potatoes</span> that <span class="w" onclick="tapWord(this)">still</span> <span class="w" onclick="tapWord(this)">look</span> <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">good</span> <span class="w" onclick="tapWord(this)">today</span>.</p>
+  <p>A <span class="w" onclick="tapWord(this)">man</span> <span class="w" onclick="tapWord(this)">named</span> <span class="w" onclick="tapWord(this)">Dr</span>. <span class="w" onclick="tapWord(this)">Valdez</span> <span class="w" onclick="tapWord(this)">found</span> <span class="w" onclick="tapWord(this)">them</span> in the <span class="w" onclick="tapWord(this)">year</span> <span class="w" onclick="tapWord(this)">two</span> <span class="w" onclick="tapWord(this)">thousand</span> <span class="w" onclick="tapWord(this)">twenty-four</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">These</span> <span class="w" onclick="tapWord(this)">amazing</span> <span class="w" onclick="tapWord(this)">potatoes</span> are <span class="w" onclick="tapWord(this)">about</span> <span class="w" onclick="tapWord(this)">five</span> <span class="w" onclick="tapWord(this)">hundred</span> <span class="w" onclick="tapWord(this)">years</span> <span class="w" onclick="tapWord(this)">old</span>, and that is a <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">long</span> <span class="w" onclick="tapWord(this)">time</span>.</p>
+  <p>The <span class="w" onclick="tapWord(this)">scientists</span> were <span class="w" onclick="tapWord(this)">digging</span> in an <span class="w" onclick="tapWord(this)">old</span> <span class="w" onclick="tapWord(this)">place</span> <span class="w" onclick="tapWord(this)">when</span> they <span class="w" onclick="tapWord(this)">found</span> a <span class="w" onclick="tapWord(this)">small</span> <span class="w" onclick="tapWord(this)">room</span>.</p>
+  <p>They <span class="w" onclick="tapWord(this)">saw</span> a <span class="w" onclick="tapWord(this)">broken</span> <span class="w" onclick="tapWord(this)">clay</span> <span class="w" onclick="tapWord(this)">pot</span> <span class="w" onclick="tapWord(this)">under</span> the <span class="w" onclick="tapWord(this)">dirt</span> <span class="w" onclick="tapWord(this)">floor</span> of the <span class="w" onclick="tapWord(this)">dark</span> <span class="w" onclick="tapWord(this)">room</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">When</span> they <span class="w" onclick="tapWord(this)">looked</span> <span class="w" onclick="tapWord(this)">inside</span> the <span class="w" onclick="tapWord(this)">broken</span> <span class="w" onclick="tapWord(this)">pot</span>, they <span class="w" onclick="tapWord(this)">saw</span> the <span class="w" onclick="tapWord(this)">two</span> <span class="w" onclick="tapWord(this)">dry</span> <span class="w" onclick="tapWord(this)">old</span> <span class="w" onclick="tapWord(this)">potatoes</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">People</span> in <span class="w" onclick="tapWord(this)">this</span> <span class="w" onclick="tapWord(this)">place</span> <span class="w" onclick="tapWord(this)">ate</span> a <span class="w" onclick="tapWord(this)">lot</span> of <span class="w" onclick="tapWord(this)">potatoes</span> for <span class="w" onclick="tapWord(this)">many</span> <span class="w" onclick="tapWord(this)">thousands</span> of <span class="w" onclick="tapWord(this)">years</span>.</p>
+  <p>But <span class="w" onclick="tapWord(this)">fresh</span> <span class="w" onclick="tapWord(this)">potatoes</span> have a <span class="w" onclick="tapWord(this)">lot</span> of <span class="w" onclick="tapWord(this)">water</span> <span class="w" onclick="tapWord(this)">inside</span> <span class="w" onclick="tapWord(this)">them</span>, so they are <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">heavy</span>.</p>
+  <p>Because they have so <span class="w" onclick="tapWord(this)">much</span> <span class="w" onclick="tapWord(this)">water</span>, they can <span class="w" onclick="tapWord(this)">go</span> <span class="w" onclick="tapWord(this)">bad</span> <span class="w" onclick="tapWord(this)">quickly</span> in <span class="w" onclick="tapWord(this)">warm</span> <span class="w" onclick="tapWord(this)">places</span>.</p>
+  <p>The <span class="w" onclick="tapWord(this)">farmers</span> <span class="w" onclick="tapWord(this)">wanted</span> to <span class="w" onclick="tapWord(this)">keep</span> <span class="w" onclick="tapWord(this)">their</span> <span class="w" onclick="tapWord(this)">food</span> for a <span class="w" onclick="tapWord(this)">long</span> <span class="w" onclick="tapWord(this)">time</span> <span class="w" onclick="tapWord(this)">without</span> it <span class="w" onclick="tapWord(this)">going</span> <span class="w" onclick="tapWord(this)">bad</span>.</p>
+  <p>They <span class="w" onclick="tapWord(this)">left</span> the <span class="w" onclick="tapWord(this)">potatoes</span> <span class="w" onclick="tapWord(this)">outside</span> on the <span class="w" onclick="tapWord(this)">cold</span> <span class="w" onclick="tapWord(this)">ground</span> <span class="w" onclick="tapWord(this)">during</span> the <span class="w" onclick="tapWord(this)">freezing</span> <span class="w" onclick="tapWord(this)">winter</span> <span class="w" onclick="tapWord(this)">nights</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">When</span> the <span class="w" onclick="tapWord(this)">sun</span> <span class="w" onclick="tapWord(this)">came</span> <span class="w" onclick="tapWord(this)">up</span>, the <span class="w" onclick="tapWord(this)">warm</span> <span class="w" onclick="tapWord(this)">light</span> <span class="w" onclick="tapWord(this)">made</span> the <span class="w" onclick="tapWord(this)">cold</span> <span class="w" onclick="tapWord(this)">potatoes</span> <span class="w" onclick="tapWord(this)">soft</span> <span class="w" onclick="tapWord(this)">again</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">After</span> the <span class="w" onclick="tapWord(this)">sun</span> <span class="w" onclick="tapWord(this)">made</span> the <span class="w" onclick="tapWord(this)">potatoes</span> <span class="w" onclick="tapWord(this)">soft</span>, the <span class="w" onclick="tapWord(this)">workers</span> <span class="w" onclick="tapWord(this)">stepped</span> on <span class="w" onclick="tapWord(this)">them</span> with <span class="w" onclick="tapWord(this)">their</span> <span class="w" onclick="tapWord(this)">feet</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Stepping</span> on the <span class="w" onclick="tapWord(this)">potatoes</span> <span class="w" onclick="tapWord(this)">helped</span> to <span class="w" onclick="tapWord(this)">push</span> <span class="w" onclick="tapWord(this)">all</span> the <span class="w" onclick="tapWord(this)">water</span> <span class="w" onclick="tapWord(this)">out</span> of the <span class="w" onclick="tapWord(this)">food</span>.</p>
+  <p>The <span class="w" onclick="tapWord(this)">farmers</span> <span class="w" onclick="tapWord(this)">did</span> <span class="w" onclick="tapWord(this)">this</span> <span class="w" onclick="tapWord(this)">day</span> and <span class="w" onclick="tapWord(this)">night</span> <span class="w" onclick="tapWord(this)">until</span> the <span class="w" onclick="tapWord(this)">potatoes</span> were <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">dry</span> and <span class="w" onclick="tapWord(this)">light</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">These</span> <span class="w" onclick="tapWord(this)">dry</span> <span class="w" onclick="tapWord(this)">potatoes</span> are <span class="w" onclick="tapWord(this)">called</span> chuño, and they can <span class="w" onclick="tapWord(this)">last</span> for <span class="w" onclick="tapWord(this)">many</span> <span class="w" onclick="tapWord(this)">long</span> <span class="w" onclick="tapWord(this)">years</span>.</p>
+  <p>The <span class="w" onclick="tapWord(this)">dry</span> <span class="w" onclick="tapWord(this)">food</span> was <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">easy</span> to <span class="w" onclick="tapWord(this)">carry</span> because it <span class="w" onclick="tapWord(this)">did</span> not <span class="w" onclick="tapWord(this)">weigh</span> <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">much</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">This</span> <span class="w" onclick="tapWord(this)">helped</span> <span class="w" onclick="tapWord(this)">feed</span> the <span class="w" onclick="tapWord(this)">soldiers</span> and <span class="w" onclick="tapWord(this)">workers</span> <span class="w" onclick="tapWord(this)">when</span> they <span class="w" onclick="tapWord(this)">did</span> not have <span class="w" onclick="tapWord(this)">enough</span> <span class="w" onclick="tapWord(this)">fresh</span> <span class="w" onclick="tapWord(this)">food</span>.</p>
+  <p>The <span class="w" onclick="tapWord(this)">people</span> who <span class="w" onclick="tapWord(this)">made</span> <span class="w" onclick="tapWord(this)">this</span> <span class="w" onclick="tapWord(this)">food</span> <span class="w" onclick="tapWord(this)">lived</span> in a <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">group</span> <span class="w" onclick="tapWord(this)">called</span> the <span class="w" onclick="tapWord(this)">Inca</span> <span class="w" onclick="tapWord(this)">Empire</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Their</span> <span class="w" onclick="tapWord(this)">land</span> <span class="w" onclick="tapWord(this)">went</span> <span class="w" onclick="tapWord(this)">from</span> the <span class="w" onclick="tapWord(this)">cold</span> <span class="w" onclick="tapWord(this)">mountains</span> <span class="w" onclick="tapWord(this)">all</span> the <span class="w" onclick="tapWord(this)">way</span> to the <span class="w" onclick="tapWord(this)">hot</span> <span class="w" onclick="tapWord(this)">sandy</span> <span class="w" onclick="tapWord(this)">deserts</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Having</span> <span class="w" onclick="tapWord(this)">this</span> <span class="w" onclick="tapWord(this)">dry</span> <span class="w" onclick="tapWord(this)">food</span> <span class="w" onclick="tapWord(this)">helped</span> <span class="w" onclick="tapWord(this)">everyone</span> <span class="w" onclick="tapWord(this)">stay</span> <span class="w" onclick="tapWord(this)">strong</span> and <span class="w" onclick="tapWord(this)">healthy</span> <span class="w" onclick="tapWord(this)">across</span> the <span class="w" onclick="tapWord(this)">big</span> <span class="w" onclick="tapWord(this)">empire</span>.</p>
+  <p>The <span class="w" onclick="tapWord(this)">dry</span> <span class="w" onclick="tapWord(this)">potatoes</span> were <span class="w" onclick="tapWord(this)">made</span> <span class="w" onclick="tapWord(this)">high</span> <span class="w" onclick="tapWord(this)">up</span> in the <span class="w" onclick="tapWord(this)">cold</span> <span class="w" onclick="tapWord(this)">mountains</span> <span class="w" onclick="tapWord(this)">where</span> the <span class="w" onclick="tapWord(this)">weather</span> is <span class="w" onclick="tapWord(this)">freezing</span>.</p>
+  <p>But the <span class="w" onclick="tapWord(this)">scientists</span> <span class="w" onclick="tapWord(this)">found</span> <span class="w" onclick="tapWord(this)">them</span> <span class="w" onclick="tapWord(this)">near</span> the <span class="w" onclick="tapWord(this)">hot</span> <span class="w" onclick="tapWord(this)">beach</span>, <span class="w" onclick="tapWord(this)">which</span> is <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">far</span> <span class="w" onclick="tapWord(this)">away</span>.</p>
+  <p>They <span class="w" onclick="tapWord(this)">think</span> <span class="w" onclick="tapWord(this)">animals</span> <span class="w" onclick="tapWord(this)">called</span> <span class="w" onclick="tapWord(this)">llamas</span> <span class="w" onclick="tapWord(this)">carried</span> the <span class="w" onclick="tapWord(this)">dry</span> <span class="w" onclick="tapWord(this)">food</span> <span class="w" onclick="tapWord(this)">all</span> the <span class="w" onclick="tapWord(this)">way</span> <span class="w" onclick="tapWord(this)">down</span> the <span class="w" onclick="tapWord(this)">mountain</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Dr</span>. <span class="w" onclick="tapWord(this)">Valdez</span> <span class="w" onclick="tapWord(this)">says</span> <span class="w" onclick="tapWord(this)">these</span> <span class="w" onclick="tapWord(this)">old</span> <span class="w" onclick="tapWord(this)">potatoes</span> <span class="w" onclick="tapWord(this)">teach</span> <span class="w" onclick="tapWord(this)">us</span> a <span class="w" onclick="tapWord(this)">very</span> <span class="w" onclick="tapWord(this)">important</span> <span class="w" onclick="tapWord(this)">lesson</span> <span class="w" onclick="tapWord(this)">about</span> our <span class="w" onclick="tapWord(this)">food</span>.</p>
+  <p><span class="w" onclick="tapWord(this)">Today</span>, <span class="w" onclick="tapWord(this)">many</span> <span class="w" onclick="tapWord(this)">people</span> <span class="w" onclick="tapWord(this)">throw</span> <span class="w" onclick="tapWord(this)">away</span> <span class="w" onclick="tapWord(this)">good</span> <span class="w" onclick="tapWord(this)">food</span> because they <span class="w" onclick="tapWord(this)">buy</span> <span class="w" onclick="tapWord(this)">too</span> <span class="w" onclick="tapWord(this)">much</span> at the <span class="w" onclick="tapWord(this)">store</span>.</p>
+  <p>We can <span class="w" onclick="tapWord(this)">learn</span> <span class="w" onclick="tapWord(this)">from</span> the <span class="w" onclick="tapWord(this)">people</span> of the <span class="w" onclick="tapWord(this)">past</span> and <span class="w" onclick="tapWord(this)">try</span> to <span class="w" onclick="tapWord(this)">stop</span> <span class="w" onclick="tapWord(this)">wasting</span> <span class="w" onclick="tapWord(this)">food</span>.</p>
+</div>
+
+<h2>WORDS <span class="hint">단어를 누르면 소리가 나요</span></h2>
+<dl class="words-def">
+<dt onclick="sayWord(this)">scientists</dt><dd>people who study things to learn how the world works</dd>
+<dt onclick="sayWord(this)">broken</dt><dd>in pieces because it was hit or dropped on the ground</dd>
+<dt onclick="sayWord(this)">heavy</dt><dd>weighing a lot and being very hard to lift or move</dd>
+<dt onclick="sayWord(this)">freezing</dt><dd>very cold like ice or snow in the middle of winter</dd>
+<dt onclick="sayWord(this)">stepped</dt><dd>put your foot down on top of something on the ground</dd>
+<dt onclick="sayWord(this)">soldiers</dt><dd>people who fight for their country and keep everyone safe</dd>
+<dt onclick="sayWord(this)">deserts</dt><dd>very dry places with a lot of sand and no rain</dd>
+<dt onclick="sayWord(this)">wasting</dt><dd>throwing away good things that you can still use or eat</dd>
+</dl>
+
+<h2>QUIZ <span class="hint">답을 골라보세요</span></h2>
+  <div class="qz" data-a="0">
+    <p class="qz-q">1. Where did the scientists find the old potatoes?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. In a broken clay pot</button>
+    <button class="qz-c" onclick="pick(this,1)">B. In a hot sandy desert</button>
+    <button class="qz-c" onclick="pick(this,2)">C. In a freezing river</button>
+  </div>
+  <div class="qz" data-a="1">
+    <p class="qz-q">2. How did the workers push the water out of the potatoes?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. They baked them in the hot sun</button>
+    <button class="qz-c" onclick="pick(this,1)">B. They stepped on them with their feet</button>
+    <button class="qz-c" onclick="pick(this,2)">C. They cut them into small pieces</button>
+  </div>
+  <div class="qz" data-a="1">
+    <p class="qz-q">3. Why did the animals called llamas carry the dry food?</p>
+    <button class="qz-c" onclick="pick(this,0)">A. Because llamas like to eat fresh potatoes</button>
+    <button class="qz-c" onclick="pick(this,1)">B. Because the food was made far away in the mountains</button>
+    <button class="qz-c" onclick="pick(this,2)">C. Because the sun was too hot on the beach</button>
+  </div>
+
+<h2>THINK</h2>
+<div class="question">
+  <div class="en">What kind of food would you want to keep for a long time, and why?</div>
+</div>
+
+<div class="parent">
+  <div class="parent-tag">엄마 보는 곳</div>
+  <h3 id="p-title">페루에서 발견된 500년 된 감자</h3>
+
+  <div id="p-summary" class="summary">남미 페루에서 500년이나 썩지 않고 보존된 잉카 제국의 감자가 발견되었습니다. 당시 사람들은 감자를 얼리고 녹인 뒤 밟아서 수분을 빼는 방식으로 오래 보관할 수 있는 식량을 만들었습니다. 이 발견은 현대인들에게 식량을 낭비하지 말아야 한다는 중요한 교훈을 줍니다.</div>
+
+  <h3 id="p-words-h">단어 한국어 뜻</h3>
+  <table id="p-words">
+  <tr><th>영어</th><th>뜻</th></tr>
+  <tr><td>scientists</td><td>과학자들</td></tr>
+<tr><td>broken</td><td>부서진</td></tr>
+<tr><td>heavy</td><td>무거운</td></tr>
+<tr><td>freezing</td><td>얼어붙는, 몹시 추운</td></tr>
+<tr><td>stepped</td><td>밟았다</td></tr>
+<tr><td>soldiers</td><td>군인들</td></tr>
+<tr><td>deserts</td><td>사막들</td></tr>
+<tr><td>wasting</td><td>낭비하는 것</td></tr>
+  </table>
+
+  <h3 id="p-q-h">오늘의 질문</h3>
+  <p id="p-q" style="font-size:15px;margin-bottom:14px">오랫동안 보관하고 싶은 음식이 있다면 무엇이고, 그 이유는 무엇인가요?</p>
+
+  <div id="p-tip" class="tip">냉동실에 얼려둔 음식을 같이 찾아보며 옛날 사람들의 지혜에 대해 이야기해 보세요.</div>
+
+  <h3>퀴즈 정답과 해설</h3>
+  <table><tr><th>문제</th><th>정답과 해설</th></tr><tr><td>1번</td><td><b>A. In a broken clay pot</b><br><span style='color:#777;font-size:14px'>과학자들이 어두운 방의 흙바닥 아래에 있는 부서진 진흙 항아리 안에서 감자를 찾았다고 기사에 나와요.</span></td></tr><tr><td>2번</td><td><b>B. They stepped on them with their feet</b><br><span style='color:#777;font-size:14px'>햇빛에 녹아 부드러워진 감자를 일꾼들이 발로 밟아서 물기를 뺐다고 설명되어 있어요.</span></td></tr><tr><td>3번</td><td><b>B. Because the food was made far away in the mountains</b><br><span style='color:#777;font-size:14px'>말린 감자는 추운 산 위에서 만들어졌지만 멀리 떨어진 해변에서 발견되었기 때문에, 라마들이 산 아래로 운반했을 것이라고 과학자들은 생각해요.</span></td></tr></table>
+
+  <h3 id="p-lv-h">읽기 레벨</h3>
+  <div id="p-lv" class="level-note"><b>원문</b>  7.7 수준  (363단어)<br><b>이 글</b>  5.2 수준  (395단어, 29문장)<br><br>Flesch-Kincaid 방식으로 문장 길이와 단어 길이를 계산한 추정치예요. 르네상스러닝의 공식 AR(ATOS) 지수는 아닙니다. 아이가 편하게 읽으면 맞는 수준이고, 자꾸 막히면 알려주세요.</div>
+
+  <h3 id="p-src-h">원문</h3>
+  <p id="p-src" style="font-size:15px">
+    원문 주소<br>
+    원래 글은 여기서 보실 수 있어요:<br>
+    <a href="https://www.dogonews.com/2026/8/21/500-year-old-potatoes-found-intact-in-peru" target="_blank" rel="noopener">https://www.dogonews.com/2026/8/21/500-year-old-potatoes-found-intact-in-peru</a>
+  </p>
+</div>
+
+<div class="btns">
+  <button class="print-btn" onclick="savePdf('kid')">지문+문제 PDF</button>
+  <button class="print-btn" onclick="savePdf('quiz')">문제만 PDF (지문 빼고)</button>
+  <button class="print-btn alt" onclick="savePdf('all')">전체 PDF (엄마 면)</button>
+</div>
+<div id="pdf-msg"></div>
+
+<footer>
+  출처: <a href="https://www.dogonews.com/2026/8/21/500-year-old-potatoes-found-intact-in-peru">DOGOnews</a> · 쉬운 영어로 다시 썼습니다.<br>
+  <a href="./">지난 신문 보기</a>
+</footer>
+
+<div id="wordbar">
+  <span id="wb-x" onclick="hideBar()">×</span>
+  <span id="wb-en"></span><span id="wb-ko"></span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+var PDF_DATE  = "2026-08-24";
+var GLOSSARY  = {"scientists": "과학자들", "south": "남쪽의", "america": "아메리카", "found": "발견했다", "two": "두 개의", "old": "오래된", "potatoes": "감자들", "still": "여전히", "look": "보인다", "very": "매우", "good": "좋은", "today": "오늘날", "man": "남자", "named": "이름의", "dr": "박사", "valdez": "발데즈", "them": "그들을", "year": "연도", "thousand": "천", "twenty-four": "이십사", "these": "이", "amazing": "놀라운", "about": "약", "five": "다섯", "hundred": "백", "years": "년", "long": "긴", "time": "시간", "digging": "파는 중인", "place": "장소", "when": "할 때", "small": "작은", "room": "방", "saw": "보았다", "broken": "부서진", "clay": "진흙", "pot": "항아리", "under": "아래에", "dirt": "흙", "floor": "바닥", "dark": "어두운", "looked": "보았다", "inside": "안을", "dry": "마른", "people": "사람들", "ate": "먹었다", "lot": "많은", "many": "많은", "thousands": "수천", "fresh": "신선한", "water": "물", "heavy": "무거운", "go": "되다", "bad": "상한", "quickly": "빨리", "warm": "따뜻한", "places": "장소들", "farmers": "농부들", "wanted": "원했다", "keep": "보관하다", "food": "음식", "without": "없이", "going": "되는", "left": "남겨두었다", "outside": "밖에", "cold": "차가운", "ground": "땅", "during": "동안", "freezing": "얼어붙는", "winter": "겨울", "nights": "밤들", "sun": "태양", "came": "왔다", "up": "위로", "light": "빛", "made": "만들었다", "soft": "부드러운", "again": "다시", "after": "후에", "workers": "일꾼들", "stepped": "밟았다", "feet": "발", "stepping": "밟는 것", "helped": "도왔다", "push": "밀다", "all": "모든", "out": "밖으로", "did": "했다", "this": "이것", "day": "낮", "night": "밤", "until": "할 때까지", "called": "불리는", "chuo": "추뇨", "last": "지속되다", "easy": "쉬운", "carry": "운반하다", "weigh": "무게가 나가다", "much": "많이", "feed": "먹이다", "soldiers": "군인들", "enough": "충분한", "lived": "살았다", "big": "큰", "group": "무리", "inca": "잉카", "empire": "제국", "their": "그들의", "land": "땅", "went": "갔다", "way": "내내", "hot": "뜨거운", "sandy": "모래가 많은", "deserts": "사막들", "having": "가지는 것", "everyone": "모든 사람", "stay": "유지하다", "strong": "튼튼한", "healthy": "건강한", "across": "가로질러", "high": "높은", "mountains": "산들", "where": "곳", "weather": "날씨", "near": "근처에", "beach": "해변", "which": "그것은", "far": "멀리", "away": "떨어져", "think": "생각한다", "animals": "동물들", "llamas": "라마들", "carried": "운반했다", "down": "아래로", "mountain": "산", "says": "말한다", "teach": "가르치다", "us": "우리에게", "important": "중요한", "lesson": "교훈", "throw": "던지다", "buy": "사다", "too": "너무", "store": "가게", "learn": "배우다", "from": "로부터", "past": "과거", "try": "노력하다", "stop": "멈추다", "wasting": "낭비하는 것"};
+
+/* ── 단어 눌러서 뜻 보기 ──────────────────────────────── */
+
+function pick(btn, idx) {
+  var box = btn.parentNode;
+  if (box.dataset.done === '1') return;
+  var ans = parseInt(box.dataset.a, 10);
+
+  if (idx === ans) {
+    btn.className = 'qz-c right';
+    box.dataset.done = '1';
+    var msg = document.createElement('p');
+    msg.className = 'qz-done';
+    msg.textContent = '정답이에요!';
+    box.appendChild(msg);
+  } else {
+    btn.className = 'qz-c wrong';
+  }
+}
+
+var lastWordEl = null;
+var barTimer = null;
+
+function hideBar() {
+  document.getElementById('wordbar').classList.remove('show');
+  if (lastWordEl) lastWordEl.classList.remove('on');
+}
+
+function tapWord(el) {
+  var raw = el.textContent.trim();
+  var key = raw.toLowerCase().replace(/[^a-z'-]/g, '');
+  var ko  = GLOSSARY[key] || GLOSSARY[key.replace(/[',-]/g, '')] || '';
+
+  if (lastWordEl) lastWordEl.classList.remove('on');
+  el.classList.add('on');
+  lastWordEl = el;
+
+  document.getElementById('wb-en').textContent = raw;
+  document.getElementById('wb-ko').textContent = ko ? ko : '(뜻 없음)';
+  document.getElementById('wordbar').classList.add('show');
+
+  clearTimeout(barTimer);
+  barTimer = setTimeout(hideBar, 6000);
+
+  speak(raw, 0.7);
+}
+
+/* ── 읽어주기 (브라우저 내장 음성) ────────────────────── */
+
+var enVoice = null;
+
+function pickVoice() {
+  var vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  if (!vs.length) return;
+  var prefer = ['Samantha', 'Karen', 'Google US English', 'Microsoft Aria',
+                'Microsoft Jenny', 'Alex', 'Daniel'];
+  for (var i = 0; i < prefer.length; i++) {
+    for (var j = 0; j < vs.length; j++) {
+      if (vs[j].name.indexOf(prefer[i]) === 0) { enVoice = vs[j]; return; }
+    }
+  }
+  for (var k = 0; k < vs.length; k++) {
+    if (vs[k].lang && vs[k].lang.toLowerCase().indexOf('en') === 0) {
+      enVoice = vs[k]; return;
+    }
+  }
+}
+
+if (window.speechSynthesis) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+
+function speak(text, rate, onEnd) {
+  if (!window.speechSynthesis) {
+    alert('이 브라우저는 읽어주기를 지원하지 않아요. 크롬이나 사파리에서 열어보세요.');
+    return;
+  }
+  speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = rate;
+  u.pitch = 1;
+  if (enVoice) u.voice = enVoice;
+  if (onEnd) { u.onend = onEnd; u.onerror = onEnd; }
+  speechSynthesis.speak(u);
+}
+
+function sayWord(el) {
+  speak(el.textContent.trim(), 0.75);
+}
+
+function sayArticle(btn) {
+  if (speechSynthesis.speaking && btn.classList.contains('playing')) {
+    speechSynthesis.cancel();
+    btn.classList.remove('playing');
+    btn.textContent = '🔊 들어보기';
+    return;
+  }
+  var ps = document.querySelectorAll('#article p');
+  var text = '';
+  for (var i = 0; i < ps.length; i++) { text += ps[i].textContent + ' '; }
+
+  btn.classList.add('playing');
+  btn.textContent = '■ 멈추기';
+
+  speak(text, 0.82, function() {
+    btn.classList.remove('playing');
+    btn.textContent = '🔊 들어보기';
+  });
+}
+
+/* ── PDF 저장 ─────────────────────────────────────────── */
+
+function savePdf(mode) {
+  var btns = document.querySelector('.btns');
+  var msg  = document.getElementById('pdf-msg');
+
+  if (typeof html2pdf === 'undefined') {
+    msg.textContent = 'PDF 기능을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해주세요.';
+    return;
+  }
+
+  var bar = document.getElementById('wordbar');
+  if (bar && bar.parentNode) { bar.parentNode.removeChild(bar); }
+  document.body.classList.add('pdf-mode');
+  if (mode === 'kid') { document.body.classList.add('kid-only'); }
+  if (mode === 'quiz') { document.body.classList.add('no-article'); }
+  btns.style.display = 'none';
+  msg.textContent = 'PDF 만드는 중... 잠시만요';
+  msg.classList.add('on');
+
+  var filename = PDF_DATE + '-영어신문-' +
+    (mode === 'kid' ? '지문문제' : mode === 'quiz' ? '문제만' : '전체') + '.pdf';
+
+  var opt = {
+    margin:      [12, 10, 12, 10],
+    filename:    filename,
+    image:       { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, scrollY: 0,
+                    windowWidth: 720, width: 680 },
+    jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:   { mode: ['avoid-all'] }
+  };
+
+  function done() {
+    btns.style.display = '';
+    document.body.classList.remove('pdf-mode');
+    document.body.classList.remove('kid-only');
+    document.body.classList.remove('no-article');
+    msg.textContent = '';
+    msg.classList.remove('on');
+    if (bar) { document.body.appendChild(bar); }
+  }
+
+  html2pdf().set(opt).from(document.body).save().then(done).catch(function(e) {
+    done();
+    msg.textContent = 'PDF 저장에 실패했습니다: ' + e;
+  });
+}
+</script>
+
+</body>
+</html>
