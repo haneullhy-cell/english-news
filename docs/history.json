@@ -26,7 +26,8 @@
     "https://www.dogonews.com/2026/6/18/elon-musk-becomes-the-worlds-first-trillionaire",
     "https://www.dogonews.com/2026/8/19/gus-the-t-rex-fetches-a-staggering-50-dollars-1-cents-million-at-auction",
     "https://www.dogonews.com/2026/6/17/the-june-solstice-explained",
-    "https://www.dogonews.com/2026/8/21/500-year-old-potatoes-found-intact-in-peru"
+    "https://www.dogonews.com/2026/8/21/500-year-old-potatoes-found-intact-in-peru",
+    "https://www.dogonews.com/2026/8/28/nasas-roman-space-telescope-set-to-launch-august-30"
   ],
   "issues": [
     {
@@ -190,6 +191,12 @@
       "file": "2026-08-24.html",
       "title_en": "Very Old Potatoes Found in South America",
       "title_ko": "페루에서 발견된 500년 된 감자"
+    },
+    {
+      "date": "2026-08-31",
+      "file": "2026-08-31.html",
+      "title_en": "NASA Launches a Super New Space Camera",
+      "title_ko": "우주의 비밀을 밝힐 NASA의 새로운 우주 망원경"
     }
   ]
 }
