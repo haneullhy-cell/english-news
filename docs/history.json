@@ -28,7 +28,8 @@
     "https://www.dogonews.com/2026/6/17/the-june-solstice-explained",
     "https://www.dogonews.com/2026/8/21/500-year-old-potatoes-found-intact-in-peru",
     "https://www.dogonews.com/2026/8/28/nasas-roman-space-telescope-set-to-launch-august-30",
-    "https://www.dogonews.com/2026/8/31/ancient-city-from-the-byzantine-empire-unearthed-in-egypt"
+    "https://www.dogonews.com/2026/8/31/ancient-city-from-the-byzantine-empire-unearthed-in-egypt",
+    "https://www.dogonews.com/2026/8/26/remembering-jackie-big-bear-valleys-famous-bald-eagle"
   ],
   "issues": [
     {
@@ -204,6 +205,12 @@
       "file": "2026-09-01.html",
       "title_en": "Ancient Desert City Found in Egypt",
       "title_ko": "이집트 사막에서 발견된 1600년 전 고대 도시"
+    },
+    {
+      "date": "2026-09-02",
+      "file": "2026-09-02.html",
+      "title_en": "Remembering Jackie, a Famous Eagle",
+      "title_ko": "유명한 흰머리수리 재키를 기억하며"
     }
   ]
 }
