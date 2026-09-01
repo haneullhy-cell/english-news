@@ -27,7 +27,8 @@
     "https://www.dogonews.com/2026/8/19/gus-the-t-rex-fetches-a-staggering-50-dollars-1-cents-million-at-auction",
     "https://www.dogonews.com/2026/6/17/the-june-solstice-explained",
     "https://www.dogonews.com/2026/8/21/500-year-old-potatoes-found-intact-in-peru",
-    "https://www.dogonews.com/2026/8/28/nasas-roman-space-telescope-set-to-launch-august-30"
+    "https://www.dogonews.com/2026/8/28/nasas-roman-space-telescope-set-to-launch-august-30",
+    "https://www.dogonews.com/2026/8/31/ancient-city-from-the-byzantine-empire-unearthed-in-egypt"
   ],
   "issues": [
     {
@@ -197,6 +198,12 @@
       "file": "2026-08-31.html",
       "title_en": "NASA Launches a Super New Space Camera",
       "title_ko": "우주의 비밀을 밝힐 NASA의 새로운 우주 망원경"
+    },
+    {
+      "date": "2026-09-01",
+      "file": "2026-09-01.html",
+      "title_en": "Ancient Desert City Found in Egypt",
+      "title_ko": "이집트 사막에서 발견된 1600년 전 고대 도시"
     }
   ]
 }
