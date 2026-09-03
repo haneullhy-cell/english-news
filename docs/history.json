@@ -30,7 +30,8 @@
     "https://www.dogonews.com/2026/8/28/nasas-roman-space-telescope-set-to-launch-august-30",
     "https://www.dogonews.com/2026/8/31/ancient-city-from-the-byzantine-empire-unearthed-in-egypt",
     "https://www.dogonews.com/2026/8/26/remembering-jackie-big-bear-valleys-famous-bald-eagle",
-    "https://www.dogonews.com/2026/9/2/9-slash-11-a-day-of-remembrance"
+    "https://www.dogonews.com/2026/9/2/9-slash-11-a-day-of-remembrance",
+    "https://www.dogonews.com/2026/8/24/deep-partial-lunar-eclipse-will-give-the-moon-a-blood-red-glow"
   ],
   "issues": [
     {
@@ -218,6 +219,12 @@
       "file": "2026-09-03.html",
       "title_en": "Remembering a Big Day in America",
       "title_ko": "미국의 슬픈 날을 기억해요"
+    },
+    {
+      "date": "2026-09-04",
+      "file": "2026-09-04.html",
+      "title_en": "The Moon Turns Red Like a Giant Apple",
+      "title_ko": "달이 커다란 사과처럼 붉은색으로 변해요"
     }
   ]
 }
