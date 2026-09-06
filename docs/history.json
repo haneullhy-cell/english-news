@@ -31,7 +31,8 @@
     "https://www.dogonews.com/2026/8/31/ancient-city-from-the-byzantine-empire-unearthed-in-egypt",
     "https://www.dogonews.com/2026/8/26/remembering-jackie-big-bear-valleys-famous-bald-eagle",
     "https://www.dogonews.com/2026/9/2/9-slash-11-a-day-of-remembrance",
-    "https://www.dogonews.com/2026/8/24/deep-partial-lunar-eclipse-will-give-the-moon-a-blood-red-glow"
+    "https://www.dogonews.com/2026/8/24/deep-partial-lunar-eclipse-will-give-the-moon-a-blood-red-glow",
+    "https://www.dogonews.com/2026/9/4/peter-cullen-the-voice-behind-optimus-prime-dies-at-85"
   ],
   "issues": [
     {
@@ -225,6 +226,12 @@
       "file": "2026-09-04.html",
       "title_en": "The Moon Turns Red Like a Giant Apple",
       "title_ko": "달이 커다란 사과처럼 붉은색으로 변해요"
+    },
+    {
+      "date": "2026-09-07",
+      "file": "2026-09-07.html",
+      "title_en": "The Kind Voice of Optimus Prime",
+      "title_ko": "옵티머스 프라임의 다정한 목소리"
     }
   ]
 }
