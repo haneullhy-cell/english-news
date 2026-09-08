@@ -32,7 +32,8 @@
     "https://www.dogonews.com/2026/8/26/remembering-jackie-big-bear-valleys-famous-bald-eagle",
     "https://www.dogonews.com/2026/9/2/9-slash-11-a-day-of-remembrance",
     "https://www.dogonews.com/2026/8/24/deep-partial-lunar-eclipse-will-give-the-moon-a-blood-red-glow",
-    "https://www.dogonews.com/2026/9/4/peter-cullen-the-voice-behind-optimus-prime-dies-at-85"
+    "https://www.dogonews.com/2026/9/4/peter-cullen-the-voice-behind-optimus-prime-dies-at-85",
+    "https://www.dogonews.com/2026/6/16/at-17-gilberto-mora-is-already-making-world-cup-history"
   ],
   "issues": [
     {
@@ -232,6 +233,12 @@
       "file": "2026-09-07.html",
       "title_en": "The Kind Voice of Optimus Prime",
       "title_ko": "옵티머스 프라임의 다정한 목소리"
+    },
+    {
+      "date": "2026-09-08",
+      "file": "2026-09-08.html",
+      "title_en": "A Young Teen Makes Big Soccer History",
+      "title_ko": "월드컵 역사를 새로 쓴 17세 축구 소년"
     }
   ]
 }
