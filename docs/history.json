@@ -33,7 +33,8 @@
     "https://www.dogonews.com/2026/9/2/9-slash-11-a-day-of-remembrance",
     "https://www.dogonews.com/2026/8/24/deep-partial-lunar-eclipse-will-give-the-moon-a-blood-red-glow",
     "https://www.dogonews.com/2026/9/4/peter-cullen-the-voice-behind-optimus-prime-dies-at-85",
-    "https://www.dogonews.com/2026/6/16/at-17-gilberto-mora-is-already-making-world-cup-history"
+    "https://www.dogonews.com/2026/6/16/at-17-gilberto-mora-is-already-making-world-cup-history",
+    "https://www.dogonews.com/2026/9/8/route-66-americas-iconic-highway-turns-100"
   ],
   "issues": [
     {
@@ -239,6 +240,12 @@
       "file": "2026-09-08.html",
       "title_en": "A Young Teen Makes Big Soccer History",
       "title_ko": "월드컵 역사를 새로 쓴 17세 축구 소년"
+    },
+    {
+      "date": "2026-09-09",
+      "file": "2026-09-09.html",
+      "title_en": "America's Famous Mother Road Turns One Hundred",
+      "title_ko": "미국의 유명한 어머니의 길, 100살이 되다"
     }
   ]
 }
