@@ -35,7 +35,8 @@
     "https://www.dogonews.com/2026/9/4/peter-cullen-the-voice-behind-optimus-prime-dies-at-85",
     "https://www.dogonews.com/2026/6/16/at-17-gilberto-mora-is-already-making-world-cup-history",
     "https://www.dogonews.com/2026/9/8/route-66-americas-iconic-highway-turns-100",
-    "https://www.dogonews.com/2026/9/9/understanding-rosh-hashanah-and-yom-kippur"
+    "https://www.dogonews.com/2026/9/9/understanding-rosh-hashanah-and-yom-kippur",
+    "https://www.dogonews.com/2026/9/10/our-moon-has-a-new-crater"
   ],
   "issues": [
     {
@@ -253,6 +254,12 @@
       "file": "2026-09-10.html",
       "title_en": "Two Special Days of the Jewish New Year",
       "title_ko": "유대인의 특별한 두 명절, 로쉬 하샤나와 욤 키푸르"
+    },
+    {
+      "date": "2026-09-11",
+      "file": "2026-09-11.html",
+      "title_en": "A Broken Rocket Makes A New Hole On Moon",
+      "title_ko": "달에 로켓 쓰레기가 만든 새 구덩이가 생겼어요!"
     }
   ]
 }
