@@ -134,6 +134,9 @@ td.act{text-align:right}
 .scale input:checked+span{color:var(--accent-ink)}
 .scale label:has(input:checked){background:var(--accent)}
 .scale label:has(input:focus-visible){outline:2px solid var(--accent)}
+.browse .item{grid-template-columns:1fr}
+.browse .q{font-weight:500}
+.browse .help{margin-top:0}
 .help{grid-column:1/-1;margin-top:2px;padding:8px 11px;border-radius:8px;background:var(--accent-soft);color:var(--ink);font-size:13px;line-height:1.5}
 .help b{color:var(--accent);font-weight:700;margin-right:6px}
 .item .q .link{margin-left:6px;white-space:nowrap}
@@ -210,6 +213,7 @@ dialog .actions{display:flex;justify-content:space-between;gap:8px;margin-top:14
         <strong>검사지</strong>
         <select id="bandSel"></select>
         <span class="pill" id="bandAuto"></span>
+        <span class="seg" id="devMode"><button type="button" data-mode="check" aria-pressed="true">체크하기</button><button type="button" data-mode="browse" aria-pressed="false">놀이만 보기</button></span>
         <button class="btn ghost small" type="button" id="editItemsBtn">문항 편집</button>
       </div>
       <div id="domains"></div>
@@ -275,7 +279,7 @@ var ZP = [[3,-1.8808],[15,-1.0364],[50,0],[85,1.0364],[97,1.8808]];
 var METRIC = {h:{name:'키',unit:'cm',dec:1},w:{name:'몸무게',unit:'kg',dec:2},hc:{name:'머리둘레',unit:'cm',dec:1}};
 
 /* ---------- state ---------- */
-var db=null, kids=[], measures=[], items={}, answers={}, cur=null, metric='h', band=null, bandKid=null, unsubs=[], openHelp={};
+var db=null, kids=[], measures=[], items={}, answers={}, cur=null, metric='h', band=null, bandKid=null, unsubs=[], openHelp={}, devMode='check';
 var localMode=false;
 
 /* ---------- helpers ---------- */
@@ -408,15 +412,16 @@ function renderDev(){
     var isExtra=code==='extra';
     var list=(idoc.items&&idoc.items[code])||[]; if(list.length) anyItems=true; else if(isExtra) return;
     var ans=(adoc.answers&&adoc.answers[code])||[]; var sum=0,n=0; ans.forEach(function(v){ if(v!=null){sum+=v;n++;} });
-    var det=document.createElement('details'); det.className='domain'; det.open=list.length>0&&n<list.length;
+    var det=document.createElement('details'); det.className='domain'+(devMode==='browse'?' browse':''); det.open=devMode==='browse'?true:(list.length>0&&n<list.length);
     var opts=isExtra?[[1,'예'],[0,'아니오']]:[[3,'잘 함'],[2,'하는 편'],[1,'못하는 편'],[0,'전혀']];
-    var body=list.length?list.map(function(q,i){ var v=ans[i]; var tip=TIPS[q]; var hk=ikey+'_'+code+'_'+i; var auto=v!=null&&(isExtra?v===1:v<=1); var show=tip&&(auto||openHelp[hk]); var helpHtml=show?'<div class="help"><b>'+(isExtra?'검진 때':'이렇게 해 보세요')+'</b>'+esc(tip)+'</div>':''; var btn=tip&&!auto?'<button type="button" class="link" data-help="'+hk+'">'+(openHelp[hk]?'닫기':(isExtra?'안내':'놀이 보기'))+'</button>':''; return '<div class="item"><div class="q"><b>'+(i+1)+'</b>'+esc(q)+btn+'</div><div class="scale">'+opts.map(function(o){ return '<label><input type="radio" name="'+code+'_'+i+'" value="'+o[0]+'"'+(v===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'; }).join('')+'</div>'+helpHtml+'</div>'; }).join(''):'<div class="empty">이 영역 문항이 아직 없어요. <b>문항 편집</b>에서 문진표 문항을 붙여 넣으면 여기 나타납니다.</div>';
-    var sumText=!list.length?'문항 없음':isExtra?(n+'/'+list.length+' 체크 · 예 '+sum+'개'):(n+'/'+list.length+' 체크 · '+sum+'점');
+    var body=(devMode==='browse'&&list.length)?list.map(function(q,i){ var tip=TIPS[q]; return '<div class="item"><div class="q"><b>'+(i+1)+'</b>'+esc(q)+'</div>'+(tip?'<div class="help"><b>'+(isExtra?'검진 때':'이렇게 해 보세요')+'</b>'+esc(tip)+'</div>':'')+'</div>'; }).join(''):list.length?list.map(function(q,i){ var v=ans[i]; var tip=TIPS[q]; var hk=ikey+'_'+code+'_'+i; var auto=v!=null&&(isExtra?v===1:v<=1); var show=tip&&(auto||openHelp[hk]); var helpHtml=show?'<div class="help"><b>'+(isExtra?'검진 때':'이렇게 해 보세요')+'</b>'+esc(tip)+'</div>':''; var btn=tip&&!auto?'<button type="button" class="link" data-help="'+hk+'">'+(openHelp[hk]?'닫기':(isExtra?'안내':'놀이 보기'))+'</button>':''; return '<div class="item"><div class="q"><b>'+(i+1)+'</b>'+esc(q)+btn+'</div><div class="scale">'+opts.map(function(o){ return '<label><input type="radio" name="'+code+'_'+i+'" value="'+o[0]+'"'+(v===o[0]?' checked':'')+'><span>'+o[1]+'</span></label>'; }).join('')+'</div>'+helpHtml+'</div>'; }).join(''):'<div class="empty">이 영역 문항이 아직 없어요. <b>문항 편집</b>에서 문진표 문항을 붙여 넣으면 여기 나타납니다.</div>';
+    var sumText=devMode==='browse'?(list.length+'문항'):!list.length?'문항 없음':isExtra?(n+'/'+list.length+' 체크 · 예 '+sum+'개'):(n+'/'+list.length+' 체크 · '+sum+'점');
     det.innerHTML='<summary><span>'+d[1]+(isExtra?' <span class="pill">예/아니오</span>':'')+'</span><span class="sum">'+sumText+'</span></summary><div class="body">'+body+'</div>';
     det.addEventListener('change',function(ev){ var t=ev.target; if(t.type!=='radio') return; var i=+t.name.split('_')[1]; var nd=JSON.parse(JSON.stringify(adoc)); nd.kid=k.id; nd.band=ikey; nd.answers=nd.answers||{}; nd.answers[code]=nd.answers[code]||[]; while(nd.answers[code].length<list.length) nd.answers[code].push(null); nd.answers[code][i]=+t.value; nd.date=today(); adoc=nd; writeAnswer(akey,nd).catch(function(e){ toast('저장 실패: '+e.code); }); });
     dom.appendChild(det);
   });
-  if(isDraft){ var dh=document.createElement('div'); dh.className='empty'; dh.innerHTML='<span class="pill on">K-DST 원문</span> 한국 영유아 발달선별검사(K-DST) 개정판 검사지 문항 그대로예요. 문항마다 잘 함 3 · 하는 편 2 · 못하는 편 1 · 전혀 0. \'못하는 편\'이나 \'전혀\'를 고르면 집에서 해볼 놀이가 바로 뜹니다. 추가 질문은 예/아니오로 답하고 점수에 넣지 않아요.'; dom.insertBefore(dh,dom.firstChild); }
+  if(devMode==='browse'){ var bh=document.createElement('div'); bh.className='empty'; bh.innerHTML='<span class="pill on">놀이만 보기</span> 이 검사지의 문항과, 아직 못할 때 집에서 해볼 놀이를 한눈에 보는 화면이에요. 체크는 안 돼요. 추가 질문은 걱정되는 신호라 \'검진 때\' 안내가 붙어요.'; dom.insertBefore(bh,dom.firstChild); }
+  else if(isDraft){ var dh=document.createElement('div'); dh.className='empty'; dh.innerHTML='<span class="pill on">K-DST 원문</span> 한국 영유아 발달선별검사(K-DST) 개정판 검사지 문항 그대로예요. 문항마다 잘 함 3 · 하는 편 2 · 못하는 편 1 · 전혀 0. \'못하는 편\'이나 \'전혀\'를 고르면 집에서 해볼 놀이가 바로 뜹니다. 추가 질문은 예/아니오로 답하고 점수에 넣지 않아요.'; dom.insertBefore(dh,dom.firstChild); }
   if(!anyItems){ var near=[]; BANDS.forEach(function(b,i){ if(DEFAULT_ITEMS[bandKey(i)]) near.push(i); }); var lo=null,hi=null; near.forEach(function(i){ if(i<band) lo=i; if(i>band&&hi==null) hi=i; }); var links=[lo,hi].filter(function(x){return x!=null;}).map(function(i){ return '<button type="button" class="btn ghost small" data-jump="'+i+'">'+bandName(i)+' 검사지 보기</button>'; }).join(' '); var hint=document.createElement('div'); hint.className='empty'; hint.innerHTML='K-DST '+bandName(band)+' 검사지는 영유아 건강검진에서 쓰지 않는 구간이라 원문이 공개돼 있지 않아요. 가까운 검사지를 참고하거나, 문진표가 있으면 <b>문항 편집</b>에 넣어 주세요.<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">'+links+'</div>'; hint.addEventListener('click',function(ev){ var b=ev.target.closest('[data-jump]'); if(!b) return; band=+b.dataset.jump; bandKid=cur; renderDev(); }); dom.insertBefore(hint,dom.firstChild); }
   if(!dom._helpBound){ dom._helpBound=true; dom.addEventListener('click',function(ev){ var b=ev.target.closest('[data-help]'); if(!b) return; var k=b.dataset.help; openHelp[k]=!openHelp[k]; renderDev(); }); }
   $('devNote').value=adoc.note||''; $('devSaved').textContent=adoc.date?'마지막 체크 '+adoc.date:'';
@@ -429,6 +434,8 @@ try{ var savedTab=localStorage.getItem(LS+':tab'); if(savedTab==='dev') $('tabDe
 $('metricSeg').addEventListener('click',function(ev){ var b=ev.target.closest('button'); if(!b||b.disabled) return; metric=b.dataset.m; renderGrowth(); });
 $('mDate').value=today();
 $('mform').addEventListener('submit',function(ev){ ev.preventDefault(); var k=kidById(cur); if(!k){ toast('아이를 먼저 추가해 주세요'); return; } var h=$('mH').value, w=$('mW').value, hc=$('mHC').value; if(!h&&!w&&!hc){ toast('키·몸무게·머리둘레 중 하나는 넣어 주세요'); return; } var m={id:uid(),kid:k.id,date:$('mDate').value}; if(h) m.h=+h; if(w) m.w=+w; if(hc) m.hc=+hc; $('mSave').disabled=true; writeMeasure(m).then(function(){ toast('저장했어요'); $('mH').value=$('mW').value=$('mHC').value=''; }).catch(function(e){ toast('저장 실패: '+e.code); }).then(function(){ $('mSave').disabled=false; }); });
+$('devMode').addEventListener('click',function(ev){ var b=ev.target.closest('button'); if(!b) return; devMode=b.dataset.mode; Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){ x.setAttribute('aria-pressed',String(x===b)); }); try{localStorage.setItem(LS+':devMode',devMode);}catch(e){} renderDev(); });
+try{ var dm=localStorage.getItem(LS+':devMode'); if(dm==='browse'){ devMode='browse'; Array.prototype.forEach.call($('devMode').querySelectorAll('button'),function(x){ x.setAttribute('aria-pressed',String(x.dataset.mode==='browse')); }); } }catch(e){}
 $('bandSel').addEventListener('change',function(){ band=+this.value; bandKid=cur; renderDev(); });
 $('editItemsBtn').addEventListener('click',function(){ var e=$('editor'); e.hidden=!e.hidden; if(!e.hidden){ renderDev(); $('edText').focus(); } });
 $('edClose').addEventListener('click',function(){ $('editor').hidden=true; });
