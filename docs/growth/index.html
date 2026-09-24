@@ -258,7 +258,46 @@ input,select,textarea{padding:10px 11px;font-size:16px;border-radius:10px}
 </style>
 
 <div class="wrap">
-  <header class="apphead">
+  <style>
+#instBar{position:sticky;top:0;z-index:50;display:none;align-items:center;gap:10px;padding:9px 12px;background:var(--accent);color:#fff;font-size:13px;line-height:1.4}
+#instBar.on{display:flex}
+#instBar img{width:34px;height:34px;border-radius:9px;flex:none}
+#instBar .t{flex:1;min-width:0}
+#instBar .t b{display:block;font-size:14px}
+#instBar button{border:0;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;background:#fff;color:var(--accent);flex:none}
+#instBar .x{background:transparent;color:#fff;font-size:20px;padding:0 4px;font-weight:400;opacity:.85}
+#instHow{display:none;position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--surface,#fff);color:var(--ink);border-radius:16px 16px 0 0;padding:16px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.18);font-size:15px;line-height:1.6}
+#instHow.on{display:block}
+#instHow b{display:block;font-size:16px;margin-bottom:6px}
+#instHow ol{margin:6px 0 10px;padding-left:20px}
+#instHow .ok{display:block;width:100%;border:0;border-radius:10px;padding:11px;background:var(--accent);color:#fff;font-size:15px;font-weight:700}
+</style>
+<div id="instBar" role="region" aria-label="홈 화면에 추가"><img src="icon-192.png" alt=""><div class="t"><b>홈 화면에 추가하면 앱처럼 열려요</b>기록도 그대로 남아요</div><button type="button" id="instGo">추가하기</button><button type="button" class="x" id="instX" aria-label="닫기">×</button></div>
+<div id="instHow"><b>홈 화면에 추가하는 법</b><div id="instSteps"></div><button type="button" class="ok" id="instOk">알겠어요</button></div>
+<script>
+(function(){
+  var KEY='growth-notes-v1:instHide';
+  var standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  if(standalone) return;
+  try{ var h=localStorage.getItem(KEY); if(h&&Date.now()-Number(h)<7*86400000) return; }catch(e){}
+  var bar=document.getElementById('instBar'), how=document.getElementById('instHow'), steps=document.getElementById('instSteps');
+  var ua=navigator.userAgent||''; var ios=/iPhone|iPad|iPod/.test(ua); var deferred=null;
+  bar.classList.add('on');
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; });
+  function hide(){ bar.classList.remove('on'); try{ localStorage.setItem(KEY,String(Date.now())); }catch(e){} }
+  document.getElementById('instX').onclick=hide;
+  document.getElementById('instOk').onclick=function(){ how.classList.remove('on'); };
+  document.getElementById('instGo').onclick=function(){
+    if(deferred){ deferred.prompt(); deferred.userChoice.then(function(r){ if(r&&r.outcome==='accepted') hide(); deferred=null; }); return; }
+    if(ios){ steps.innerHTML='<ol><li>아래 <b style="display:inline">공유 버튼</b>(네모에 화살표)을 눌러요.</li><li>아래로 내려 <b style="display:inline">홈 화면에 추가</b>를 눌러요.</li><li>오른쪽 위 <b style="display:inline">추가</b>를 눌러요.</li></ol><div style="font-size:13px;color:var(--ink-3)">크롬으로 열었다면 사파리로 다시 열어 주세요.</div>'; }
+    else { steps.innerHTML='<ol><li>브라우저 오른쪽 위 <b style="display:inline">메뉴(⋮)</b>를 눌러요.</li><li><b style="display:inline">홈 화면에 추가</b> 또는 <b style="display:inline">앱 설치</b>를 눌러요.</li></ol><div style="font-size:13px;color:var(--ink-3)">삼성 인터넷은 아래 메뉴(≡)에서 \'현재 페이지 추가 → 홈 화면\'이에요.</div>'; }
+    how.classList.add('on');
+  };
+  window.addEventListener('appinstalled',hide);
+})();
+</script>
+
+<header class="apphead">
     <div class="apphead-row">
       <div class="brand"><span class="brand-mark"></span><span>아이 성장 노트</span></div>
       <div class="status" id="status">불러오는 중…</div>
