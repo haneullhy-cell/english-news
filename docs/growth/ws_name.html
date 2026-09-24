@@ -1,0 +1,35 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>이름 따라 쓰기 연습지</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+@page{size:A4 portrait;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;background:#e9ebe7}
+body{font-family:"Noto Sans KR",sans-serif;color:#222}
+.bar{display:flex;gap:8px;align-items:center;padding:10px 12px;background:#1f5f4a;color:#fff;font-size:14px;position:sticky;top:0}
+.bar input{flex:1;font-size:16px;padding:8px 10px;border-radius:8px;border:0;font-family:inherit}
+.bar button{font-size:14px;font-weight:700;padding:9px 14px;border-radius:999px;border:0;background:#fff;color:#1f5f4a}
+.sheet{width:210mm;min-height:297mm;margin:12px auto;background:#fff;padding:12mm 12mm 10mm;position:relative;box-shadow:0 2px 12px rgba(0,0,0,.12)}
+h1{font-size:20pt;margin:0 0 2mm}.q{font-size:9.5pt;color:#666;margin:0 0 1.5mm}
+.guide{font-size:10pt;color:#1f5f4a;background:#eef5f1;border-radius:3mm;padding:2.5mm 4mm;margin:0 0 6mm;line-height:1.45}
+.row{display:flex;align-items:center;gap:6mm;height:34mm;border-bottom:.4mm dashed #ccc;margin-bottom:3mm}
+.row .name{font-size:72pt;font-weight:900;line-height:1;letter-spacing:6mm;white-space:nowrap}
+.r1 .name{color:#222}.r2 .name{color:#9a9a9a}.r3 .name{color:#d2d2d2}.r4 .name{color:#ececec}.r5 .name{color:transparent}
+.tag{font-size:8pt;color:#888;width:16mm;flex:none}
+.foot{position:absolute;left:12mm;right:12mm;bottom:6mm;font-size:8pt;color:#999;display:flex;justify-content:space-between}
+@media print{.bar{display:none}.sheet{margin:0;box-shadow:none;width:210mm;height:297mm}body{background:#fff}}
+</style></head><body>
+<div class="bar"><input id="nm" placeholder="아이 이름" maxlength="6"><button onclick="window.print()">인쇄 / PDF 저장</button></div>
+<section class="sheet">
+<h1>내 이름 따라 쓰기</h1><div class="q">검사 문항 · 아이의 이름을 적어주면 쓰여진 자기 이름을 보고 따라 쓴다 (54~65개월)</div>
+<div class="guide">진한 글자 위를 손가락으로 먼저 따라가고, 그다음 색연필로 따라 써요. 아래로 갈수록 연해지고 마지막 줄은 혼자 써요. <b>글자가 뒤집히거나 크기가 달라도 괜찮아요.</b></div>
+<div class="row r1"><span class="tag">보고 따라 쓰기</span><span class="name" id="n1"></span></div>
+<div class="row r2"><span class="tag">연한 글자 위에</span><span class="name" id="n2"></span></div>
+<div class="row r3"><span class="tag">더 연하게</span><span class="name" id="n3"></span></div>
+<div class="row r4"><span class="tag">거의 안 보여요</span><span class="name" id="n4"></span></div>
+<div class="row r5"><span class="tag">혼자 써요</span><span class="name" id="n5"></span></div>
+<div class="row r5"><span class="tag">한 번 더</span><span class="name" id="n6"></span></div>
+<div class="foot"><span>아이 성장 노트 · 연습지</span><span>@mathfolder_</span></div>
+</section>
+<script>
+var inp=document.getElementById('nm');
+function fit(){ var n=inp.value.trim()||'이름'; for(var i=1;i<=6;i++){ var el=document.getElementById('n'+i); el.textContent=n; var fs=72; if(n.length>=4) fs=54; if(n.length>=5) fs=44; if(n.length>=6) fs=38; el.style.fontSize=fs+'pt'; el.style.letterSpacing=(n.length>=4?3:6)+'mm'; } document.title=n+' 이름 따라 쓰기'; }
+var p=new URLSearchParams(location.search).get('name'); if(p) inp.value=p; inp.addEventListener('input',fit); fit();
+</script></body></html>
