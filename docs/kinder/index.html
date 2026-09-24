@@ -202,6 +202,7 @@ tr:last-child td{border-bottom:0}
 .fr .btn.done{background:var(--accent-soft);color:var(--accent-deep);box-shadow:none}
 .pill.bus{background:var(--ok-soft);color:var(--ok)}
 .pill.n{background:var(--ok-soft);color:var(--ok)}
+.fr .frt .pill{font-size:11px;padding:1px 8px}
 .fhint{font-size:13px;color:var(--ink-3);padding:10px 2px 2px;line-height:1.5}
 .cinfo{background:var(--surface-2);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--ink-2);line-height:1.5;margin-bottom:4px}
 .cinfo .lk{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
@@ -483,7 +484,7 @@ function renderFind(){ var res=$('fRes'); if(!res) return; save();
   if(!rows.length){ res.innerHTML='<div class="fhint">'+(myPos&&!t?'5km 안에 유치원이 없어요. 시·도를 골라서 찾아요.':'맞는 유치원이 없어요. 동 이름이나 원 이름을 짧게 써 봐요.')+'</div>'; return; }
   var h='<div class="fhint" style="padding-top:8px">'+rows.length+'곳'+(myPos?' · 가까운 순':sgg?' · '+esc(sgg):'')+'</div>';
   h+=rows.slice(0,findLimit).map(function(r,i){ var added=isAdded(r); var l2=[]; if(r.curr) l2.push('정규 <b>'+r.curr+'</b>'+(r.after?' · 방과후 '+r.after+'까지':'')); else if(r.hours) l2.push('<b>'+r.hours+'</b>'); if(!r.curr&&r.after) l2.push('방과후 '+r.after+'까지'); if(r.ages&&agesShort(r.ages)) l2.push(agesShort(r.ages)); else { if(r.cls) l2.push(r.cls+'학급'); if(r.cap||r.kids) l2.push('원아 '+r.kids+'/정원 '+r.cap); }
-    return '<div class="fr"><div class="frm"><div class="frt">'+esc(r.name)+tpill(r.type)+(r.bus==='Y'?'<span class="pill bus">버스</span>':'')+'</div><div class="frd">'+esc(r.addr)+(r.d!=null&&r.d<999?' · <b>'+kmText(r.d)+'</b>'+(r.apx?' (대략)':''):'')+'</div>'+(l2.length?'<div class="frd">'+l2.join(' · ')+'</div>':'')+'<div class="frd">'+(feeTotal(r.fee)!=null?'<b>'+feeShort(r.fee)+'</b>':'<span>원비 미공시</span>')+(r.meal?' · 급식 '+esc(r.meal):'')+(r.tch&&r.kids?' · 교사당 '+Math.round(r.kids/r.tch)+'명':'')+'</div></div><button type="button" class="btn small'+(added?' done':'')+'" data-add="'+i+'"'+(added?' disabled':'')+'>'+(added?'담김':'담기')+'</button></div>'; }).join('');
+    return '<div class="fr"><div class="frm"><div class="frt">'+esc(r.name)+tpill(r.type)+(r.bus==='Y'?'<span class="pill bus">버스</span>':'')+(r.ages&&!r.ages[0][0]&&!r.ages[3][0]?'<span class="pill" style="background:var(--bad-soft);color:var(--bad)">만3세 반 없음</span>':'')+'</div><div class="frd">'+esc(r.addr)+(r.d!=null&&r.d<999?' · <b>'+kmText(r.d)+'</b>'+(r.apx?' (대략)':''):'')+'</div>'+(l2.length?'<div class="frd">'+l2.join(' · ')+'</div>':'')+'<div class="frd">'+(feeTotal(r.fee)!=null?'<b>'+feeShort(r.fee)+'</b>':'<span>원비 미공시</span>')+(r.meal?' · 급식 '+esc(r.meal):'')+(r.tch&&r.kids?' · 교사당 '+Math.round(r.kids/r.tch)+'명':'')+'</div></div><button type="button" class="btn small'+(added?' done':'')+'" data-add="'+i+'"'+(added?' disabled':'')+'>'+(added?'담김':'담기')+'</button></div>'; }).join('');
   if(rows.length>findLimit) h+='<button type="button" class="btn ghost wide small" id="fMore" style="margin-top:8px">'+(rows.length-findLimit)+'곳 더 보기</button>';
   res.innerHTML=h; }
 function addFromFind(i){ var r=findRows[i]; if(!r||isAdded(r)) return; var g=(r.type==='sl'||r.type==='sp')?'pri':'pub';
