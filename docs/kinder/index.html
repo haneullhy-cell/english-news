@@ -282,7 +282,7 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
       <label class="f">유치원 이름<input id="cName" required maxlength="40" placeholder="예: 햇살유치원"></label>
       <div class="grid2">
         <label class="f">유형<select id="cType"><option value="">모름</option><option value="pub">국공립</option><option value="pri">사립</option></select></label>
-        <label class="f">지망<select id="cRank"><option value="">미정</option><option value="1">1지망</option><option value="2">2지망</option><option value="B">Plan B</option></select></label>
+        <label class="f">지망<select id="cRank"><option value="">미정</option><option value="1">1지망</option><option value="2">2지망</option><option value="B">예비</option></select></label>
         <label class="f">집에서<input id="cDist" placeholder="예: 도보 10분"></label>
         <label class="f">통학버스<select id="cBus"><option value="">모름</option><option value="y">있음</option><option value="n">없음</option></select></label>
         <label class="f">등·하원 시간<input id="cHours" placeholder="예: 9시~2시"></label>
@@ -332,36 +332,36 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
 var $=function(id){ return document.getElementById(id); };
 var LS='kinder-notes-v1';
 var COND=[
-  ['phil','교육철학','교육 방향과 가치관, 놀이 중심인지'],
-  ['hours','운영시간','등·하원 시간, 돌봄(방과후) 시간'],
-  ['prog','교육내용','특색 프로그램, 방과후 활동'],
-  ['commute','통학환경','거리와 교통편, 통학버스, 안전'],
-  ['cost','비용','유치원비, 차량비 등 필요 경비']
+  ['phil','교육 방식','놀이 위주인지, 학습 위주인지, 원장·교사 분위기'],
+  ['hours','시간','몇 시부터 몇 시까지, 늦게까지 맡길 수 있는지'],
+  ['prog','프로그램','영어·체육·음악 같은 특별활동, 방과후 수업'],
+  ['commute','오가는 길','걸어서 되는지, 버스가 오는지, 길이 안전한지'],
+  ['cost','비용','매달 내는 돈, 차량비·특별활동비·입학금']
 ];
 var WLAB=['안 봐요','조금','중요','꼭!'];
 var SLAB=['모름','아쉬움','보통','좋음'];
 var LINKS={alimi:'https://e-childschoolinfo.moe.go.kr',portal:'https://enter.childinfo.go.kr'};
 var CHECKS=[
-  {k:'c1',t:'후보 유치원 찾아두기',go:'cand',gl:'후보 탭'},
-  {k:'c2',t:'유치원알리미 확인하기',url:LINKS.alimi,gl:'알리미 열기'},
-  {k:'c3',t:'지난해 모집요강 찾아보기',url:LINKS.portal,gl:'포털 열기'},
-  {k:'c4',t:'입학설명회 일정 문의하기',go:'plan',gl:'질문 목록'},
-  {k:'c5',t:'유보통합포털 가입 + 자녀등록',url:LINKS.portal,gl:'포털 열기'},
-  {k:'c6',t:'우리 집 필수조건 정리하기',go:'cond',gl:'조건 탭'},
-  {k:'c7',t:'후보 넉넉하게 + Plan B 정하기',go:'cand',gl:'후보 탭'}
+  {k:'c1',t:'동네 유치원 목록 만들기',go:'cand',gl:'찾기'},
+  {k:'c6',t:'우리 집 기준 정하기',go:'cond',gl:'조건 탭'},
+  {k:'c2',t:'후보마다 알리미에서 정보 보기',url:LINKS.alimi,gl:'알리미'},
+  {k:'c4',t:'설명회 날짜 전화로 물어보기',go:'plan',gl:'질문 목록'},
+  {k:'c3',t:'작년에 어떻게 뽑았는지 알아보기',url:LINKS.portal,gl:'포털'},
+  {k:'c5',t:'포털 회원가입하고 아이 등록',url:LINKS.portal,gl:'포털'},
+  {k:'c7',t:'1·2지망과 예비 후보 정하기',go:'cand',gl:'후보 탭'}
 ];
 var STEPS=[
-  {mo:'9월',t:'후보 만들기',m:[9],items:['지도에서 집 주변과 통학 가능한 범위까지 유치원 찾기','국공립·사립 함께 보기. 처음부터 한 유형으로 좁히지 않기','유치원알리미에서 기본정보·교육과정·학사일정·급식 확인','지난해 모집요강으로 우선모집·일반모집 비율과 지원기준 보기','설명회 일정 전화로 미리 문의하기','유보통합포털 가입하고 자녀 등록해 두기'],links:[['유치원알리미',LINKS.alimi],['유보통합포털',LINKS.portal]]},
-  {mo:'10월',t:'설명회 다니기',m:[10],items:['여러 곳 가 보기. 직접 보면 생각이 달라져요','운영시간·통학버스·방과후·비용을 현장에서 확인','다녀와서 바로 후보 카드에 점수와 메모 남기기','10월 말 유보통합포털에 원별 모집요강 공개 (지난해 10월 31일 18시)'],links:[['유보통합포털',LINKS.portal]]},
-  {mo:'11월 초',t:'우선모집 접수',m:[11],items:['지난해 기준 11월 3~10일 접수, 마지막 날 15시 추첨, 다음 날 등록','대상은 원마다 달라요. 다자녀·재원생 형제·법정저소득 등 지난해 요강 확인','해당되면 1·2·3지망 정해서 접수'],links:[['유보통합포털',LINKS.portal]]},
-  {mo:'11월 중순',t:'일반모집 접수',m:[11],items:['지난해 기준 시 지역 11월 17일, 도 지역 11월 18일 하루 접수','1·2·3지망 최대 3곳. 지망 순서는 후보 탭에서 정해 두기','지난해 11월 26일 15시 추첨 결과 발표, 이어서 등록 기간'],links:[['유보통합포털',LINKS.portal]]},
-  {mo:'12월',t:'등록·추가모집',m:[12],items:['당첨된 곳 기간 안에 등록 (놓치면 취소돼요)','미충원 원은 추가모집. 선착순이 많으니 Plan B 후보에 바로 연락','원아 모집 결과 후 대기 순번도 확인'],links:[]},
-  {mo:'1~2월',t:'입학 준비',m:[1,2],items:['오리엔테이션 날짜·준비물 안내 받기','통학버스 노선·시간, 등원 첫 주 적응 일정 확인','3월 입학!'],links:[]}
+  {mo:'9월',t:'후보 만들기',m:[9],items:['집 근처와 버스로 갈 만한 곳까지 유치원 이름을 쭉 적어요. 국공립도 사립도 일단 다 넣어요','알리미에서 원별 반 수·선생님 수·급식·수업 시간을 확인해요','작년에 몇 명 뽑았고 우선모집이 얼마나 됐는지 포털에서 찾아봐요','원에 전화해서 설명회 날짜를 물어봐요. 미정이면 연락처를 남겨요','포털에 미리 가입하고 아이를 등록해 두면 11월에 바로 접수돼요'],links:[['유치원알리미',LINKS.alimi],['유보통합포털',LINKS.portal]]},
+  {mo:'10월',t:'설명회 다니기',m:[10],items:['시간 되는 대로 여러 곳 가요. 사진과 실제는 달라요','시간·버스·방과후·비용은 그 자리에서 물어봐요','돌아오는 길에 후보 카드에 점수와 느낌을 적어요. 하루 지나면 잊혀요','10월 말쯤 포털에 원별 모집 안내가 올라와요 (작년엔 10월 31일 저녁)'],links:[['유보통합포털',LINKS.portal]]},
+  {mo:'11월 초',t:'우선모집 접수',m:[11],items:['작년엔 11월 3~10일에 접수하고 마지막 날 오후 3시에 추첨, 다음 날 등록이었어요','다자녀·형제 재원·저소득 등 해당되는 게 있는지 원별 안내에서 확인해요','해당되면 지망 순서대로 접수해요'],links:[['유보통합포털',LINKS.portal]]},
+  {mo:'11월 중순',t:'일반모집 접수',m:[11],items:['작년엔 시 지역 11월 17일, 도 지역 11월 18일 딱 하루였어요. 알림 걸어 두세요','최대 3곳까지 지망을 써요. 순서는 후보 탭에서 미리 정해 둬요','작년엔 11월 26일 오후 3시에 결과가 났고 바로 등록 기간이었어요'],links:[['유보통합포털',LINKS.portal]]},
+  {mo:'12월',t:'등록·추가모집',m:[12],items:['붙은 곳은 기간 안에 등록해요. 넘기면 자리가 없어져요','자리 남은 원은 추가모집을 해요. 선착순이 많으니 예비 후보에 바로 전화해요','떨어진 곳도 대기 순번을 물어봐 둬요'],links:[]},
+  {mo:'1~2월',t:'입학 준비',m:[1,2],items:['오리엔테이션 날짜와 준비물 안내를 받아요','버스 타는 곳과 시간, 첫 주 적응 일정을 확인해요','3월, 첫 등원'],links:[]}
 ];
-var QS=['2027학년도 입학설명회 일정이 정해졌을까요?','설명회 신청은 어떻게 하나요? (전화·홈페이지·선착순)','아이 동반 가능한가요? 참석 가능 인원은요?','주차 가능한가요?','지난해 우선모집·일반모집 인원은 각각 몇 명이었나요?','통학버스 노선과 시간은 어떻게 되나요?','등·하원 시간과 방과후(돌봄) 시간은요?','월 비용은 대략 얼마인가요? (유치원비·특별활동비·차량비)'];
+var QS=['내년 입학설명회는 언제 하나요? 아직이면 정해지면 문자 주실 수 있을까요?','설명회는 어떻게 신청하나요? 전화인지 홈페이지인지, 선착순인지','아이 데려가도 되나요? 몇 명까지 갈 수 있나요?','차 가지고 가도 되나요?','작년에 만 3세 반은 몇 명 뽑았나요? 우선모집이 그중 얼마나 됐나요?','통학버스는 어디까지 오나요? 몇 시에 타나요?','몇 시부터 몇 시까지인가요? 방과후는 몇 시까지 맡길 수 있나요?','한 달에 대략 얼마 드나요? 차량비나 특별활동비는 따로인가요?'];
 
 var S=load();
-function load(){ var d=null; try{ d=JSON.parse(localStorage.getItem(LS)||'null'); }catch(e){} if(!d||typeof d!=='object') d={}; d.kid=d.kid||{name:'',birth:''}; d.year=d.year||2027; d.conds=d.conds||{}; COND.forEach(function(c){ if(d.conds[c[0]]==null) d.conds[c[0]]=2; }); d.condNote=d.condNote||''; d.cands=Array.isArray(d.cands)?d.cands:[]; d.checks=d.checks||{}; return d; }
+function load(){ var d=null; try{ d=JSON.parse(localStorage.getItem(LS)||'null'); }catch(e){} if(!d||typeof d!=='object') d={}; d.kid=d.kid||{name:'',birth:''}; d.year=d.year||2027; d.conds=d.conds||{}; COND.forEach(function(c){ if(d.conds[c[0]]==null) d.conds[c[0]]=2; }); d.condNote=d.condNote||''; d.cands=Array.isArray(d.cands)?d.cands:[]; d.checks=d.checks||{}; d.area=d.area||''; return d; }
 function save(){ try{ localStorage.setItem(LS,JSON.stringify(S)); }catch(e){ toast('저장 실패'); } }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(function(){ t.classList.remove('on'); },1800); }
@@ -382,7 +382,7 @@ function sortedCands(mode){ var arr=S.cands.slice(); var rk={'1':0,'2':1,'B':2,'
 function sessions(){ return S.cands.filter(function(c){ return c.sDate; }).sort(function(a,b){ return a.sDate<b.sDate?-1:1; }); }
 function curStep(){ var d=new Date(); var mo=d.getMonth()+1, day=d.getDate(); if(mo===9) return 0; if(mo===10) return 1; if(mo===11) return day<=12?2:3; if(mo===12) return 4; if(mo===1||mo===2) return 5; if(mo===3) return 6; return -1; }
 function typeLabel(t){ return t==='pub'?'국공립':t==='pri'?'사립':''; }
-function rankLabel(r){ return r==='1'?'1지망':r==='2'?'2지망':r==='B'?'Plan B':''; }
+function rankLabel(r){ return r==='1'?'1지망':r==='2'?'2지망':r==='B'?'예비':''; }
 function pillRank(r){ return r?'<span class="pill r'+r+'">'+rankLabel(r)+'</span>':''; }
 function pillType(t){ return t?'<span class="pill '+t+'">'+typeLabel(t)+'</span>':''; }
 
@@ -408,11 +408,11 @@ function renderHome(){
   h+='<div class="now"><div class="th"><b>지금 할 일</b><span>'+(si===6?'3월 · 입학':si<0?'아직 여유 있어요 · 9월부터 시작':st.mo)+'</span></div>';
   if(si===6) h+='<div class="tq">입학 축하해요!</div><ul><li>첫 주 적응 일정과 통학버스 시간을 확인해요.</li></ul>';
   else { var s2=st||STEPS[0]; h+='<div class="tq">'+esc(s2.t)+'</div><ul>'+s2.items.slice(0,3).map(function(i){ return '<li>'+esc(i)+'</li>'; }).join('')+'</ul>'; }
-  h+='<div class="tf"><span>'+(si<0?'9월이 되면 후보 만들기부터 떠요':'지난해 일정 기준이에요. 올해 요강이 나오면 다시 확인해요')+'</span><button type="button" class="btn ghost small" data-go="plan">일정 보기</button></div></div>';
-  if(!S.cands.length) h+='<div class="card"><div class="empty"><b>먼저 후보를 적어 두세요.</b> 지금은 고르는 단계가 아니라 찾는 단계예요. 이름만 넣어도 돼요.</div><button type="button" class="btn wide" id="homeAdd" style="margin-top:8px">+ 후보 추가</button></div>';
+  h+='<div class="tf"><span>'+(si<0?'9월이 되면 여기에 할 일이 떠요':'작년 일정 기준이에요. 올해 안내가 나오면 다시 확인해요')+'</span><button type="button" class="btn ghost small" data-go="plan">일정 보기</button></div></div>';
+  if(!S.cands.length) h+='<div class="card"><div class="empty"><b>먼저 동네 유치원 이름부터 적어요.</b> 자세한 건 알아보면서 채우면 돼요.</div><div style="display:flex;gap:8px;margin-top:10px"><button type="button" class="btn" data-go="cand" style="flex:1">주변 유치원 찾기</button><button type="button" class="btn ghost" id="homeAdd" style="flex:1">이름 바로 적기</button></div></div>';
   if(ses.length){ h+='<div class="sec"><span>다가오는 설명회</span><button type="button" class="link" data-go="plan">전체</button></div><div class="list">'+ses.slice(0,3).map(sessRow).join('')+'</div>'; }
-  h+='<div class="sec"><span>9월 준비 체크</span><span style="font-weight:500">'+done+'/'+CHECKS.length+'</span></div><div class="checks">'+CHECKS.map(function(c){ var on=!!S.checks[c.k]; return '<div class="chk'+(on?' done':'')+'"><input type="checkbox" id="ck_'+c.k+'" data-ck="'+c.k+'"'+(on?' checked':'')+'><label for="ck_'+c.k+'">'+esc(c.t)+'</label>'+(c.url?'<a href="'+c.url+'" target="_blank" rel="noopener">'+c.gl+'</a>':'<button type="button" class="link" data-go="'+c.go+'">'+c.gl+'</button>')+'</div>'; }).join('')+'</div>';
-  h+='<div class="note">9월은 결정하는 달이 아니라 선택지를 만드는 달이에요. 적어 둔 내용은 이 폰에만 저장돼요.</div>';
+  h+='<div class="sec"><span>준비 체크</span><span style="font-weight:500">'+done+'/'+CHECKS.length+'</span></div><div class="checks">'+CHECKS.map(function(c){ var on=!!S.checks[c.k]; return '<div class="chk'+(on?' done':'')+'"><input type="checkbox" id="ck_'+c.k+'" data-ck="'+c.k+'"'+(on?' checked':'')+'><label for="ck_'+c.k+'">'+esc(c.t)+'</label>'+(c.url?'<a href="'+c.url+'" target="_blank" rel="noopener">'+c.gl+'</a>':'<button type="button" class="link" data-go="'+c.go+'">'+c.gl+'</button>')+'</div>'; }).join('')+'</div>';
+  h+='<div class="note">적어 둔 내용은 이 폰에만 저장돼요. 지망은 설명회 다녀온 뒤 바꿔도 돼요.</div>';
   box.innerHTML=h;
   box.onclick=function(ev){ var g=ev.target.closest('[data-go]'); if(g){ goTab(g.dataset.go); return; } if(ev.target.id==='kidEdit') openKid(); if(ev.target.id==='homeAdd') openCand(null); };
   box.onchange=function(ev){ var t=ev.target; if(t.dataset&&t.dataset.ck){ S.checks[t.dataset.ck]=t.checked; save(); t.closest('.chk').classList.toggle('done',t.checked); if(t.checked) toast('체크!'); renderHomeCount(); } };
@@ -424,20 +424,25 @@ function sessRow(c){ var n=dayDiff(c.sDate); var d=parseD(c.sDate); return '<but
 function renderCand(){
   var box=$('pCand'); var arr=sortedCands(sortMode);
   var h='<div class="candhead"><div class="seg" id="sortSeg"><button type="button" data-s="score" aria-pressed="'+(sortMode==='score')+'">점수순</button><button type="button" data-s="rank" aria-pressed="'+(sortMode==='rank')+'">지망순</button><button type="button" data-s="name" aria-pressed="'+(sortMode==='name')+'">이름순</button></div><button type="button" class="btn ghost small" id="tblToggle">'+(tableView?'카드로':'표로')+'</button></div>';
+  h+='<section class="block" style="padding:14px 16px 14px"><h2 style="font-size:17px;margin-bottom:6px">우리 집 주변 유치원 찾기</h2><div style="display:flex;gap:8px"><input id="areaIn" placeholder="동네나 아파트 이름 (예: 잠실동)" value="'+esc(S.area||'')+'" style="min-height:44px;padding:9px 12px;font-size:15px"><button type="button" class="btn small" id="areaGo" style="flex:0 0 auto">찾기</button></div><div class="links" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button type="button" class="btn ghost small" data-map="kakao">카카오맵</button><button type="button" class="btn ghost small" data-map="naver">네이버지도</button><button type="button" class="btn ghost small" data-map="here">내 위치로</button><a class="btn ghost small" href="'+LINKS.alimi+'" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center">알리미</a></div><div class="note" style="margin-top:8px">지도에 뜬 이름을 아래에 적어 두면 돼요. 알리미에서는 시·군·구를 고르면 원 목록이 나와요.</div></section>';
   h+='<button type="button" class="btn wide" id="candAdd" style="margin-bottom:12px">+ 후보 추가</button>';
-  if(!arr.length){ h+='<div class="card"><div class="empty"><b>아직 후보가 없어요.</b></div><div class="tipbox"><b>찾을 때</b><ul><li>지도 앱에서 "유치원" 검색. 집 주변부터 통학버스로 갈 수 있는 곳까지.</li><li>국공립·사립 함께 넣어요. 처음부터 한 유형으로 좁히지 않기.</li><li>후보는 넉넉하게. 지금은 고르는 단계가 아니라 찾는 단계예요.</li></ul></div><div class="step" style="box-shadow:none;background:transparent;padding:10px 0 0"><div class="links"><a href="'+LINKS.alimi+'" target="_blank" rel="noopener">유치원알리미에서 찾기</a></div></div></div>'; }
+  if(!arr.length){ h+='<div class="card"><div class="empty"><b>아직 후보가 없어요.</b></div><div class="tipbox"><b>어디까지 넣을까</b><ul><li>걸어서 갈 수 있는 곳, 버스가 오는 곳, 어린이집 친구들이 가는 곳까지.</li><li>국공립·사립 가리지 말고 일단 다 넣어요. 빼는 건 나중에 해요.</li><li>많이 넣을수록 비교할 기준이 생겨요.</li></ul></div></div>'; }
   else if(tableView){
     h+='<section class="block"><h2>비교표 <button type="button" class="btn ghost small" id="copyTbl">글로 복사</button></h2><div class="tbl"><table><thead><tr><th>이름</th><th>지망</th><th>유형</th><th>집에서</th><th>버스</th><th>시간</th><th>돌봄</th><th>비용</th><th>점수</th><th>설명회</th></tr></thead><tbody>'+arr.map(function(c){ var sc=scoreOf(c); return '<tr data-edit="'+c.id+'"><td>'+esc(c.name)+'</td><td>'+(rankLabel(c.rank)||'-')+'</td><td>'+(typeLabel(c.type)||'-')+'</td><td>'+esc(c.dist||'-')+'</td><td>'+(c.bus==='y'?'있음':c.bus==='n'?'없음':'-')+'</td><td>'+esc(c.hours||'-')+'</td><td>'+esc(c.care||'-')+'</td><td>'+esc(c.cost||'-')+'</td><td>'+(sc?sc.pct+'점':'-')+'</td><td>'+(c.sDate?fmtD(c.sDate):'-')+'</td></tr>'; }).join('')+'</tbody></table></div><div class="note">줄을 누르면 수정할 수 있어요. 점수는 조건 탭의 중요도로 계산해요.</div></section>';
   } else {
     h+=arr.map(function(c){ var sc=scoreOf(c); var meta=[]; if(c.dist) meta.push(esc(c.dist)); if(c.bus==='y') meta.push('버스 있음'); else if(c.bus==='n') meta.push('버스 없음'); if(c.hours) meta.push(esc(c.hours)); if(c.care) meta.push('돌봄 '+esc(c.care)); if(c.cost) meta.push(esc(c.cost));
       return '<button type="button" class="cand" data-edit="'+c.id+'"><div class="top">'+pillRank(c.rank)+'<span class="nm">'+esc(c.name)+'</span>'+pillType(c.type)+'</div>'+(meta.length?'<div class="meta">'+meta.map(function(m){ return '<span>'+m+'</span>'; }).join('')+'</div>':'')+
-        '<div class="bar"><span class="tr"><i style="width:'+(sc?sc.pct:0)+'%"></i></span><b>'+(sc?sc.pct+'점':'점수 없음')+'</b></div>'+(sc&&sc.n<COND.filter(function(k){ return S.conds[k[0]]>0; }).length?'<div class="sess">조건 '+sc.n+'개만 점수 매김. 나머지는 설명회 다녀와서요.</div>':'')+
+        '<div class="bar"><span class="tr"><i style="width:'+(sc?sc.pct:0)+'%"></i></span><b>'+(sc?sc.pct+'점':'점수 없음')+'</b></div>'+(sc&&sc.n<COND.filter(function(k){ return S.conds[k[0]]>0; }).length?'<div class="sess">'+sc.n+'개 항목만 점수 매김. 나머지는 설명회 다녀와서요.</div>':'')+
         (c.sDate?'<div class="sess">설명회 <b>'+fmtD(c.sDate)+'</b>'+(c.sVisited==='y'?' · 다녀옴':' · '+ddayText(dayDiff(c.sDate)))+'</div>':'')+(c.sNote?'<div class="sess">'+esc(c.sNote).slice(0,60)+(c.sNote.length>60?'…':'')+'</div>':'')+'</button>'; }).join('');
-    h+='<div class="note">카드를 누르면 수정해요. 점수는 조건 탭에서 정한 중요도 × 이 유치원 점수예요. 100점이면 중요한 조건이 전부 "좋음"이에요.</div>';
+    h+='<div class="note">카드를 누르면 수정해요. 점수는 조건 탭 중요도 × 이 유치원 점수예요. 100점이면 중요한 항목이 전부 "좋음"이에요.</div>';
   }
   box.innerHTML=h;
-  box.onclick=function(ev){ var s=ev.target.closest('[data-s]'); if(s){ sortMode=s.dataset.s; renderCand(); return; } if(ev.target.id==='tblToggle'){ tableView=!tableView; renderCand(); return; } if(ev.target.id==='candAdd'){ openCand(null); return; } if(ev.target.id==='copyTbl'){ copyTable(); return; } var e=ev.target.closest('[data-edit]'); if(e) openCand(e.dataset.edit); };
+  box.onclick=function(ev){ var mp=ev.target.closest('[data-map]'); if(mp){ openMap(mp.dataset.map); return; } if(ev.target.id==='areaGo'){ openMap('kakao'); return; } var s=ev.target.closest('[data-s]'); if(s){ sortMode=s.dataset.s; renderCand(); return; } if(ev.target.id==='tblToggle'){ tableView=!tableView; renderCand(); return; } if(ev.target.id==='candAdd'){ openCand(null); return; } if(ev.target.id==='copyTbl'){ copyTable(); return; } var e=ev.target.closest('[data-edit]'); if(e) openCand(e.dataset.edit); };
 }
+function openMap(kind){ var area=($('areaIn')&&$('areaIn').value.trim())||''; S.area=area; save(); S.checks.c1=S.checks.c1||S.cands.length>0;
+  if(kind==='here'){ if(!navigator.geolocation){ toast('이 폰에서는 위치를 못 써요'); return; } toast('위치 확인 중…'); navigator.geolocation.getCurrentPosition(function(p){ var la=p.coords.latitude.toFixed(5), lo=p.coords.longitude.toFixed(5); window.open('https://www.google.com/maps/search/%EC%9C%A0%EC%B9%98%EC%9B%90/@'+la+','+lo+',15z','_blank','noopener'); },function(){ toast('위치를 못 가져왔어요. 동네 이름으로 찾아요'); },{timeout:8000}); return; }
+  if(!area){ toast('동네 이름을 넣어 주세요'); $('areaIn').focus(); return; }
+  var q=encodeURIComponent(area+' 유치원'); var url=kind==='naver'?'https://map.naver.com/p/search/'+q:'https://map.kakao.com/?q='+q; window.open(url,'_blank','noopener'); }
 function copyTable(){ var arr=sortedCands(sortMode); var lines=['유치원 후보 비교 ('+S.year+'학년도)']; arr.forEach(function(c,i){ var sc=scoreOf(c); var parts=[c.name+(c.rank?' ['+rankLabel(c.rank)+']':'')]; if(c.type) parts.push(typeLabel(c.type)); if(c.dist) parts.push(c.dist); if(c.bus==='y') parts.push('버스 있음'); if(c.bus==='n') parts.push('버스 없음'); if(c.hours) parts.push(c.hours); if(c.care) parts.push('돌봄 '+c.care); if(c.cost) parts.push(c.cost); if(sc) parts.push(sc.pct+'점'); if(c.sDate) parts.push('설명회 '+fmtD(c.sDate)); lines.push((i+1)+'. '+parts.join(' · ')); });
   var txt=lines.join('\n'); if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(function(){ toast('복사했어요. 카톡에 붙여 넣어요'); },function(){ fallbackCopy(txt); }); } else fallbackCopy(txt); }
 function fallbackCopy(txt){ var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast('복사했어요'); }catch(e){ toast('복사가 안 돼요'); } document.body.removeChild(ta); }
@@ -453,6 +458,7 @@ function openCand(id){ editId=id; var c=id?S.cands.filter(function(x){ return x.
 $('cScores').addEventListener('click',function(ev){ var b=ev.target.closest('[data-v]'); if(!b) return; var seg=b.parentNode; Array.prototype.forEach.call(seg.children,function(x){ x.setAttribute('aria-pressed',String(x===b)); }); });
 $('cCancel').addEventListener('click',function(){ $('candDlg').close(); });
 $('cDelete').addEventListener('click',function(){ if(!editId) return; if(!confirm('이 후보를 지울까요?')) return; S.cands=S.cands.filter(function(x){ return x.id!==editId; }); $('candDlg').close(); toast('지웠어요'); render(); });
+$('pCand').addEventListener('keydown',function(ev){ if(ev.target.id==='areaIn'&&ev.key==='Enter'){ ev.preventDefault(); openMap('kakao'); } });
 $('candForm').addEventListener('submit',function(ev){ ev.preventDefault(); var name=$('cName').value.trim(); if(!name){ $('cName').focus(); return; }
   var c=editId?S.cands.filter(function(x){ return x.id===editId; })[0]:{id:uid(),created:today()}; if(!editId) S.cands.push(c);
   c.name=name; c.type=$('cType').value; c.rank=$('cRank').value; c.dist=$('cDist').value.trim(); c.bus=$('cBus').value; c.hours=$('cHours').value.trim(); c.care=$('cCare').value.trim(); c.cost=$('cCost').value.trim(); c.phone=$('cPhone').value.trim(); c.url=$('cUrl').value.trim();
@@ -469,11 +475,11 @@ $('kidForm').addEventListener('submit',function(ev){ ev.preventDefault(); S.kid.
 /* ---------- 조건 ---------- */
 function renderCond(){
   var box=$('pCond');
-  var h='<section class="block"><h2>우리 집 필수조건</h2><div class="note" style="margin:0 0 6px">유치원마다 교육 과정과 운영 방식이 달라요. 우리 가족에게 꼭 맞는 기준을 먼저 정해 두면 선택이 쉬워져요. 중요도를 정하면 후보 점수에 바로 반영돼요.</div>';
+  var h='<section class="block"><h2>우리 집 기준</h2><div class="note" style="margin:0 0 6px">다 좋은 곳은 없어요. 우리 집에서 양보 못 하는 게 뭔지 먼저 정해요. 여기서 정한 중요도가 후보 점수에 곱해져요.</div>';
   h+=COND.map(function(k){ var w=S.conds[k[0]]; return '<div class="cond" data-k="'+k[0]+'"><div class="ct"><b>'+k[1]+'</b><span>'+k[2]+'</span></div><div class="seg w">'+WLAB.map(function(l,i){ return '<button type="button" data-w="'+i+'" aria-pressed="'+(w===i)+'">'+l+'</button>'; }).join('')+'</div></div>'; }).join('');
   h+='</section>';
-  h+='<section class="block"><h2>우리 집 1·2·3순위 <small>말로 적어 두기</small></h2><textarea id="condNote" placeholder="1순위: 4시까지 돌봄 되는 곳&#10;2순위: 통학버스 있는 곳&#10;3순위: 놀이 중심&#10;기타: 급식 직영">'+esc(S.condNote)+'</textarea><div style="display:flex;justify-content:flex-end;margin-top:8px"><button type="button" class="btn small" id="condSave">저장</button></div></section>';
-  h+='<div class="tipbox"><b>점수는 이렇게 계산해요</b>후보마다 조건별로 아쉬움 1 · 보통 2 · 좋음 3을 매기고, 여기서 정한 중요도(조금 1 · 중요 2 · 꼭! 3)를 곱해 더해요. 만점 대비 몇 %인지가 점수예요. "안 봐요"로 둔 조건은 계산에서 빠져요.</div>';
+  h+='<section class="block"><h2>말로 적어 두기 <small>양보 못 하는 것</small></h2><textarea id="condNote" placeholder="예: 4시까지는 맡길 수 있어야 함&#10;버스 없으면 힘듦&#10;영어 수업은 없어도 됨">'+esc(S.condNote)+'</textarea><div style="display:flex;justify-content:flex-end;margin-top:8px"><button type="button" class="btn small" id="condSave">저장</button></div></section>';
+  h+='<div class="tipbox"><b>점수는 이렇게 나와요</b>후보마다 항목별로 아쉬움 1 · 보통 2 · 좋음 3을 매기고, 여기서 정한 중요도(조금 1 · 중요 2 · 꼭! 3)를 곱해 더해요. 만점 대비 몇 %인지가 점수예요. "안 봐요"로 둔 항목은 빠져요.</div>';
   box.innerHTML=h;
   box.onclick=function(ev){ var b=ev.target.closest('[data-w]'); if(b){ var k=b.closest('[data-k]').dataset.k; S.conds[k]=+b.dataset.w; Array.prototype.forEach.call(b.parentNode.children,function(x){ x.setAttribute('aria-pressed',String(x===b)); }); S.checks.c6=true; save(); return; } if(ev.target.id==='condSave'){ S.condNote=$('condNote').value; S.checks.c6=true; save(); toast('저장했어요'); } };
 }
@@ -483,10 +489,10 @@ function renderPlan(){
   var box=$('pPlan'); var si=curStep(); var all=sessions();
   var h='';
   if(all.length){ h+='<div class="sec"><span>설명회 일정</span><span style="font-weight:500">'+all.length+'곳</span></div><div class="list" style="margin-bottom:14px">'+all.map(sessRow).join('')+'</div>'; }
-  h+='<div class="sec"><span>'+S.year+'학년도 입학까지</span><span style="font-weight:500">지난해 기준</span></div>';
+  h+='<div class="sec"><span>'+S.year+'학년도 입학까지</span><span style="font-weight:500">작년 기준</span></div>';
   h+=STEPS.map(function(s,i){ var cls=i===si?' now':(si>i&&si>=0?' past':''); return '<div class="step'+cls+'"><span class="mo">'+s.mo+(i===si?' <span class="nowtag">지금</span>':'')+'</span><h3>'+esc(s.t)+'</h3><ul>'+s.items.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul>'+(s.links.length?'<div class="links">'+s.links.map(function(l){ return '<a href="'+l[1]+'" target="_blank" rel="noopener">'+l[0]+'</a>'; }).join('')+'</div>':'')+'</div>'; }).join('');
-  h+='<div class="note">날짜는 지난해(2026학년도) 유보통합포털 일정이에요. 올해 요강이 나오면 반드시 다시 확인하세요. 지역 교육청마다 조금씩 달라요.</div>';
-  h+='<section class="block" style="margin-top:14px"><h2>전화할 때 물어볼 것 <button type="button" class="btn ghost small" id="copyQs">복사</button></h2><ul class="qs">'+QS.map(function(q){ return '<li>'+esc(q)+'</li>'; }).join('')+'</ul><div class="note">아직 미정이라고 하면 "정해지면 문자로 안내해 주실 수 있을까요?" 하고 연락처를 남겨요. 추석 연휴 전에 미리 물어보면 좋아요.</div></section>';
+  h+='<div class="note">날짜는 작년(2026학년도) 유보통합포털 일정이에요. 올해 안내가 나오면 다시 확인하세요. 지역마다 조금씩 달라요.</div>';
+  h+='<section class="block" style="margin-top:14px"><h2>전화할 때 물어볼 것 <button type="button" class="btn ghost small" id="copyQs">복사</button></h2><ul class="qs">'+QS.map(function(q){ return '<li>'+esc(q)+'</li>'; }).join('')+'</ul><div class="note">아직 미정이라고 하면 "정해지면 문자 주실 수 있을까요?" 하고 연락처를 남겨요. 연휴 앞뒤는 통화가 어려우니 그 전에 걸어요.</div></section>';
   box.innerHTML=h;
   box.onclick=function(ev){ if(ev.target.id==='copyQs'){ var txt=QS.map(function(q,i){ return (i+1)+'. '+q; }).join('\n'); if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ toast('복사했어요'); },function(){ fallbackCopy(txt); }); else fallbackCopy(txt); return; } var e=ev.target.closest('[data-edit]'); if(e) openCand(e.dataset.edit); };
 }
