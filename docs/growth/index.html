@@ -560,9 +560,9 @@ function todayPlay(k,bi){
   if(!fromPractice){ DOMAINS.forEach(function(d){ var code=d[0]; if(!okDom(code)) return; ((idoc.items&&idoc.items[code])||[]).forEach(function(q){ if(TIPS[q]) cands.push({q:q,name:d[1]}); }); }); }
   var seen={}; cands=cands.filter(function(c){ if(seen[c.q]) return false; seen[c.q]=1; return true; });
   if(!cands.length) return null;
-  var day=Math.floor(Date.now()/86400000); var c=cands[day%cands.length];
+  var day=Math.floor(Date.now()/86400000); var c=fromPractice?cands[day%cands.length]:cands[Math.floor(Math.random()*cands.length)];
   var card=document.createElement('div'); card.className='today';
-  card.innerHTML='<div class="th"><b>오늘의 놀이</b><span>'+esc(c.name)+(fromPractice?' · 연습 중인 문항 '+cands.length+'개 중':' · '+bandName(bi)+' 문항')+'</span></div><div class="tq">'+esc(c.q)+'</div>'+helpBox(c.q,TIPS[c.q]||'',false)+'<div class="tf"><span>'+(fromPractice?'잘하게 되면 발달 탭에서 잘함으로 바꿔요':'체크를 시작하면 못하는 문항이 여기 떠요')+'</span><button type="button" class="btn ghost small" data-go="dev">발달 탭</button></div>';
+  card.innerHTML='<div class="th"><b>오늘의 놀이</b><span>'+esc(c.name)+(fromPractice?' · 연습 중인 문항 '+cands.length+'개 중':' · '+bandName(bi)+' 문항')+'</span></div><div class="tq">'+esc(c.q)+'</div>'+helpBox(c.q,TIPS[c.q]||'',false)+'<div class="tf"><span>'+(fromPractice?'잘하게 되면 발달 탭에서 잘함으로 바꿔요':'열 때마다 다른 문항이 떠요. 체크를 시작하면 못하는 문항이 여기 떠요')+'</span><button type="button" class="btn ghost small" data-go="dev">발달 탭</button></div>';
   card.addEventListener('click',function(ev){ var b=ev.target.closest('[data-go]'); if(b) goTab('dev'); });
   return card;
 }
