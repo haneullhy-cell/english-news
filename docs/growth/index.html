@@ -357,6 +357,7 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
 .today .tq{font-size:15px;font-weight:600;line-height:1.45;margin-bottom:8px;color:var(--ink)}
 .today .help{margin-top:0}
 .today .tf{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--ink-3)}
+.today .tf .tb{display:flex;gap:6px;flex:0 0 auto}
 .today .tf .btn{white-space:nowrap;flex:0 0 auto}
 .overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:20px}
 </style>
@@ -654,20 +655,29 @@ function renderHome(){
   box.appendChild(todo);
 }
 
+var lastTodayQ='';
+function markToday(k,c,btn){
+  var tkey=k.id+'_'+c.bk; var nd=JSON.parse(JSON.stringify(answers[tkey]||{answers:{}})); nd.kid=k.id; nd.band=c.bk; nd.answers=nd.answers||{}; nd.answers[c.code]=nd.answers[c.code]||[];
+  var bd=items[c.bk]||{items:DEFAULT_ITEMS[c.bk]||{}}; var len=((bd.items&&bd.items[c.code])||[]).length; while(nd.answers[c.code].length<len) nd.answers[c.code].push(null);
+  var from=nd.answers[c.code][c.i]; nd.answers[c.code][c.i]=3; if(from!=null&&from<3){ nd.log=nd.log||[]; nd.log.push({code:c.code,i:c.i,name:c.name,from:from,to:3,date:today()}); } nd.date=today();
+  btn.disabled=true; btn.textContent='저장 중…';
+  writeAnswer(tkey,nd).then(function(){ toast('잘함으로 체크했어요'); }).catch(function(e){ toast('저장 실패: '+e.code); btn.disabled=false; btn.textContent='✓ 잘해요'; });
+}
 function todayPlay(k,bi){
   var bkey=bandKey(bi); var idoc=items[bkey]||{items:DEFAULT_ITEMS[bkey]||{}}; var ans=answers[k.id+'_'+bkey]; var cands=[];
   function okDom(code){ return code!=='extra' && !(code==='self'&&BANDS[bi][0]<18); }
-  DOMAINS.forEach(function(d){ var code=d[0]; if(!okDom(code)) return; var list=(idoc.items&&idoc.items[code])||[]; var av=(ans&&ans.answers&&ans.answers[code])||[]; list.forEach(function(q,i){ if(av[i]!=null&&av[i]<=2) cands.push({q:q,name:d[1]}); }); });
+  DOMAINS.forEach(function(d){ var code=d[0]; if(!okDom(code)) return; var list=(idoc.items&&idoc.items[code])||[]; var av=(ans&&ans.answers&&ans.answers[code])||[]; list.forEach(function(q,i){ if(av[i]!=null&&av[i]<=2) cands.push({q:q,name:d[1],bk:bkey,code:code,i:i}); }); });
   var curTexts={}; DOMAINS.forEach(function(d){ ((idoc.items&&idoc.items[d[0]])||[]).forEach(function(q){ curTexts[q]=1; }); });
-  Object.keys(answers).forEach(function(key){ var d=answers[key]; if(d.kid!==k.id||!d.band||!d.answers) return; var bj=-1; BANDS.forEach(function(b,j){ if(bandKey(j)===d.band) bj=j; }); if(bj<0||bj>=bi) return; var bd=items[d.band]||{items:DEFAULT_ITEMS[d.band]||{}}; Object.keys(d.answers).forEach(function(code){ if(!okDom(code)) return; var bl=(bd.items&&bd.items[code])||[]; (d.answers[code]||[]).forEach(function(v,i){ if(v!=null&&v<=2&&bl[i]&&!curTexts[bl[i]]){ var dn=''; DOMAINS.forEach(function(dd){ if(dd[0]===code) dn=dd[1]; }); cands.push({q:bl[i],name:dn}); } }); }); });
+  Object.keys(answers).forEach(function(key){ var d=answers[key]; if(d.kid!==k.id||!d.band||!d.answers) return; var bj=-1; BANDS.forEach(function(b,j){ if(bandKey(j)===d.band) bj=j; }); if(bj<0||bj>=bi) return; var bd=items[d.band]||{items:DEFAULT_ITEMS[d.band]||{}}; Object.keys(d.answers).forEach(function(code){ if(!okDom(code)) return; var bl=(bd.items&&bd.items[code])||[]; (d.answers[code]||[]).forEach(function(v,i){ if(v!=null&&v<=2&&bl[i]&&!curTexts[bl[i]]){ var dn=''; DOMAINS.forEach(function(dd){ if(dd[0]===code) dn=dd[1]; }); cands.push({q:bl[i],name:dn,bk:d.band,code:code,i:i}); } }); }); });
   var fromPractice=cands.length>0;
-  if(!fromPractice){ DOMAINS.forEach(function(d){ var code=d[0]; if(!okDom(code)) return; ((idoc.items&&idoc.items[code])||[]).forEach(function(q){ if(TIPS[q]) cands.push({q:q,name:d[1]}); }); }); }
+  if(!fromPractice){ DOMAINS.forEach(function(d){ var code=d[0]; if(!okDom(code)) return; var av=(ans&&ans.answers&&ans.answers[code])||[]; ((idoc.items&&idoc.items[code])||[]).forEach(function(q,i){ if(TIPS[q]&&av[i]!==3) cands.push({q:q,name:d[1],bk:bkey,code:code,i:i}); }); }); }
   var seen={}; cands=cands.filter(function(c){ if(seen[c.q]) return false; seen[c.q]=1; return true; });
   if(!cands.length) return null;
-  var day=Math.floor(Date.now()/86400000); var c=fromPractice?cands[day%cands.length]:cands[Math.floor(Math.random()*cands.length)];
+  if(cands.length>1&&lastTodayQ){ var rest=cands.filter(function(c){ return c.q!==lastTodayQ; }); if(rest.length) cands=rest; }
+  var day=Math.floor(Date.now()/86400000); var c=fromPractice?cands[day%cands.length]:cands[Math.floor(Math.random()*cands.length)]; lastTodayQ=c.q;
   var card=document.createElement('div'); card.className='today';
-  card.innerHTML='<div class="th"><b>오늘의 놀이</b><span>'+esc(c.name)+(fromPractice?' · 연습 중인 문항 '+cands.length+'개 중':' · '+bandName(bi)+' 문항')+'</span></div><div class="tq">'+esc(c.q)+'</div>'+helpBox(c.q,TIPS[c.q]||'',false)+'<div class="tf"><span>'+(fromPractice?'잘하게 되면 발달 탭에서 잘함으로 바꿔요':'열 때마다 다른 문항이 떠요. 체크를 시작하면 못하는 문항이 여기 떠요')+'</span><button type="button" class="btn ghost small" data-go="dev">발달 탭</button></div>';
-  card.addEventListener('click',function(ev){ var b=ev.target.closest('[data-go]'); if(b) goTab('dev'); });
+  card.innerHTML='<div class="th"><b>오늘의 놀이</b><span>'+esc(c.name)+(fromPractice?' · 연습 중인 문항 '+cands.length+'개 중':' · '+bandName(bi)+' 문항')+'</span></div><div class="tq">'+esc(c.q)+'</div>'+helpBox(c.q,TIPS[c.q]||'',false)+'<div class="tf"><span>'+(fromPractice?'잘하게 되면 ✓ 눌러요. 잘함으로 기록되고 다음 문항이 떠요':'열 때마다 다른 문항이 떠요. ✓ 누르면 잘함으로 체크돼요')+'</span><span class="tb"><button type="button" class="btn ghost small" data-go="dev">발달 탭</button><button type="button" class="btn small" data-ok="1">✓ 잘해요</button></span></div>';
+  card.addEventListener('click',function(ev){ var ok=ev.target.closest('[data-ok]'); if(ok){ markToday(k,c,ok); return; } var b=ev.target.closest('[data-go]'); if(b) goTab('dev'); });
   return card;
 }
 
