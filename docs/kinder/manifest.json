@@ -1,0 +1,14 @@
+{
+ "name": "유치원 고르기 노트",
+ "short_name": "유치원 노트",
+ "start_url": "./",
+ "display": "standalone",
+ "background_color": "#f6f1e7",
+ "theme_color": "#f6f1e7",
+ "lang": "ko",
+ "icons": [
+  {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+  {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+  {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+ ]
+}

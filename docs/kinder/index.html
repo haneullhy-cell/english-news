@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>유치원 고르기 노트</title>
+<meta name="description" content="후보 유치원을 적어 두고, 우리 집 조건으로 비교하고, 설명회와 접수 일정을 챙기는 엄마의 노트">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="유치원 노트">
+<meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161411" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+@font-face{font-family:"Cafe24Ssurround";font-weight:400 800;font-display:swap;src:url(fonts/Cafe24Ssurround.woff) format("woff")}
+:root{
+  --bg:#f6f1e7; --surface:#ffffff; --surface-2:#f4eee2; --surface-3:#eae2d3;
+  --line:#e3dac9; --line-soft:#eee7da;
+  --ink:#2b2620; --ink-2:#645b4f; --ink-3:#978b7c;
+  --accent:#1f6b4e; --accent-ink:#ffffff; --accent-soft:#e0efe4; --accent-deep:#165239;
+  --hero-a:#2f8262; --hero-b:#1c5c44; --hero-c:#133f30; --hero-ink:#ffffff;
+  --sun:#ffe24a; --sun-ink:#6b5300; --sun-soft:#fff6c8;
+  --good:#1f8a4d; --good-soft:#def3e3; --ok:#22857f; --ok-soft:#d9efec;
+  --warn:#b5670a; --warn-soft:#fdeed3; --bad:#c9463a; --bad-soft:#fbe3df;
+  --tip:#fff6e3; --tip-line:#f1dfb5; --tip-ink:#9b6a10;
+  --shadow:0 1px 2px rgba(74,58,32,.05),0 12px 26px -16px rgba(74,58,32,.28);
+  --shadow-nav:0 -2px 6px rgba(74,58,32,.04),0 14px 34px -12px rgba(74,58,32,.4);
+  --radius:20px;
+  --display:"Cafe24Ssurround","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161411; --surface:#1f1c18; --surface-2:#27231e; --surface-3:#332e27;
+    --line:#3f3931; --line-soft:#2e2923;
+    --ink:#f2ece2; --ink-2:#c4bbac; --ink-3:#8f8677;
+    --accent:#5fc79b; --accent-ink:#0f1a15; --accent-soft:#1f3a2e; --accent-deep:#a8e7cb;
+    --hero-a:#276650; --hero-b:#1a4535; --hero-c:#122d24; --hero-ink:#f4faf6;
+    --sun:#f2d24a; --sun-ink:#fff0a8; --sun-soft:#3a3212;
+    --good:#66d493; --good-soft:#1d3527; --ok:#63c8ba; --ok-soft:#1b3431;
+    --warn:#f2b45c; --warn-soft:#3a2e17; --bad:#f28077; --bad-soft:#40221f;
+    --tip:#2e2716; --tip-line:#4a3e22; --tip-ink:#f0d48f;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 12px 26px -16px rgba(0,0,0,.7);
+    --shadow-nav:0 14px 34px -12px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161411; --surface:#1f1c18; --surface-2:#27231e; --surface-3:#332e27;
+  --line:#3f3931; --line-soft:#2e2923;
+  --ink:#f2ece2; --ink-2:#c4bbac; --ink-3:#8f8677;
+  --accent:#5fc79b; --accent-ink:#0f1a15; --accent-soft:#1f3a2e; --accent-deep:#a8e7cb;
+  --hero-a:#276650; --hero-b:#1a4535; --hero-c:#122d24; --hero-ink:#f4faf6;
+  --sun:#f2d24a; --sun-ink:#fff0a8; --sun-soft:#3a3212;
+  --good:#66d493; --good-soft:#1d3527; --ok:#63c8ba; --ok-soft:#1b3431;
+  --warn:#f2b45c; --warn-soft:#3a2e17; --bad:#f28077; --bad-soft:#40221f;
+  --tip:#2e2716; --tip-line:#4a3e22; --tip-ink:#f0d48f;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 12px 26px -16px rgba(0,0,0,.7);
+  --shadow-nav:0 14px 34px -12px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px calc(96px + env(safe-area-inset-bottom,0px))}
+button{-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent-deep)}
+
+/* 상단 */
+.apphead{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -16px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px}
+.apphead-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:19px;color:var(--accent-deep)}
+.brand img{width:30px;height:30px;border-radius:10px;box-shadow:0 4px 10px -4px rgba(19,63,48,.6)}
+.status{font-size:11px;color:var(--ink-3);display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55}
+
+/* 홈 */
+.panel{padding-top:12px}
+.hero{position:relative;overflow:hidden;background:linear-gradient(150deg,var(--hero-a) 0%,var(--hero-b) 58%,var(--hero-c) 100%);color:var(--hero-ink);border-radius:var(--radius);padding:20px 20px 18px;margin:2px 0 14px;box-shadow:0 18px 34px -16px rgba(19,63,48,.6)}
+.hero::before{content:"";position:absolute;right:-70px;top:-100px;width:240px;height:240px;border-radius:50%;background:#fff;opacity:.08}
+.hero>*{position:relative}
+.hero .yr{font-size:13px;color:rgba(255,255,255,.78);display:flex;align-items:center;gap:6px}
+.hero .yr button{background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:999px;padding:3px 10px;font:inherit;font-size:12px;cursor:pointer}
+.hero .nm{font-family:var(--display);font-size:28px;line-height:1.25;margin-top:4px}
+.hero .dd{font-family:var(--display);font-size:40px;line-height:1.1;margin-top:2px;font-variant-numeric:tabular-nums}
+.hero .dd small{font-family:var(--body);font-size:14px;font-weight:500;color:rgba(255,255,255,.78);margin-left:8px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.tile{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:10px 10px 11px;min-width:0;color:#fff;cursor:pointer;text-align:left;font:inherit}
+.tile .l{font-size:12px;color:rgba(255,255,255,.72);white-space:nowrap}
+.tile .v{font-size:22px;font-weight:700;line-height:1.2;margin-top:2px;font-variant-numeric:tabular-nums}
+.tile .v small{font-size:11px;font-weight:500;color:rgba(255,255,255,.72);margin-left:2px}
+
+.now{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:14px 16px;margin:0 0 12px}
+.now .th{display:flex;align-items:baseline;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.now .th b{font-family:var(--display);font-size:16px;color:var(--accent)}
+.now .th span{font-size:12px;color:var(--ink-3)}
+.now .tq{font-size:16px;font-weight:700;line-height:1.4;margin-bottom:6px}
+.now ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:14px}
+.now li{margin:3px 0}
+.now .tf{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--ink-3)}
+.now .tf .btn{white-space:nowrap;flex:0 0 auto}
+
+.sec{font-size:13px;font-weight:600;color:var(--ink-3);margin:14px 4px 8px;display:flex;justify-content:space-between;align-items:center}
+.sec .link{font-size:12px}
+.card{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px}
+.list{display:grid;gap:8px}
+.row{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:16px;padding:12px 14px;box-shadow:var(--shadow);cursor:pointer;border:0;width:100%;text-align:left;font:inherit;color:var(--ink)}
+.row .dt{flex:0 0 auto;width:48px;text-align:center;background:var(--accent-soft);color:var(--accent-deep);border-radius:12px;padding:5px 0;font-size:11px;font-weight:700;line-height:1.3}
+.row .dt b{display:block;font-size:17px}
+.row .dt.past{background:var(--surface-3);color:var(--ink-3)}
+.row .m{flex:1 1 auto;min-width:0}
+.row .t{font-weight:700;font-size:15px}
+.row .d{font-size:12.5px;color:var(--ink-3);margin-top:1px}
+.row .n{flex:0 0 auto;font-size:12px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.row .n.soon{color:var(--bad)}
+
+.checks{display:grid;gap:6px}
+.chk{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+.chk input{width:22px;height:22px;min-height:0;margin:0;accent-color:var(--accent);flex:0 0 auto}
+.chk label{flex:1 1 auto;font-size:14.5px;font-weight:600;cursor:pointer}
+.chk.done label{color:var(--ink-3);text-decoration:line-through}
+.chk a,.chk .link{flex:0 0 auto;font-size:12px;font-weight:700;color:var(--accent-deep);background:var(--accent-soft);text-decoration:none;padding:5px 10px;border-radius:999px;white-space:nowrap;border:0;font-family:inherit;cursor:pointer}
+.chk .note{flex-basis:100%;font-size:12px;color:var(--ink-3)}
+
+/* 공통 */
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:13px;padding:13px 18px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;line-height:1.2;box-shadow:0 8px 16px -10px var(--accent)}
+.btn:active{transform:scale(.985)}
+.btn.ghost{background:transparent;color:var(--ink-2);border:1.5px solid var(--line);box-shadow:none}
+.btn.small{padding:8px 13px;font-size:13px;border-radius:10px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.5;cursor:default}
+.link{background:none;border:0;color:var(--accent-deep);font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:0}
+.pill{display:inline-flex;align-items:center;font-size:11.5px;padding:2px 9px;border-radius:999px;background:var(--surface-3);color:var(--ink-2);font-weight:600;white-space:nowrap;line-height:1.5}
+.pill.pub{background:var(--ok-soft);color:var(--ok)}
+.pill.pri{background:var(--warn-soft);color:var(--warn)}
+.pill.r1{background:var(--accent);color:var(--accent-ink)}
+.pill.r2{background:var(--accent-soft);color:var(--accent-deep)}
+.pill.rB{background:var(--sun-soft);color:var(--sun-ink)}
+.note{font-size:12.5px;color:var(--ink-3);line-height:1.55;margin-top:10px}
+.seg{display:flex;background:var(--surface-2);border-radius:12px;padding:4px;gap:2px}
+.seg button{flex:1 1 0;background:none;border:0;border-radius:9px;padding:9px 4px;font:inherit;font-size:13.5px;font-weight:600;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.09)}
+.seg.w button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg.s button[aria-pressed="true"][data-v="1"]{background:var(--warn-soft);color:var(--warn)}
+.seg.s button[aria-pressed="true"][data-v="2"]{background:var(--ok-soft);color:var(--ok)}
+.seg.s button[aria-pressed="true"][data-v="3"]{background:var(--good-soft);color:var(--good)}
+section.block{background:var(--surface);border-radius:var(--radius);padding:18px 18px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+section.block h2{font-family:var(--display);font-size:20px;font-weight:400;margin:0 0 10px;line-height:1.3;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+section.block h2 small{font-family:var(--body);font-size:12px;color:var(--ink-3)}
+.tipbox{margin-top:10px;padding:12px 14px;border-radius:14px;background:var(--tip);border:1px solid var(--tip-line);color:var(--ink);font-size:14px;line-height:1.55}
+.tipbox b{display:block;color:var(--tip-ink);font-size:13px;margin-bottom:4px}
+.tipbox ul{margin:4px 0 0;padding-left:18px;color:var(--ink-2)}
+.tipbox li{margin:3px 0}
+.empty{color:var(--ink-2);font-size:14px;line-height:1.6;padding:6px 2px 4px}
+.empty b{color:var(--ink)}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--surface-2);border:1.5px solid transparent;border-radius:12px;padding:11px 12px;width:100%;min-width:0;min-height:46px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+input::placeholder,textarea::placeholder{color:var(--ink-3);font-weight:400}
+textarea{resize:vertical;min-height:70px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid2 .full{grid-column:1/-1}
+
+/* 후보 */
+.candhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.candhead .seg{flex:1 1 auto}
+.cand{background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:14px 16px;margin-bottom:10px;cursor:pointer;border:0;width:100%;text-align:left;font:inherit;color:var(--ink)}
+.cand .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cand .nm{font-size:17px;font-weight:700;flex:1 1 auto;min-width:0}
+.cand .meta{font-size:13px;color:var(--ink-2);margin-top:4px;display:flex;gap:6px;flex-wrap:wrap}
+.cand .meta span::after{content:"·";margin-left:6px;color:var(--ink-3)}
+.cand .meta span:last-child::after{content:""}
+.bar{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--ink-3)}
+.bar .tr{flex:1 1 auto;height:8px;border-radius:4px;background:var(--surface-3);overflow:hidden}
+.bar .tr i{display:block;height:100%;border-radius:4px;background:var(--accent)}
+.bar b{color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+.cand .sess{font-size:12.5px;color:var(--ink-3);margin-top:6px}
+.cand .sess b{color:var(--accent-deep)}
+.tbl{overflow-x:auto;margin:0 -6px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line-soft);white-space:nowrap;vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:11.5px;position:sticky;left:0}
+td:first-child,th:first-child{position:sticky;left:0;background:var(--surface);font-weight:700}
+tr:last-child td{border-bottom:0}
+
+/* 조건 */
+.cond{padding:12px 0;border-bottom:1px solid var(--line-soft)}
+.cond:last-child{border-bottom:0}
+.cond .ct{display:flex;align-items:baseline;gap:8px}
+.cond .ct b{font-size:15px}
+.cond .ct span{font-size:12.5px;color:var(--ink-3)}
+.cond .seg{margin-top:8px}
+
+/* 일정 */
+.step{position:relative;background:var(--surface);border-radius:18px;box-shadow:var(--shadow);padding:14px 16px 14px 16px;margin-bottom:10px;border:1.5px solid transparent}
+.step.now{border-color:var(--accent)}
+.step.past{opacity:.6}
+.step .mo{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--accent-deep);background:var(--accent-soft);border-radius:999px;padding:3px 10px}
+.step.now .mo{background:var(--accent);color:var(--accent-ink)}
+.step .mo .nowtag{background:var(--sun);color:var(--sun-ink);border-radius:999px;padding:0 6px;font-size:11px}
+.step h3{font-family:var(--display);font-weight:400;font-size:18px;margin:8px 0 6px}
+.step ul{margin:0;padding-left:18px;font-size:14px;color:var(--ink-2)}
+.step li{margin:3px 0}
+.step .links{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.step .links a,.step .links button{display:inline-flex;align-items:center;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:999px;background:var(--accent-soft);color:var(--accent-deep);text-decoration:none;border:0;font-family:inherit;cursor:pointer}
+.qs{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.qs li{background:var(--surface-2);border-radius:10px;padding:8px 12px;font-size:14px}
+
+/* 하단 탭 */
+.bnav{position:fixed;left:50%;transform:translateX(-50%);width:min(100% - 24px,560px);bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;justify-content:space-around;gap:4px;background:var(--surface);border:1px solid var(--line-soft);border-radius:28px;padding:6px 8px;box-shadow:var(--shadow-nav)}
+.bnav button{flex:1 1 0;max-width:120px;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 2px;font:inherit;font-size:11.5px;font-weight:600;color:var(--ink-3);cursor:pointer;border-radius:12px}
+.bnav button .ic{display:inline-flex;align-items:center;justify-content:center;width:54px;height:30px;border-radius:999px}
+.bnav button svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.bnav button[aria-pressed="true"]{color:var(--accent-deep)}
+.bnav button[aria-pressed="true"] .ic{background:var(--accent);color:var(--accent-ink);box-shadow:0 6px 14px -6px var(--accent)}
+
+/* 창 · 토스트 */
+dialog{border:0;border-radius:22px;background:var(--surface);color:var(--ink);padding:20px 18px 18px;max-width:440px;width:calc(100% - 24px);max-height:calc(100dvh - 40px);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(30,24,16,.5)}
+dialog h3{font-family:var(--display);margin:0 0 12px;font-size:22px;font-weight:400}
+dialog .grid{display:grid;gap:10px}
+dialog h4{font-size:13px;font-weight:700;color:var(--ink-3);margin:8px 0 0;padding-top:10px;border-top:1px solid var(--line-soft)}
+dialog .actions{display:flex;justify-content:space-between;gap:8px;margin-top:16px;flex-wrap:wrap}
+dialog .actions .end{display:flex;gap:8px;margin-left:auto}
+.del{color:var(--bad);border-color:transparent;background:var(--bad-soft)}
+.sc{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sc>b{font-size:14px;flex:1 1 100px}
+.sc .seg{flex:0 0 auto;width:100%}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;z-index:7;white-space:nowrap}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* 설치 띠 */
+#instBar{position:sticky;top:0;z-index:50;display:none;align-items:center;gap:10px;padding:9px 12px;margin:0 -16px;background:var(--accent);color:#fff;font-size:13px;line-height:1.4}
+#instBar.on{display:flex}
+#instBar img{width:34px;height:34px;border-radius:9px;flex:none}
+#instBar .t{flex:1;min-width:0}
+#instBar .t b{display:block;font-size:14px}
+#instBar button{border:0;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:700;background:#fff;color:var(--accent);flex:none;font-family:inherit}
+#instBar .x{background:transparent;color:#fff;font-size:20px;padding:0 4px;font-weight:400;opacity:.85}
+#instHow{display:none;position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--surface);color:var(--ink);border-radius:16px 16px 0 0;padding:16px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 30px rgba(0,0,0,.2);font-size:14px}
+#instHow.on{display:block}
+#instHow b{display:block;font-size:16px;margin-bottom:6px}
+#instHow ol{margin:6px 0 10px;padding-left:20px}
+#instHow .ok{display:block;width:100%;border:0;border-radius:10px;padding:11px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;font-family:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div id="instBar" role="region" aria-label="홈 화면에 추가"><img src="icon-192.png" alt=""><div class="t"><b>홈 화면에 추가하면 앱처럼 열려요</b>적어 둔 후보도 그대로 남아요</div><button type="button" id="instGo">추가</button><button type="button" class="x" id="instX" aria-label="닫기">×</button></div>
+<div id="instHow"><b>홈 화면에 추가하는 법</b><div id="instSteps"></div><button type="button" class="ok" id="instOk">알겠어요</button></div>
+
+<header class="apphead">
+  <div class="apphead-row">
+    <div class="brand"><img src="icon-192.png" alt=""><span>유치원 고르기 노트</span></div>
+    <div class="status" id="status">이 폰에 저장돼요</div>
+  </div>
+</header>
+
+<div class="panel" id="pHome"></div>
+<div class="panel" id="pCand" hidden></div>
+<div class="panel" id="pCond" hidden></div>
+<div class="panel" id="pPlan" hidden></div>
+</div>
+
+<nav class="bnav" id="bnav">
+  <button type="button" data-tab="home" aria-pressed="true"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3.5 11.5 12 4.5l8.5 7"/><path d="M5.5 10v9.5h4.5v-5.5h4v5.5h4.5V10"/></svg></span><span>홈</span></button>
+  <button type="button" data-tab="cand" aria-pressed="false"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20.5V9.5l8-5 8 5v11"/><path d="M9.5 20.5v-5h5v5"/><path d="M12 4.5V2.5h4"/></svg></span><span>후보</span></button>
+  <button type="button" data-tab="cond" aria-pressed="false"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h6"/><circle cx="18" cy="16" r="2.5"/><path d="M20 18l1.5 1.5"/></svg></span><span>조건</span></button>
+  <button type="button" data-tab="plan" aria-pressed="false"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M8.5 15.5l2 2 4-4"/></svg></span><span>일정</span></button>
+</nav>
+
+<dialog id="candDlg">
+  <h3 id="candTitle">후보 추가</h3>
+  <form id="candForm" method="dialog">
+    <div class="grid">
+      <label class="f">유치원 이름<input id="cName" required maxlength="40" placeholder="예: 햇살유치원"></label>
+      <div class="grid2">
+        <label class="f">유형<select id="cType"><option value="">모름</option><option value="pub">국공립</option><option value="pri">사립</option></select></label>
+        <label class="f">지망<select id="cRank"><option value="">미정</option><option value="1">1지망</option><option value="2">2지망</option><option value="B">Plan B</option></select></label>
+        <label class="f">집에서<input id="cDist" placeholder="예: 도보 10분"></label>
+        <label class="f">통학버스<select id="cBus"><option value="">모름</option><option value="y">있음</option><option value="n">없음</option></select></label>
+        <label class="f">등·하원 시간<input id="cHours" placeholder="예: 9시~2시"></label>
+        <label class="f">돌봄(방과후)<input id="cCare" placeholder="예: 5시까지"></label>
+        <label class="f">월 비용<input id="cCost" placeholder="예: 25만 + 차량 5만"></label>
+        <label class="f">전화<input id="cPhone" type="tel" placeholder="02-000-0000"></label>
+      </div>
+      <label class="f">유치원알리미·홈페이지 링크<input id="cUrl" type="url" placeholder="https://"></label>
+      <h4>입학설명회</h4>
+      <div class="grid2">
+        <label class="f">날짜<input id="cSDate" type="date"></label>
+        <label class="f">시간·신청 방법<input id="cSHow" placeholder="예: 10시, 전화 신청"></label>
+        <label class="f">주차<select id="cSPark"><option value="">모름</option><option value="y">가능</option><option value="n">불가</option></select></label>
+        <label class="f">다녀왔어요<select id="cSVisited"><option value="">아직</option><option value="y">다녀옴</option></select></label>
+      </div>
+      <label class="f">직접 가 보니 (설명회 메모)<textarea id="cSNote" placeholder="분위기, 선생님, 교실, 마음에 든 점·걸리는 점"></textarea></label>
+      <h4>우리 집 조건으로 점수</h4>
+      <div id="cScores" class="grid"></div>
+      <label class="f">메모<textarea id="cMemo" placeholder="지난해 우선모집 비율, 특이사항"></textarea></label>
+    </div>
+    <div class="actions">
+      <button class="btn ghost del" type="button" id="cDelete" hidden>삭제</button>
+      <span class="end">
+        <button class="btn ghost" type="button" id="cCancel">취소</button>
+        <button class="btn" type="submit">저장</button>
+      </span>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="kidDlg">
+  <h3>아이 정보</h3>
+  <form id="kidForm" method="dialog">
+    <div class="grid">
+      <label class="f">아이 이름<input id="kName" maxlength="20" placeholder="예: 지호"></label>
+      <label class="f">생년월일<input id="kBirth" type="date"></label>
+      <label class="f">입학 학년도<select id="kYear"></select></label>
+    </div>
+    <div class="actions"><span class="end"><button class="btn ghost" type="button" id="kCancel">취소</button><button class="btn" type="submit">저장</button></span></div>
+  </form>
+</dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){ return document.getElementById(id); };
+var LS='kinder-notes-v1';
+var COND=[
+  ['phil','교육철학','교육 방향과 가치관, 놀이 중심인지'],
+  ['hours','운영시간','등·하원 시간, 돌봄(방과후) 시간'],
+  ['prog','교육내용','특색 프로그램, 방과후 활동'],
+  ['commute','통학환경','거리와 교통편, 통학버스, 안전'],
+  ['cost','비용','유치원비, 차량비 등 필요 경비']
+];
+var WLAB=['안 봐요','조금','중요','꼭!'];
+var SLAB=['모름','아쉬움','보통','좋음'];
+var LINKS={alimi:'https://e-childschoolinfo.moe.go.kr',portal:'https://enter.childinfo.go.kr'};
+var CHECKS=[
+  {k:'c1',t:'후보 유치원 찾아두기',go:'cand',gl:'후보 탭'},
+  {k:'c2',t:'유치원알리미 확인하기',url:LINKS.alimi,gl:'알리미 열기'},
+  {k:'c3',t:'지난해 모집요강 찾아보기',url:LINKS.portal,gl:'포털 열기'},
+  {k:'c4',t:'입학설명회 일정 문의하기',go:'plan',gl:'질문 목록'},
+  {k:'c5',t:'유보통합포털 가입 + 자녀등록',url:LINKS.portal,gl:'포털 열기'},
+  {k:'c6',t:'우리 집 필수조건 정리하기',go:'cond',gl:'조건 탭'},
+  {k:'c7',t:'후보 넉넉하게 + Plan B 정하기',go:'cand',gl:'후보 탭'}
+];
+var STEPS=[
+  {mo:'9월',t:'후보 만들기',m:[9],items:['지도에서 집 주변과 통학 가능한 범위까지 유치원 찾기','국공립·사립 함께 보기. 처음부터 한 유형으로 좁히지 않기','유치원알리미에서 기본정보·교육과정·학사일정·급식 확인','지난해 모집요강으로 우선모집·일반모집 비율과 지원기준 보기','설명회 일정 전화로 미리 문의하기','유보통합포털 가입하고 자녀 등록해 두기'],links:[['유치원알리미',LINKS.alimi],['유보통합포털',LINKS.portal]]},
+  {mo:'10월',t:'설명회 다니기',m:[10],items:['여러 곳 가 보기. 직접 보면 생각이 달라져요','운영시간·통학버스·방과후·비용을 현장에서 확인','다녀와서 바로 후보 카드에 점수와 메모 남기기','10월 말 유보통합포털에 원별 모집요강 공개 (지난해 10월 31일 18시)'],links:[['유보통합포털',LINKS.portal]]},
+  {mo:'11월 초',t:'우선모집 접수',m:[11],items:['지난해 기준 11월 3~10일 접수, 마지막 날 15시 추첨, 다음 날 등록','대상은 원마다 달라요. 다자녀·재원생 형제·법정저소득 등 지난해 요강 확인','해당되면 1·2·3지망 정해서 접수'],links:[['유보통합포털',LINKS.portal]]},
+  {mo:'11월 중순',t:'일반모집 접수',m:[11],items:['지난해 기준 시 지역 11월 17일, 도 지역 11월 18일 하루 접수','1·2·3지망 최대 3곳. 지망 순서는 후보 탭에서 정해 두기','지난해 11월 26일 15시 추첨 결과 발표, 이어서 등록 기간'],links:[['유보통합포털',LINKS.portal]]},
+  {mo:'12월',t:'등록·추가모집',m:[12],items:['당첨된 곳 기간 안에 등록 (놓치면 취소돼요)','미충원 원은 추가모집. 선착순이 많으니 Plan B 후보에 바로 연락','원아 모집 결과 후 대기 순번도 확인'],links:[]},
+  {mo:'1~2월',t:'입학 준비',m:[1,2],items:['오리엔테이션 날짜·준비물 안내 받기','통학버스 노선·시간, 등원 첫 주 적응 일정 확인','3월 입학!'],links:[]}
+];
+var QS=['2027학년도 입학설명회 일정이 정해졌을까요?','설명회 신청은 어떻게 하나요? (전화·홈페이지·선착순)','아이 동반 가능한가요? 참석 가능 인원은요?','주차 가능한가요?','지난해 우선모집·일반모집 인원은 각각 몇 명이었나요?','통학버스 노선과 시간은 어떻게 되나요?','등·하원 시간과 방과후(돌봄) 시간은요?','월 비용은 대략 얼마인가요? (유치원비·특별활동비·차량비)'];
+
+var S=load();
+function load(){ var d=null; try{ d=JSON.parse(localStorage.getItem(LS)||'null'); }catch(e){} if(!d||typeof d!=='object') d={}; d.kid=d.kid||{name:'',birth:''}; d.year=d.year||2027; d.conds=d.conds||{}; COND.forEach(function(c){ if(d.conds[c[0]]==null) d.conds[c[0]]=2; }); d.condNote=d.condNote||''; d.cands=Array.isArray(d.cands)?d.cands:[]; d.checks=d.checks||{}; return d; }
+function save(){ try{ localStorage.setItem(LS,JSON.stringify(S)); }catch(e){ toast('저장 실패'); } }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(function(){ t.classList.remove('on'); },1800); }
+function today(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function parseD(s){ var p=s.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
+function dayDiff(s){ if(!s) return null; var a=parseD(s), b=parseD(today()); return Math.round((a-b)/86400000); }
+function ddayText(n){ if(n==null) return ''; if(n===0) return '오늘'; return n>0?'D-'+n:'지남'; }
+function fmtD(s){ if(!s) return ''; var d=parseD(s); return (d.getMonth()+1)+'월 '+d.getDate()+'일 ('+'일월화수목금토'[d.getDay()]+')'; }
+function uid(){ return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function ageText(){ if(!S.kid.birth) return ''; var b=parseD(S.kid.birth), a=new Date(); var m=(a.getFullYear()-b.getFullYear())*12+(a.getMonth()-b.getMonth()); if(a.getDate()<b.getDate()) m--; var y=Math.floor(m/12), r=m%12; return y+'살'+(r?' '+r+'개월':''); }
+
+function scoreOf(c){ var tot=0,max=0,n=0; COND.forEach(function(k){ var w=S.conds[k[0]]||0; var s=c.scores&&c.scores[k[0]]; if(w>0&&s){ tot+=w*s; max+=w*3; n++; } }); return max?{pct:Math.round(tot/max*100),n:n}:null; }
+function sortedCands(mode){ var arr=S.cands.slice(); var rk={'1':0,'2':1,'B':2,'':3};
+  if(mode==='rank') arr.sort(function(a,b){ var d=rk[a.rank||'']-rk[b.rank||'']; if(d) return d; return (scoreOf(b)||{pct:-1}).pct-(scoreOf(a)||{pct:-1}).pct; });
+  else if(mode==='name') arr.sort(function(a,b){ return a.name.localeCompare(b.name,'ko'); });
+  else arr.sort(function(a,b){ var sa=scoreOf(a),sb=scoreOf(b); return (sb?sb.pct:-1)-(sa?sa.pct:-1)||a.name.localeCompare(b.name,'ko'); });
+  return arr; }
+function sessions(){ return S.cands.filter(function(c){ return c.sDate; }).sort(function(a,b){ return a.sDate<b.sDate?-1:1; }); }
+function curStep(){ var d=new Date(); var mo=d.getMonth()+1, day=d.getDate(); if(mo===9) return 0; if(mo===10) return 1; if(mo===11) return day<=12?2:3; if(mo===12) return 4; if(mo===1||mo===2) return 5; if(mo===3) return 6; return -1; }
+function typeLabel(t){ return t==='pub'?'국공립':t==='pri'?'사립':''; }
+function rankLabel(r){ return r==='1'?'1지망':r==='2'?'2지망':r==='B'?'Plan B':''; }
+function pillRank(r){ return r?'<span class="pill r'+r+'">'+rankLabel(r)+'</span>':''; }
+function pillType(t){ return t?'<span class="pill '+t+'">'+typeLabel(t)+'</span>':''; }
+
+/* ---------- 탭 ---------- */
+var tab='home', sortMode='score', tableView=false;
+function goTab(t){ tab=t; ['home','cand','cond','plan'].forEach(function(k){ $('p'+k.charAt(0).toUpperCase()+k.slice(1)).hidden=(k!==t); }); Array.prototype.forEach.call($('bnav').querySelectorAll('button'),function(b){ b.setAttribute('aria-pressed',String(b.dataset.tab===t)); }); window.scrollTo(0,0); render(); }
+$('bnav').addEventListener('click',function(ev){ var b=ev.target.closest('[data-tab]'); if(b) goTab(b.dataset.tab); });
+
+function render(){ save(); if(tab==='home') renderHome(); else if(tab==='cand') renderCand(); else if(tab==='cond') renderCond(); else renderPlan(); }
+
+/* ---------- 홈 ---------- */
+function renderHome(){
+  var box=$('pHome'); var entry=S.year+'-03-02'; var dd=dayDiff(entry); var ses=sessions().filter(function(c){ return dayDiff(c.sDate)>=0; });
+  var done=CHECKS.filter(function(c){ return S.checks[c.k]; }).length;
+  var name=S.kid.name||'우리 아이';
+  var h='<div class="hero"><div class="yr"><span>'+S.year+'학년도 유치원 입학 준비</span><button type="button" id="kidEdit">'+(S.kid.name?'수정':'아이 정보 넣기')+'</button></div>'+
+    '<div class="nm">'+esc(name)+(S.kid.birth?' <small style="font-family:var(--body);font-size:13px;color:rgba(255,255,255,.72)">'+ageText()+'</small>':'')+'</div>'+
+    '<div class="dd">'+(dd>0?'D-'+dd:dd===0?'입학일!':'입학 후')+'<small>'+S.year+'년 3월 2일 기준</small></div>'+
+    '<div class="tiles"><button class="tile" type="button" data-go="cand"><div class="l">후보</div><div class="v">'+S.cands.length+'<small>곳</small></div></button>'+
+    '<button class="tile" type="button" data-go="plan"><div class="l">설명회 예정</div><div class="v">'+ses.length+'<small>곳</small></div></button>'+
+    '<button class="tile" type="button" data-go="home"><div class="l">준비 체크</div><div class="v">'+done+'<small>/ '+CHECKS.length+'</small></div></button></div></div>';
+  var si=curStep(); var st=si>=0&&si<STEPS.length?STEPS[si]:null;
+  h+='<div class="now"><div class="th"><b>지금 할 일</b><span>'+(si===6?'3월 · 입학':si<0?'아직 여유 있어요 · 9월부터 시작':st.mo)+'</span></div>';
+  if(si===6) h+='<div class="tq">입학 축하해요!</div><ul><li>첫 주 적응 일정과 통학버스 시간을 확인해요.</li></ul>';
+  else { var s2=st||STEPS[0]; h+='<div class="tq">'+esc(s2.t)+'</div><ul>'+s2.items.slice(0,3).map(function(i){ return '<li>'+esc(i)+'</li>'; }).join('')+'</ul>'; }
+  h+='<div class="tf"><span>'+(si<0?'9월이 되면 후보 만들기부터 떠요':'지난해 일정 기준이에요. 올해 요강이 나오면 다시 확인해요')+'</span><button type="button" class="btn ghost small" data-go="plan">일정 보기</button></div></div>';
+  if(!S.cands.length) h+='<div class="card"><div class="empty"><b>먼저 후보를 적어 두세요.</b> 지금은 고르는 단계가 아니라 찾는 단계예요. 이름만 넣어도 돼요.</div><button type="button" class="btn wide" id="homeAdd" style="margin-top:8px">+ 후보 추가</button></div>';
+  if(ses.length){ h+='<div class="sec"><span>다가오는 설명회</span><button type="button" class="link" data-go="plan">전체</button></div><div class="list">'+ses.slice(0,3).map(sessRow).join('')+'</div>'; }
+  h+='<div class="sec"><span>9월 준비 체크</span><span style="font-weight:500">'+done+'/'+CHECKS.length+'</span></div><div class="checks">'+CHECKS.map(function(c){ var on=!!S.checks[c.k]; return '<div class="chk'+(on?' done':'')+'"><input type="checkbox" id="ck_'+c.k+'" data-ck="'+c.k+'"'+(on?' checked':'')+'><label for="ck_'+c.k+'">'+esc(c.t)+'</label>'+(c.url?'<a href="'+c.url+'" target="_blank" rel="noopener">'+c.gl+'</a>':'<button type="button" class="link" data-go="'+c.go+'">'+c.gl+'</button>')+'</div>'; }).join('')+'</div>';
+  h+='<div class="note">9월은 결정하는 달이 아니라 선택지를 만드는 달이에요. 적어 둔 내용은 이 폰에만 저장돼요.</div>';
+  box.innerHTML=h;
+  box.onclick=function(ev){ var g=ev.target.closest('[data-go]'); if(g){ goTab(g.dataset.go); return; } if(ev.target.id==='kidEdit') openKid(); if(ev.target.id==='homeAdd') openCand(null); };
+  box.onchange=function(ev){ var t=ev.target; if(t.dataset&&t.dataset.ck){ S.checks[t.dataset.ck]=t.checked; save(); t.closest('.chk').classList.toggle('done',t.checked); if(t.checked) toast('체크!'); renderHomeCount(); } };
+}
+function renderHomeCount(){ var done=CHECKS.filter(function(c){ return S.checks[c.k]; }).length; var tiles=$('pHome').querySelectorAll('.tile .v'); if(tiles[2]) tiles[2].innerHTML=done+'<small>/ '+CHECKS.length+'</small>'; var sec=$('pHome').querySelectorAll('.sec'); var last=sec[sec.length-1]; if(last) last.lastElementChild.textContent=done+'/'+CHECKS.length; }
+function sessRow(c){ var n=dayDiff(c.sDate); var d=parseD(c.sDate); return '<button type="button" class="row" data-edit="'+c.id+'"><span class="dt'+(n<0?' past':'')+'">'+(d.getMonth()+1)+'월<b>'+d.getDate()+'</b></span><span class="m"><div class="t">'+esc(c.name)+'</div><div class="d">'+esc(c.sHow||'')+(c.sPark==='y'?' · 주차 가능':c.sPark==='n'?' · 주차 불가':'')+(c.sVisited==='y'?' · 다녀옴':'')+'</div></span><span class="n'+(n>=0&&n<=3?' soon':'')+'">'+(c.sVisited==='y'?'✓':ddayText(n))+'</span></button>'; }
+
+/* ---------- 후보 ---------- */
+function renderCand(){
+  var box=$('pCand'); var arr=sortedCands(sortMode);
+  var h='<div class="candhead"><div class="seg" id="sortSeg"><button type="button" data-s="score" aria-pressed="'+(sortMode==='score')+'">점수순</button><button type="button" data-s="rank" aria-pressed="'+(sortMode==='rank')+'">지망순</button><button type="button" data-s="name" aria-pressed="'+(sortMode==='name')+'">이름순</button></div><button type="button" class="btn ghost small" id="tblToggle">'+(tableView?'카드로':'표로')+'</button></div>';
+  h+='<button type="button" class="btn wide" id="candAdd" style="margin-bottom:12px">+ 후보 추가</button>';
+  if(!arr.length){ h+='<div class="card"><div class="empty"><b>아직 후보가 없어요.</b></div><div class="tipbox"><b>찾을 때</b><ul><li>지도 앱에서 "유치원" 검색. 집 주변부터 통학버스로 갈 수 있는 곳까지.</li><li>국공립·사립 함께 넣어요. 처음부터 한 유형으로 좁히지 않기.</li><li>후보는 넉넉하게. 지금은 고르는 단계가 아니라 찾는 단계예요.</li></ul></div><div class="step" style="box-shadow:none;background:transparent;padding:10px 0 0"><div class="links"><a href="'+LINKS.alimi+'" target="_blank" rel="noopener">유치원알리미에서 찾기</a></div></div></div>'; }
+  else if(tableView){
+    h+='<section class="block"><h2>비교표 <button type="button" class="btn ghost small" id="copyTbl">글로 복사</button></h2><div class="tbl"><table><thead><tr><th>이름</th><th>지망</th><th>유형</th><th>집에서</th><th>버스</th><th>시간</th><th>돌봄</th><th>비용</th><th>점수</th><th>설명회</th></tr></thead><tbody>'+arr.map(function(c){ var sc=scoreOf(c); return '<tr data-edit="'+c.id+'"><td>'+esc(c.name)+'</td><td>'+(rankLabel(c.rank)||'-')+'</td><td>'+(typeLabel(c.type)||'-')+'</td><td>'+esc(c.dist||'-')+'</td><td>'+(c.bus==='y'?'있음':c.bus==='n'?'없음':'-')+'</td><td>'+esc(c.hours||'-')+'</td><td>'+esc(c.care||'-')+'</td><td>'+esc(c.cost||'-')+'</td><td>'+(sc?sc.pct+'점':'-')+'</td><td>'+(c.sDate?fmtD(c.sDate):'-')+'</td></tr>'; }).join('')+'</tbody></table></div><div class="note">줄을 누르면 수정할 수 있어요. 점수는 조건 탭의 중요도로 계산해요.</div></section>';
+  } else {
+    h+=arr.map(function(c){ var sc=scoreOf(c); var meta=[]; if(c.dist) meta.push(esc(c.dist)); if(c.bus==='y') meta.push('버스 있음'); else if(c.bus==='n') meta.push('버스 없음'); if(c.hours) meta.push(esc(c.hours)); if(c.care) meta.push('돌봄 '+esc(c.care)); if(c.cost) meta.push(esc(c.cost));
+      return '<button type="button" class="cand" data-edit="'+c.id+'"><div class="top">'+pillRank(c.rank)+'<span class="nm">'+esc(c.name)+'</span>'+pillType(c.type)+'</div>'+(meta.length?'<div class="meta">'+meta.map(function(m){ return '<span>'+m+'</span>'; }).join('')+'</div>':'')+
+        '<div class="bar"><span class="tr"><i style="width:'+(sc?sc.pct:0)+'%"></i></span><b>'+(sc?sc.pct+'점':'점수 없음')+'</b></div>'+(sc&&sc.n<COND.filter(function(k){ return S.conds[k[0]]>0; }).length?'<div class="sess">조건 '+sc.n+'개만 점수 매김. 나머지는 설명회 다녀와서요.</div>':'')+
+        (c.sDate?'<div class="sess">설명회 <b>'+fmtD(c.sDate)+'</b>'+(c.sVisited==='y'?' · 다녀옴':' · '+ddayText(dayDiff(c.sDate)))+'</div>':'')+(c.sNote?'<div class="sess">'+esc(c.sNote).slice(0,60)+(c.sNote.length>60?'…':'')+'</div>':'')+'</button>'; }).join('');
+    h+='<div class="note">카드를 누르면 수정해요. 점수는 조건 탭에서 정한 중요도 × 이 유치원 점수예요. 100점이면 중요한 조건이 전부 "좋음"이에요.</div>';
+  }
+  box.innerHTML=h;
+  box.onclick=function(ev){ var s=ev.target.closest('[data-s]'); if(s){ sortMode=s.dataset.s; renderCand(); return; } if(ev.target.id==='tblToggle'){ tableView=!tableView; renderCand(); return; } if(ev.target.id==='candAdd'){ openCand(null); return; } if(ev.target.id==='copyTbl'){ copyTable(); return; } var e=ev.target.closest('[data-edit]'); if(e) openCand(e.dataset.edit); };
+}
+function copyTable(){ var arr=sortedCands(sortMode); var lines=['유치원 후보 비교 ('+S.year+'학년도)']; arr.forEach(function(c,i){ var sc=scoreOf(c); var parts=[c.name+(c.rank?' ['+rankLabel(c.rank)+']':'')]; if(c.type) parts.push(typeLabel(c.type)); if(c.dist) parts.push(c.dist); if(c.bus==='y') parts.push('버스 있음'); if(c.bus==='n') parts.push('버스 없음'); if(c.hours) parts.push(c.hours); if(c.care) parts.push('돌봄 '+c.care); if(c.cost) parts.push(c.cost); if(sc) parts.push(sc.pct+'점'); if(c.sDate) parts.push('설명회 '+fmtD(c.sDate)); lines.push((i+1)+'. '+parts.join(' · ')); });
+  var txt=lines.join('\n'); if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(function(){ toast('복사했어요. 카톡에 붙여 넣어요'); },function(){ fallbackCopy(txt); }); } else fallbackCopy(txt); }
+function fallbackCopy(txt){ var ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast('복사했어요'); }catch(e){ toast('복사가 안 돼요'); } document.body.removeChild(ta); }
+
+/* 후보 창 */
+var editId=null;
+function openCand(id){ editId=id; var c=id?S.cands.filter(function(x){ return x.id===id; })[0]:null; if(id&&!c) return;
+  $('candTitle').textContent=c?'후보 수정':'후보 추가'; $('cDelete').hidden=!c;
+  $('cName').value=c?c.name:''; $('cType').value=c?c.type||'':''; $('cRank').value=c?c.rank||'':''; $('cDist').value=c?c.dist||'':''; $('cBus').value=c?c.bus||'':''; $('cHours').value=c?c.hours||'':''; $('cCare').value=c?c.care||'':''; $('cCost').value=c?c.cost||'':''; $('cPhone').value=c?c.phone||'':''; $('cUrl').value=c?c.url||'':'';
+  $('cSDate').value=c?c.sDate||'':''; $('cSHow').value=c?c.sHow||'':''; $('cSPark').value=c?c.sPark||'':''; $('cSVisited').value=c?c.sVisited||'':''; $('cSNote').value=c?c.sNote||'':''; $('cMemo').value=c?c.memo||'':'';
+  var sc=(c&&c.scores)||{}; $('cScores').innerHTML=COND.map(function(k){ var w=S.conds[k[0]]; var v=sc[k[0]]||0; return '<div class="sc" data-k="'+k[0]+'"><b>'+k[1]+' <span style="font-size:11px;color:var(--ink-3);font-weight:500">'+(w?'중요도 '+WLAB[w]:'안 봐요')+'</span></b><div class="seg s">'+SLAB.map(function(l,i){ return '<button type="button" data-v="'+i+'" aria-pressed="'+(v===i)+'">'+l+'</button>'; }).join('')+'</div></div>'; }).join('');
+  $('candDlg').showModal(); $('candDlg').scrollTop=0; setTimeout(function(){ if(!c) $('cName').focus(); },50); }
+$('cScores').addEventListener('click',function(ev){ var b=ev.target.closest('[data-v]'); if(!b) return; var seg=b.parentNode; Array.prototype.forEach.call(seg.children,function(x){ x.setAttribute('aria-pressed',String(x===b)); }); });
+$('cCancel').addEventListener('click',function(){ $('candDlg').close(); });
+$('cDelete').addEventListener('click',function(){ if(!editId) return; if(!confirm('이 후보를 지울까요?')) return; S.cands=S.cands.filter(function(x){ return x.id!==editId; }); $('candDlg').close(); toast('지웠어요'); render(); });
+$('candForm').addEventListener('submit',function(ev){ ev.preventDefault(); var name=$('cName').value.trim(); if(!name){ $('cName').focus(); return; }
+  var c=editId?S.cands.filter(function(x){ return x.id===editId; })[0]:{id:uid(),created:today()}; if(!editId) S.cands.push(c);
+  c.name=name; c.type=$('cType').value; c.rank=$('cRank').value; c.dist=$('cDist').value.trim(); c.bus=$('cBus').value; c.hours=$('cHours').value.trim(); c.care=$('cCare').value.trim(); c.cost=$('cCost').value.trim(); c.phone=$('cPhone').value.trim(); c.url=$('cUrl').value.trim();
+  c.sDate=$('cSDate').value; c.sHow=$('cSHow').value.trim(); c.sPark=$('cSPark').value; c.sVisited=$('cSVisited').value; c.sNote=$('cSNote').value.trim(); c.memo=$('cMemo').value.trim();
+  c.scores={}; Array.prototype.forEach.call($('cScores').querySelectorAll('.sc'),function(row){ var on=row.querySelector('[aria-pressed="true"]'); var v=on?+on.dataset.v:0; if(v) c.scores[row.dataset.k]=v; });
+  if(S.cands.length>=1) S.checks.c1=true; if(c.sDate) S.checks.c4=true;
+  $('candDlg').close(); toast(editId?'저장했어요':'후보에 넣었어요'); render(); });
+
+/* 아이 창 */
+function openKid(){ $('kName').value=S.kid.name||''; $('kBirth').value=S.kid.birth||''; var y=new Date().getFullYear(); var sel=$('kYear'); sel.innerHTML=''; for(var i=y;i<=y+3;i++){ var o=document.createElement('option'); o.value=i; o.textContent=i+'학년도 (3월 입학)'; sel.appendChild(o); } sel.value=S.year; $('kidDlg').showModal(); }
+$('kCancel').addEventListener('click',function(){ $('kidDlg').close(); });
+$('kidForm').addEventListener('submit',function(ev){ ev.preventDefault(); S.kid.name=$('kName').value.trim(); S.kid.birth=$('kBirth').value; S.year=+$('kYear').value||S.year; $('kidDlg').close(); toast('저장했어요'); render(); });
+
+/* ---------- 조건 ---------- */
+function renderCond(){
+  var box=$('pCond');
+  var h='<section class="block"><h2>우리 집 필수조건</h2><div class="note" style="margin:0 0 6px">유치원마다 교육 과정과 운영 방식이 달라요. 우리 가족에게 꼭 맞는 기준을 먼저 정해 두면 선택이 쉬워져요. 중요도를 정하면 후보 점수에 바로 반영돼요.</div>';
+  h+=COND.map(function(k){ var w=S.conds[k[0]]; return '<div class="cond" data-k="'+k[0]+'"><div class="ct"><b>'+k[1]+'</b><span>'+k[2]+'</span></div><div class="seg w">'+WLAB.map(function(l,i){ return '<button type="button" data-w="'+i+'" aria-pressed="'+(w===i)+'">'+l+'</button>'; }).join('')+'</div></div>'; }).join('');
+  h+='</section>';
+  h+='<section class="block"><h2>우리 집 1·2·3순위 <small>말로 적어 두기</small></h2><textarea id="condNote" placeholder="1순위: 4시까지 돌봄 되는 곳&#10;2순위: 통학버스 있는 곳&#10;3순위: 놀이 중심&#10;기타: 급식 직영">'+esc(S.condNote)+'</textarea><div style="display:flex;justify-content:flex-end;margin-top:8px"><button type="button" class="btn small" id="condSave">저장</button></div></section>';
+  h+='<div class="tipbox"><b>점수는 이렇게 계산해요</b>후보마다 조건별로 아쉬움 1 · 보통 2 · 좋음 3을 매기고, 여기서 정한 중요도(조금 1 · 중요 2 · 꼭! 3)를 곱해 더해요. 만점 대비 몇 %인지가 점수예요. "안 봐요"로 둔 조건은 계산에서 빠져요.</div>';
+  box.innerHTML=h;
+  box.onclick=function(ev){ var b=ev.target.closest('[data-w]'); if(b){ var k=b.closest('[data-k]').dataset.k; S.conds[k]=+b.dataset.w; Array.prototype.forEach.call(b.parentNode.children,function(x){ x.setAttribute('aria-pressed',String(x===b)); }); S.checks.c6=true; save(); return; } if(ev.target.id==='condSave'){ S.condNote=$('condNote').value; S.checks.c6=true; save(); toast('저장했어요'); } };
+}
+
+/* ---------- 일정 ---------- */
+function renderPlan(){
+  var box=$('pPlan'); var si=curStep(); var all=sessions();
+  var h='';
+  if(all.length){ h+='<div class="sec"><span>설명회 일정</span><span style="font-weight:500">'+all.length+'곳</span></div><div class="list" style="margin-bottom:14px">'+all.map(sessRow).join('')+'</div>'; }
+  h+='<div class="sec"><span>'+S.year+'학년도 입학까지</span><span style="font-weight:500">지난해 기준</span></div>';
+  h+=STEPS.map(function(s,i){ var cls=i===si?' now':(si>i&&si>=0?' past':''); return '<div class="step'+cls+'"><span class="mo">'+s.mo+(i===si?' <span class="nowtag">지금</span>':'')+'</span><h3>'+esc(s.t)+'</h3><ul>'+s.items.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul>'+(s.links.length?'<div class="links">'+s.links.map(function(l){ return '<a href="'+l[1]+'" target="_blank" rel="noopener">'+l[0]+'</a>'; }).join('')+'</div>':'')+'</div>'; }).join('');
+  h+='<div class="note">날짜는 지난해(2026학년도) 유보통합포털 일정이에요. 올해 요강이 나오면 반드시 다시 확인하세요. 지역 교육청마다 조금씩 달라요.</div>';
+  h+='<section class="block" style="margin-top:14px"><h2>전화할 때 물어볼 것 <button type="button" class="btn ghost small" id="copyQs">복사</button></h2><ul class="qs">'+QS.map(function(q){ return '<li>'+esc(q)+'</li>'; }).join('')+'</ul><div class="note">아직 미정이라고 하면 "정해지면 문자로 안내해 주실 수 있을까요?" 하고 연락처를 남겨요. 추석 연휴 전에 미리 물어보면 좋아요.</div></section>';
+  box.innerHTML=h;
+  box.onclick=function(ev){ if(ev.target.id==='copyQs'){ var txt=QS.map(function(q,i){ return (i+1)+'. '+q; }).join('\n'); if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){ toast('복사했어요'); },function(){ fallbackCopy(txt); }); else fallbackCopy(txt); return; } var e=ev.target.closest('[data-edit]'); if(e) openCand(e.dataset.edit); };
+}
+
+/* ---------- 시작 ---------- */
+render();
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+
+/* 설치 띠 */
+(function(){
+  var KEY=LS+':instHide';
+  var standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  if(standalone||location.protocol.indexOf('http')!==0) return;
+  try{ var h=localStorage.getItem(KEY); if(h&&Date.now()-Number(h)<7*86400000) return; }catch(e){}
+  var bar=$('instBar'), how=$('instHow'), steps=$('instSteps'); var ua=navigator.userAgent||''; var ios=/iPhone|iPad|iPod/.test(ua); var deferred=null;
+  bar.classList.add('on');
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; });
+  function hide(){ bar.classList.remove('on'); try{ localStorage.setItem(KEY,String(Date.now())); }catch(e){} }
+  $('instX').onclick=hide; $('instOk').onclick=function(){ how.classList.remove('on'); };
+  $('instGo').onclick=function(){ if(deferred){ deferred.prompt(); deferred.userChoice.then(function(r){ if(r&&r.outcome==='accepted') hide(); deferred=null; }); return; }
+    if(ios) steps.innerHTML='<ol><li>아래 <b style="display:inline">공유 버튼</b>(네모에 화살표)을 눌러요.</li><li>아래로 내려 <b style="display:inline">홈 화면에 추가</b>를 눌러요.</li><li>오른쪽 위 <b style="display:inline">추가</b>를 누르면 끝.</li></ol>';
+    else steps.innerHTML='<ol><li>브라우저 오른쪽 위 <b style="display:inline">메뉴(⋮)</b>를 눌러요.</li><li><b style="display:inline">홈 화면에 추가</b> 또는 <b style="display:inline">앱 설치</b>를 눌러요.</li><li><b style="display:inline">추가</b>를 누르면 끝.</li></ol>';
+    how.classList.add('on'); };
+  window.addEventListener('appinstalled',hide);
+})();
+})();
+</script>
+</body>
+</html>
