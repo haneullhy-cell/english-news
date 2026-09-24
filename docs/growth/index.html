@@ -177,23 +177,98 @@ dialog .actions{display:flex;justify-content:space-between;gap:8px;margin-top:14
   .scale label{padding:4px 7px;font-size:11px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ===== app layout ===== */
+body{font-size:16px}
+.wrap{padding-block:0 calc(84px + env(safe-area-inset-bottom,0px))}
+.apphead{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin-inline:-16px;padding:10px 16px 8px;border-bottom:1px solid var(--line-soft)}
+.apphead-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px}
+.brand-mark{width:22px;height:22px;border-radius:7px;background:var(--accent);display:inline-block;position:relative}
+.brand-mark::after{content:"";position:absolute;left:5px;right:5px;bottom:5px;height:3px;border-radius:2px;background:var(--accent-ink);box-shadow:0 -5px 0 var(--accent-ink),0 -10px 0 var(--accent-ink)}
+.status{font-size:12px}
+.kids{margin-bottom:0;gap:8px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none}
+.kids::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:6px 14px 6px 6px;font-size:15px;border-radius:999px}
+.chip .dot{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+.chip[aria-pressed="true"]{background:var(--kc);color:#fff;border-color:var(--kc);box-shadow:none}
+.chip[aria-pressed="true"] .dot{background:rgba(255,255,255,.25)}
+.chip[aria-pressed="true"] .age{color:rgba(255,255,255,.85)}
+.chip.add{border-style:dashed;padding-left:12px}
+.panel{padding-top:14px}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+.bnav button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font:inherit;font-size:11px;color:var(--ink-3);cursor:pointer;border-radius:10px}
+.bnav button svg{width:24px;height:24px;fill:currentColor}
+.bnav button[aria-pressed="true"]{color:var(--accent);font-weight:700}
+.bnav button:focus-visible{outline:2px solid var(--accent)}
+/* home */
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 18px 14px;margin-bottom:12px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0 auto auto 0;width:6px;height:100%;background:var(--kc)}
+.hero .nm{font-size:22px;font-weight:700;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.hero .nm small{font-size:14px;color:var(--ink-3);font-weight:400}
+.hero .age{font-size:34px;font-weight:700;letter-spacing:-.02em;margin:2px 0 0;font-variant-numeric:tabular-nums}
+.hero .age small{font-size:15px;color:var(--ink-2);font-weight:500;margin-left:6px}
+.hero .sub2{color:var(--ink-3);font-size:13px;margin-top:2px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.tile{background:var(--surface-2);border-radius:14px;padding:10px 10px 8px}
+.tile .l{font-size:12px;color:var(--ink-3)}
+.tile .v{font-size:22px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.tile .v small{font-size:12px;font-weight:400;color:var(--ink-3);margin-left:2px}
+.tile .p{font-size:12px;color:var(--ink-2);margin-top:2px;font-variant-numeric:tabular-nums}
+.tile .p.low{color:var(--bad)}.tile .p.high{color:var(--warn)}
+.meter{height:6px;border-radius:3px;background:linear-gradient(90deg,#e9c4c4 0 3%,var(--line) 3% 97%,#f1dcb3 97% 100%);margin-top:7px;position:relative}
+.meter i{position:absolute;top:-4px;width:14px;height:14px;border-radius:50%;background:var(--kc);border:2px solid var(--surface);transform:translateX(-50%);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.todo{display:grid;gap:8px;margin-bottom:12px}
+.todo a,.todo button{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font:inherit;font-size:15px;color:var(--ink);text-align:left;cursor:pointer;width:100%}
+.todo .t{font-weight:600}.todo .d{font-size:13px;color:var(--ink-3);margin-top:2px}
+.todo .n{font-size:22px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.todo .n.warn{color:var(--bad)}
+.todo .arrow{color:var(--ink-3)}
+.others h4{font-size:13px;color:var(--ink-3);margin:14px 0 6px;font-weight:500}
+.others .card{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:14px;margin-bottom:8px;cursor:pointer}
+.others .card .who{display:flex;align-items:center;gap:10px;font-weight:600}
+.others .card .who .dot{width:24px;height:24px;border-radius:50%;background:var(--kc);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+.others .card .mini{font-size:13px;color:var(--ink-2);text-align:right;font-variant-numeric:tabular-nums}
+.onboard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;text-align:center}
+.onboard h2{font-size:20px;margin:0 0 6px}
+.onboard p{color:var(--ink-2);margin:0 0 14px;font-size:14px}
+.onboard ol{text-align:left;margin:0 auto 16px;padding-left:20px;color:var(--ink-2);font-size:14px;max-width:320px}
+.onboard .btn{font-size:16px;padding:12px 22px;border-radius:12px}
+/* bigger controls */
+section.block{border-radius:16px;padding:16px 16px}
+section.block h2{font-size:16px}
+.scale label{padding:8px 11px;font-size:13px}
+.item .q{font-size:15px}
+.btn{padding:11px 16px;border-radius:12px;font-size:15px}
+.btn.small{padding:7px 12px;font-size:13px;border-radius:10px}
+input,select,textarea{padding:10px 11px;font-size:16px;border-radius:10px}
+.help{font-size:14px}
+#devMode{display:none}
+.tabs{display:none}
+.todo .n small{font-size:12px;font-weight:500;color:var(--ink-3);margin-left:3px}
+@media (min-width:700px){ .wrap{padding-block:0 40px} .bnav{position:sticky;bottom:auto;top:0;order:-1;border-top:0;border-bottom:1px solid var(--line);justify-content:center;gap:8px} .bnav button{flex:0 0 auto;flex-direction:row;padding:8px 14px;font-size:14px} .bnav button svg{width:18px;height:18px} #devMode{display:inline-flex} }
 </style>
 
 <div class="wrap">
-  <header class="top">
-    <div><h1>아이 성장 노트</h1><div class="sub">키·몸무게·머리둘레 백분위와 K-DST 발달 체크(20개 검사지)를 한 화면에</div></div>
-    <div class="status" id="status">불러오는 중…</div>
+  <header class="apphead">
+    <div class="apphead-row">
+      <div class="brand"><span class="brand-mark"></span><span>아이 성장 노트</span></div>
+      <div class="status" id="status">불러오는 중…</div>
+    </div>
+    <div class="kids" id="kids"></div>
   </header>
 
-  <div class="kids" id="kids"></div>
-  <div class="overview" id="overview"></div>
+  <div class="panel" id="panelHome">
+    <div id="home"></div>
+    <div class="overview" id="overview"></div>
+  </div>
 
-  <div class="tabs" role="tablist">
+  <div class="tabs" role="tablist" hidden>
     <button class="tab" role="tab" id="tabGrowth" aria-selected="true" data-tab="growth">성장 기록</button>
     <button class="tab" role="tab" id="tabDev" aria-selected="false" data-tab="dev">발달 체크 (K-DST)</button>
   </div>
 
-  <div class="panel" id="panelGrowth">
+<div class="panel" id="panelGrowth" hidden>
     <section class="block">
       <h2><span id="chartTitle">성장 곡선</span>
         <span class="seg" id="metricSeg">
@@ -261,6 +336,12 @@ dialog .actions{display:flex;justify-content:space-between;gap:8px;margin-top:14
   </div>
 </div>
 
+<nav class="bnav" id="bnav">
+  <button type="button" data-tab="home" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V20h-5v-6H9v6H4z"/></svg><span>홈</span></button>
+  <button type="button" data-tab="growth" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 19h16v1.5H4zM5 17 10 11l3 3 6-7 1.2 1L13 16.5l-3-3-4 4.5z"/></svg><span>성장</span></button>
+  <button type="button" data-tab="dev" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zm2 4v2h3V8zm5 0v2h5V8zm-5 5v2h3v-2zm5 0v2h5v-2z"/></svg><span>발달</span></button>
+  <button type="button" data-tab="play" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 3a7 7 0 0 0-4 12.7V18h8v-2.3A7 7 0 0 0 12 3zm-3 16h6v2H9z"/></svg><span>놀이</span></button>
+</nav>
 <dialog id="kidDlg">
   <h3 id="kidDlgTitle">아이 추가</h3>
   <form id="kidForm" method="dialog">
@@ -357,30 +438,57 @@ function subscribe(){
 function render(){
   if(cur && !kidById(cur)) cur=null;
   if(!cur && kids.length) cur=kids[0].id;
-  renderKids(); renderOverview(); renderGrowth(); renderDev();
+  renderKids(); renderHome(); renderOverview(); renderGrowth(); renderDev();
 }
 function renderKids(){
   var box=$('kids'); box.innerHTML='';
   kids.forEach(function(k){
     var b=document.createElement('button'); b.type='button'; b.className='chip'; b.style.setProperty('--kc',KC[k.color]||KC[1]); b.setAttribute('aria-pressed',String(k.id===cur));
-    b.innerHTML='<span class="dot"></span><span>'+esc(k.name)+'</span><span class="age">'+ageLabel(ageMonths(k.birth))+'</span>';
+    b.innerHTML='<span class="dot">'+esc(k.name.slice(0,1))+'</span><span>'+esc(k.name)+'</span><span class="age">'+ageLabel(ageMonths(k.birth))+'</span>';
     b.addEventListener('click',function(){ if(cur===k.id){ openKidDlg(k); } else { cur=k.id; render(); } });
     box.appendChild(b);
   });
   var add=document.createElement('button'); add.type='button'; add.className='chip add'; add.textContent='+ 아이 추가'; add.addEventListener('click',function(){ openKidDlg(null); }); box.appendChild(add);
 }
 function renderOverview(){
-  var box=$('overview'); box.innerHTML='';
-  if(!kids.length){ box.innerHTML='<div class="card"><h3>아직 등록된 아이가 없어요</h3><div class="meta">위의 "+ 아이 추가"에서 이름·생년월일·성별을 넣으면 백분위와 검사지가 자동으로 맞춰집니다.</div></div>'; return; }
-  kids.forEach(function(k){
+  var box=$('overview'); box.innerHTML=''; box.className='overview others';
+  var others=kids.filter(function(k){ return k.id!==cur; }); if(!others.length) return;
+  var h4=document.createElement('h4'); h4.textContent='다른 아이'; box.appendChild(h4);
+  others.forEach(function(k){
     var age=ageMonths(k.birth); var c=document.createElement('div'); c.className='card'; c.style.setProperty('--kc',KC[k.color]||KC[1]);
     var stats=['h','w','hc'].map(function(m){ var L=latest(k,m); if(!L) return '<div class="stat"><div class="l">'+METRIC[m].name+'</div><div class="v">–</div><div class="p">기록 없음</div></div>'; var a=ageMonths(k.birth,L.date); var p=pctile(m,k.sex,a,L[m]); var cls=p==null?'':p<3?' low':p>97?' high':''; return '<div class="stat"><div class="l">'+METRIC[m].name+'</div><div class="v">'+fmt(L[m],METRIC[m].dec)+'<small>'+METRIC[m].unit+'</small></div><div class="p'+cls+'">'+(p==null?(m==='hc'&&a>60?'5세까지 기준':'기준 없음'):'백분위 '+pctText(p))+'</div></div>'; }).join('');
     var bi=bandFor(age); var dev;
     if(bi<0){ dev=age<4?'<span class="pill">K-DST 4개월부터</span>':'<span class="pill">K-DST 대상 아님 (71개월까지)</span>'; }
     else { var ans=answers[k.id+'_'+bandKey(bi)]; var done=ans&&ans.answers?Object.keys(ans.answers).reduce(function(n,d){return n+(ans.answers[d]||[]).filter(function(v){return v!=null;}).length;},0):0; var prac=ans&&ans.answers?Object.keys(ans.answers).filter(function(d){return d!=='extra';}).reduce(function(n,d){return n+(ans.answers[d]||[]).filter(function(v){return v!=null&&v<=2;}).length;},0):0; dev='<span class="pill'+(done?' on':'')+'">'+bandName(bi)+' 검사지'+(done?' · '+done+'문항 체크'+(prac?' · 연습 중 '+prac:''):' · 아직 체크 전')+'</span>'; }
-    c.innerHTML='<h3><span class="dot"></span>'+esc(k.name)+'</h3><div class="meta">'+k.birth+' · '+ageLabel(age)+' ('+Math.floor(age)+'개월) · '+(k.sex==='M'?'남':'여')+'</div><div class="stats">'+stats+'</div><div class="dev"><span>발달</span>'+dev+'</div>';
+    var Lh=latest(k,'h'), Lw=latest(k,'w'); var mini=(Lh?fmt(Lh.h,1)+'cm':'')+(Lh&&Lw?' · ':'')+(Lw?fmt(Lw.w,1)+'kg':''); if(!mini) mini='기록 없음';
+    c.innerHTML='<div class="who"><span class="dot">'+esc(k.name.slice(0,1))+'</span><span>'+esc(k.name)+' <small style="color:var(--ink-3);font-weight:400">'+ageLabel(age)+'</small></span></div><div class="mini">'+mini+'</div>';
+    c.addEventListener('click',function(){ cur=k.id; render(); window.scrollTo({top:0}); });
     box.appendChild(c);
   });
+}
+
+function goTab(name){ Array.prototype.forEach.call($('bnav').querySelectorAll('button'),function(b){ b.setAttribute('aria-pressed',String(b.dataset.tab===name)); }); $('panelHome').hidden=name!=='home'; $('panelGrowth').hidden=name!=='growth'; $('panelDev').hidden=!(name==='dev'||name==='play'); if(name==='dev'||name==='play'){ devMode=name==='play'?'browse':'check'; renderDev(); } try{localStorage.setItem(LS+':tab',name);}catch(e){} window.scrollTo({top:0}); }
+function renderHome(){
+  var box=$('home'); box.innerHTML='';
+  var k=kidById(cur);
+  if(!k){ box.innerHTML='<div class="onboard"><h2>우리 아이 성장, 한 화면에</h2><p>키·몸무게 백분위와 영유아 검진 발달 체크(K-DST)를 기록해요.</p><ol><li>아이 이름·생년월일·성별을 넣어요.</li><li>검진 결과지 숫자를 그대로 적으면 백분위가 나와요.</li><li>월령에 맞는 검사지가 자동으로 떠요. 못하는 건 놀이가 붙어요.</li></ol><button class="btn" type="button" id="obAdd">+ 아이 추가</button></div>'; $('obAdd').addEventListener('click',function(){ openKidDlg(null); }); return; }
+  var age=ageMonths(k.birth); var bi=bandFor(age);
+  var tiles=['h','w','hc'].map(function(m){ var L=latest(k,m); if(!L) return '<div class="tile"><div class="l">'+METRIC[m].name+'</div><div class="v">–</div><div class="p">기록 없음</div></div>'; var a=ageMonths(k.birth,L.date); var p=pctile(m,k.sex,a,L[m]); var cls=p==null?'':p<3?' low':p>97?' high':''; var meter=p==null?'':'<div class="meter"><i style="left:'+Math.max(2,Math.min(98,p))+'%"></i></div>'; return '<div class="tile"><div class="l">'+METRIC[m].name+'</div><div class="v">'+fmt(L[m],METRIC[m].dec)+'<small>'+METRIC[m].unit+'</small></div><div class="p'+cls+'">'+(p==null?(m==='hc'&&a>60?'5세까지 기준':'기준 없음'):'백분위 '+pctText(p))+'</div>'+meter+'</div>'; }).join('');
+  var lastM=measuresOf(k).slice(-1)[0];
+  var hero=document.createElement('div'); hero.className='hero'; hero.style.setProperty('--kc',KC[k.color]||KC[1]);
+  hero.innerHTML='<div class="nm">'+esc(k.name)+'<small>'+k.birth+' · '+(k.sex==='M'?'남':'여')+'</small></div><div class="age">'+ageLabel(age)+'<small>'+Math.floor(age)+'개월</small></div><div class="sub2">'+(bi>=0?'지금 검사지 '+bandName(bi):(age<4?'K-DST는 4개월부터':'K-DST 대상은 71개월까지'))+(lastM?' · 마지막 측정 '+lastM.date:'')+'</div><div class="tiles">'+tiles+'</div>';
+  box.appendChild(hero);
+  var todo=document.createElement('div'); todo.className='todo';
+  var items=[];
+  if(bi>=0){ var ans=answers[k.id+'_'+bandKey(bi)]; var total=0,prac=0; if(ans&&ans.answers){ Object.keys(ans.answers).forEach(function(d){ if(d==='extra') return; (ans.answers[d]||[]).forEach(function(v){ if(v!=null){ total++; if(v<=2) prac++; } }); }); }
+    var carry=0; Object.keys(answers).forEach(function(key){ var d=answers[key]; if(d.kid!==k.id||d.band===bandKey(bi)||!d.answers) return; var bj=-1; BANDS.forEach(function(b,j){ if(bandKey(j)===d.band) bj=j; }); if(bj<0||bj>=bi) return; Object.keys(d.answers).forEach(function(code){ if(code==='extra') return; (d.answers[code]||[]).forEach(function(v){ if(v!=null&&v<=2) carry++; }); }); });
+    items.push({t:'발달 체크 '+bandName(bi),d:total?('체크 '+total+' · 연습 중 '+prac+(carry?' · 지난 검사지 '+carry:'')):'아직 체크 전이에요',n:total?(prac+'<small>연습 중</small>'):'시작',warn:false,tab:'dev'});
+  }
+  items.push({t:'성장 기록 추가',d:lastM?('마지막 '+lastM.date+' · 검진 숫자를 그대로'):'첫 기록을 넣어 주세요',n:'+',warn:false,tab:'growth'});
+  if(bi>=0) items.push({t:'월령별 놀이 보기',d:bandName(bi)+' 문항과 집에서 해볼 놀이',n:'›',warn:false,tab:'play'});
+  todo.innerHTML=items.map(function(it){ return '<button type="button" data-go="'+it.tab+'"><span><div class="t">'+it.t+'</div><div class="d">'+it.d+'</div></span><span class="n'+(it.warn?' warn':'')+'">'+it.n+'</span></button>'; }).join('');
+  todo.addEventListener('click',function(ev){ var b=ev.target.closest('[data-go]'); if(b) goTab(b.dataset.go); });
+  box.appendChild(todo);
 }
 
 /* growth */
@@ -490,13 +598,13 @@ function renderDev(){
 }
 
 /* ---------- events ---------- */
-Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(t){ t.addEventListener('click',function(){ Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.setAttribute('aria-selected',String(x===t));}); $('panelGrowth').hidden=t.dataset.tab!=='growth'; $('panelDev').hidden=t.dataset.tab!=='dev'; try{localStorage.setItem(LS+':tab',t.dataset.tab);}catch(e){} }); });
-try{ var savedTab=localStorage.getItem(LS+':tab'); if(savedTab==='dev') $('tabDev').click(); }catch(e){}
+$('bnav').addEventListener('click',function(ev){ var b=ev.target.closest('button'); if(b) goTab(b.dataset.tab); });
+try{ var savedTab=localStorage.getItem(LS+':tab'); if(savedTab&&['home','growth','dev','play'].indexOf(savedTab)>=0&&savedTab!=='home') goTab(savedTab); }catch(e){}
 $('metricSeg').addEventListener('click',function(ev){ var b=ev.target.closest('button'); if(!b||b.disabled) return; metric=b.dataset.m; renderGrowth(); });
 $('mDate').value=today();
 $('mform').addEventListener('submit',function(ev){ ev.preventDefault(); var k=kidById(cur); if(!k){ toast('아이를 먼저 추가해 주세요'); return; } var h=$('mH').value, w=$('mW').value, hc=$('mHC').value; if(!h&&!w&&!hc){ toast('키·몸무게·머리둘레 중 하나는 넣어 주세요'); return; } var m={id:uid(),kid:k.id,date:$('mDate').value}; if(h) m.h=+h; if(w) m.w=+w; if(hc) m.hc=+hc; $('mSave').disabled=true; writeMeasure(m).then(function(){ toast('저장했어요'); $('mH').value=$('mW').value=$('mHC').value=''; }).catch(function(e){ toast('저장 실패: '+e.code); }).then(function(){ $('mSave').disabled=false; }); });
 $('devMode').addEventListener('click',function(ev){ var b=ev.target.closest('button'); if(!b) return; devMode=b.dataset.mode; Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){ x.setAttribute('aria-pressed',String(x===b)); }); try{localStorage.setItem(LS+':devMode',devMode);}catch(e){} renderDev(); });
-try{ var dm=localStorage.getItem(LS+':devMode'); if(dm==='browse'){ devMode='browse'; Array.prototype.forEach.call($('devMode').querySelectorAll('button'),function(x){ x.setAttribute('aria-pressed',String(x.dataset.mode==='browse')); }); } }catch(e){}
+
 $('bandSel').addEventListener('change',function(){ band=+this.value; bandKid=cur; renderDev(); });
 $('editItemsBtn').addEventListener('click',function(){ var e=$('editor'); e.hidden=!e.hidden; if(!e.hidden){ renderDev(); $('edText').focus(); } });
 $('edClose').addEventListener('click',function(){ $('editor').hidden=true; });
