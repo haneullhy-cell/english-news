@@ -134,6 +134,15 @@ td.act{text-align:right}
 .scale input:checked+span{color:var(--accent-ink)}
 .scale label:has(input:checked){background:var(--accent)}
 .scale label:has(input:focus-visible){outline:2px solid var(--accent)}
+.practice{border:1px solid var(--accent);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.practice summary{background:var(--accent-soft);color:var(--ink)}
+.practice .item{grid-template-columns:1fr}
+.practice .q .tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);margin-right:6px;vertical-align:middle}
+.practice .q .tag.lv0{background:#f6dada;color:#8a1f1f}
+.practice .q .tag.lv1{background:#f8e7c8;color:#7a4b00}
+.practice .row2{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.practice .row2 .when{font-size:12px;color:var(--ink-3)}
+.done-log{font-size:12px;color:var(--ink-3);padding:6px 14px 10px}
 .browse .item{grid-template-columns:1fr}
 .browse .q{font-weight:500}
 .browse .help{margin-top:0}
@@ -351,7 +360,7 @@ function renderOverview(){
     var stats=['h','w','hc'].map(function(m){ var L=latest(k,m); if(!L) return '<div class="stat"><div class="l">'+METRIC[m].name+'</div><div class="v">–</div><div class="p">기록 없음</div></div>'; var a=ageMonths(k.birth,L.date); var p=pctile(m,k.sex,a,L[m]); var cls=p==null?'':p<3?' low':p>97?' high':''; return '<div class="stat"><div class="l">'+METRIC[m].name+'</div><div class="v">'+fmt(L[m],METRIC[m].dec)+'<small>'+METRIC[m].unit+'</small></div><div class="p'+cls+'">'+(p==null?(m==='hc'&&a>60?'5세까지 기준':'기준 없음'):'백분위 '+pctText(p))+'</div></div>'; }).join('');
     var bi=bandFor(age); var dev;
     if(bi<0){ dev=age<4?'<span class="pill">K-DST 4개월부터</span>':'<span class="pill">K-DST 대상 아님 (71개월까지)</span>'; }
-    else { var ans=answers[k.id+'_'+bandKey(bi)]; var done=ans&&ans.answers?Object.keys(ans.answers).reduce(function(n,d){return n+(ans.answers[d]||[]).filter(function(v){return v!=null;}).length;},0):0; dev='<span class="pill'+(done?' on':'')+'">'+bandName(bi)+' 검사지'+(done?' · '+done+'문항 체크':' · 아직 체크 전')+'</span>'; }
+    else { var ans=answers[k.id+'_'+bandKey(bi)]; var done=ans&&ans.answers?Object.keys(ans.answers).reduce(function(n,d){return n+(ans.answers[d]||[]).filter(function(v){return v!=null;}).length;},0):0; var prac=ans&&ans.answers?Object.keys(ans.answers).filter(function(d){return d!=='extra';}).reduce(function(n,d){return n+(ans.answers[d]||[]).filter(function(v){return v!=null&&v<=2;}).length;},0):0; dev='<span class="pill'+(done?' on':'')+'">'+bandName(bi)+' 검사지'+(done?' · '+done+'문항 체크'+(prac?' · 연습 중 '+prac:''):' · 아직 체크 전')+'</span>'; }
     c.innerHTML='<h3><span class="dot"></span>'+esc(k.name)+'</h3><div class="meta">'+k.birth+' · '+ageLabel(age)+' ('+Math.floor(age)+'개월) · '+(k.sex==='M'?'남':'여')+'</div><div class="stats">'+stats+'</div><div class="dev"><span>발달</span>'+dev+'</div>';
     box.appendChild(c);
   });
@@ -420,6 +429,19 @@ function renderDev(){
     det.addEventListener('change',function(ev){ var t=ev.target; if(t.type!=='radio') return; var i=+t.name.split('_')[1]; var nd=JSON.parse(JSON.stringify(adoc)); nd.kid=k.id; nd.band=ikey; nd.answers=nd.answers||{}; nd.answers[code]=nd.answers[code]||[]; while(nd.answers[code].length<list.length) nd.answers[code].push(null); nd.answers[code][i]=+t.value; nd.date=today(); adoc=nd; writeAnswer(akey,nd).catch(function(e){ toast('저장 실패: '+e.code); }); });
     dom.appendChild(det);
   });
+  if(devMode==='check'&&anyItems){
+    var pr=[]; var doneLog=(adoc.log||[]);
+    DOMAINS.forEach(function(d){ var code=d[0]; if(code==='extra') return; if(code==='self'&&BANDS[band][0]<18) return; var list=(idoc.items&&idoc.items[code])||[]; var ans=(adoc.answers&&adoc.answers[code])||[]; list.forEach(function(q,i){ var v=ans[i]; if(v!=null&&v<=2) pr.push({code:code,name:d[1],i:i,q:q,v:v}); }); });
+    pr.sort(function(a,b){ return a.v-b.v; });
+    var total=0, well=0; DOMAINS.forEach(function(d){ var code=d[0]; if(code==='extra') return; if(code==='self'&&BANDS[band][0]<18) return; var list=(idoc.items&&idoc.items[code])||[]; var ans=(adoc.answers&&adoc.answers[code])||[]; list.forEach(function(q,i){ if(ans[i]!=null){ total++; if(ans[i]===3) well++; } }); });
+    var det=document.createElement('details'); det.className='domain practice'; det.open=pr.length>0;
+    var LV={0:'전혀',1:'못하는 편',2:'하는 편'};
+    var bodyHtml=pr.length?pr.map(function(it){ var tip=TIPS[it.q]; return '<div class="item"><div class="q"><span class="tag lv'+it.v+'">'+LV[it.v]+'</span><span class="tag">'+it.name+' '+(it.i+1)+'</span>'+esc(it.q)+'</div>'+(tip?'<div class="help"><b>이렇게 해 보세요</b>'+esc(tip)+'</div>':'')+'<div class="row2"><span class="when"></span><button type="button" class="btn small" data-done="'+it.code+'_'+it.i+'">이제 잘 해요 ✓</button></div></div>'; }).join(''):'<div class="empty">'+(total?'연습할 문항이 없어요. 체크한 문항이 모두 잘함이에요.':'아래 검사지에서 문항을 체크하면, 잘함이 아닌 문항이 여기 모여요.')+'</div>';
+    var logHtml=doneLog.length?'<div class="done-log">잘함으로 바뀐 기록: '+doneLog.slice(-8).reverse().map(function(l){ return l.date+' '+esc((l.name||'')+' '+(l.i+1)); }).join(' · ')+(doneLog.length>8?' 외 '+(doneLog.length-8)+'개':'')+'</div>':'';
+    det.innerHTML='<summary><span>연습 목록</span><span class="sum">'+(total?('잘함 '+well+' · 연습 중 '+pr.length+' · 체크 '+total):'아직 체크 전')+'</span></summary><div class="body">'+bodyHtml+'</div>'+logHtml;
+    det.addEventListener('click',function(ev){ var b=ev.target.closest('[data-done]'); if(!b) return; var parts=b.dataset.done.split('_'); var code=parts[0], i=+parts[1]; var nd=JSON.parse(JSON.stringify(adoc)); nd.kid=k.id; nd.band=ikey; nd.answers=nd.answers||{}; nd.answers[code]=nd.answers[code]||[]; var from=nd.answers[code][i]; nd.answers[code][i]=3; nd.log=nd.log||[]; var dname=''; DOMAINS.forEach(function(d){ if(d[0]===code) dname=d[1]; }); nd.log.push({code:code,i:i,name:dname,from:from,to:3,date:today()}); nd.date=today(); adoc=nd; b.disabled=true; b.textContent='저장 중…'; writeAnswer(akey,nd).then(function(){ toast('잘함으로 바꿨어요'); }).catch(function(e){ toast('저장 실패: '+e.code); }); });
+    dom.insertBefore(det,dom.firstChild);
+  }
   if(devMode==='browse'){ var bh=document.createElement('div'); bh.className='empty'; bh.innerHTML='<span class="pill on">놀이만 보기</span> 이 검사지의 문항과, 아직 못할 때 집에서 해볼 놀이를 한눈에 보는 화면이에요. 체크는 안 돼요. 추가 질문은 걱정되는 신호라 \'검진 때\' 안내가 붙어요.'; dom.insertBefore(bh,dom.firstChild); }
   else if(isDraft){ var dh=document.createElement('div'); dh.className='empty'; dh.innerHTML='<span class="pill on">K-DST 원문</span> 한국 영유아 발달선별검사(K-DST) 개정판 검사지 문항 그대로예요. 문항마다 잘 함 3 · 하는 편 2 · 못하는 편 1 · 전혀 0. \'못하는 편\'이나 \'전혀\'를 고르면 집에서 해볼 놀이가 바로 뜹니다. 추가 질문은 예/아니오로 답하고 점수에 넣지 않아요.'; dom.insertBefore(dh,dom.firstChild); }
   if(!anyItems){ var near=[]; BANDS.forEach(function(b,i){ if(DEFAULT_ITEMS[bandKey(i)]) near.push(i); }); var lo=null,hi=null; near.forEach(function(i){ if(i<band) lo=i; if(i>band&&hi==null) hi=i; }); var links=[lo,hi].filter(function(x){return x!=null;}).map(function(i){ return '<button type="button" class="btn ghost small" data-jump="'+i+'">'+bandName(i)+' 검사지 보기</button>'; }).join(' '); var hint=document.createElement('div'); hint.className='empty'; hint.innerHTML='K-DST '+bandName(band)+' 검사지는 영유아 건강검진에서 쓰지 않는 구간이라 원문이 공개돼 있지 않아요. 가까운 검사지를 참고하거나, 문진표가 있으면 <b>문항 편집</b>에 넣어 주세요.<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">'+links+'</div>'; hint.addEventListener('click',function(ev){ var b=ev.target.closest('[data-jump]'); if(!b) return; band=+b.dataset.jump; bandKid=cur; renderDev(); }); dom.insertBefore(hint,dom.firstChild); }
