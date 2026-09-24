@@ -95,6 +95,7 @@ body{overflow-x:hidden}
 .legend span::before{content:"";display:inline-block;width:14px;height:0;border-top:2px solid var(--band);vertical-align:middle;margin-right:5px}
 .legend span.mid::before{border-top-color:var(--band-mid)}
 .legend span.kid::before{border-top:0;width:9px;height:9px;border-radius:50%;background:var(--kc)}
+.today{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:14px;padding:12px 14px;margin:12px 0}.today .th{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}.today .th b{font-size:15px;color:var(--accent)}.today .th span{font-size:12px;color:var(--ink-3)}.today .tq{font-size:15px;font-weight:600;line-height:1.45;margin-bottom:8px}.today .help{margin-top:0}.today .tf{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:var(--ink-3)}
 .note{font-size:12px;color:var(--ink-3);margin-top:8px}
 .notice{font-size:13px;line-height:1.5;padding:9px 12px;border-radius:10px;background:#fff4dc;color:#5a4200;border:1px solid #f1d99a;margin:0 0 10px}.notice b{font-weight:700}
 @media (prefers-color-scheme:dark){.notice{background:#3a2f12;color:#f3e3b5;border-color:#6b5520}}
@@ -535,6 +536,7 @@ function renderHome(){
   var hero=document.createElement('div'); hero.className='hero'; hero.style.setProperty('--kc',KC[k.color]||KC[1]);
   hero.innerHTML='<div class="nm">'+esc(k.name)+'<small>'+k.birth+' · '+(k.sex==='M'?'남':'여')+'</small></div><div class="age">'+ageLabel(age)+'<small>'+Math.floor(age)+'개월</small></div><div class="sub2">'+(bi>=0?'지금 검사지 '+bandName(bi):(age<4?'K-DST는 4개월부터':'K-DST 대상은 71개월까지'))+(lastM?' · 마지막 측정 '+lastM.date:'')+'</div><div class="tiles">'+tiles+'</div>';
   box.appendChild(hero);
+  if(bi>=0){ var tp=todayPlay(k,bi); if(tp) box.appendChild(tp); }
   var todo=document.createElement('div'); todo.className='todo';
   var items=[];
   if(bi>=0){ var ans=answers[k.id+'_'+bandKey(bi)]; var total=0,prac=0; if(ans&&ans.answers){ Object.keys(ans.answers).forEach(function(d){ if(d==='extra') return; (ans.answers[d]||[]).forEach(function(v){ if(v!=null){ total++; if(v<=2) prac++; } }); }); }
@@ -546,6 +548,23 @@ function renderHome(){
   todo.innerHTML=items.map(function(it){ return '<button type="button" data-go="'+it.tab+'"><span><div class="t">'+it.t+'</div><div class="d">'+it.d+'</div></span><span class="n'+(it.warn?' warn':'')+'">'+it.n+'</span></button>'; }).join('');
   todo.addEventListener('click',function(ev){ var b=ev.target.closest('[data-go]'); if(b) goTab(b.dataset.go); });
   box.appendChild(todo);
+}
+
+function todayPlay(k,bi){
+  var bkey=bandKey(bi); var idoc=items[bkey]||{items:DEFAULT_ITEMS[bkey]||{}}; var ans=answers[k.id+'_'+bkey]; var cands=[];
+  function okDom(code){ return code!=='extra' && !(code==='self'&&BANDS[bi][0]<18); }
+  DOMAINS.forEach(function(d){ var code=d[0]; if(!okDom(code)) return; var list=(idoc.items&&idoc.items[code])||[]; var av=(ans&&ans.answers&&ans.answers[code])||[]; list.forEach(function(q,i){ if(av[i]!=null&&av[i]<=2) cands.push({q:q,name:d[1]}); }); });
+  var curTexts={}; DOMAINS.forEach(function(d){ ((idoc.items&&idoc.items[d[0]])||[]).forEach(function(q){ curTexts[q]=1; }); });
+  Object.keys(answers).forEach(function(key){ var d=answers[key]; if(d.kid!==k.id||!d.band||!d.answers) return; var bj=-1; BANDS.forEach(function(b,j){ if(bandKey(j)===d.band) bj=j; }); if(bj<0||bj>=bi) return; var bd=items[d.band]||{items:DEFAULT_ITEMS[d.band]||{}}; Object.keys(d.answers).forEach(function(code){ if(!okDom(code)) return; var bl=(bd.items&&bd.items[code])||[]; (d.answers[code]||[]).forEach(function(v,i){ if(v!=null&&v<=2&&bl[i]&&!curTexts[bl[i]]){ var dn=''; DOMAINS.forEach(function(dd){ if(dd[0]===code) dn=dd[1]; }); cands.push({q:bl[i],name:dn}); } }); }); });
+  var fromPractice=cands.length>0;
+  if(!fromPractice){ DOMAINS.forEach(function(d){ var code=d[0]; if(!okDom(code)) return; ((idoc.items&&idoc.items[code])||[]).forEach(function(q){ if(TIPS[q]) cands.push({q:q,name:d[1]}); }); }); }
+  var seen={}; cands=cands.filter(function(c){ if(seen[c.q]) return false; seen[c.q]=1; return true; });
+  if(!cands.length) return null;
+  var day=Math.floor(Date.now()/86400000); var c=cands[day%cands.length];
+  var card=document.createElement('div'); card.className='today';
+  card.innerHTML='<div class="th"><b>오늘의 놀이</b><span>'+esc(c.name)+(fromPractice?' · 연습 중인 문항 '+cands.length+'개 중':' · '+bandName(bi)+' 문항')+'</span></div><div class="tq">'+esc(c.q)+'</div>'+helpBox(c.q,TIPS[c.q]||'',false)+'<div class="tf"><span>'+(fromPractice?'잘하게 되면 발달 탭에서 잘함으로 바꿔요':'체크를 시작하면 못하는 문항이 여기 떠요')+'</span><button type="button" class="btn ghost small" data-go="dev">발달 탭</button></div>';
+  card.addEventListener('click',function(ev){ var b=ev.target.closest('[data-go]'); if(b) goTab('dev'); });
+  return card;
 }
 
 /* growth */
