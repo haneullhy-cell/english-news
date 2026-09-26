@@ -436,14 +436,15 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
       <div class="note" id="chartNote"></div>
     </section>
 
-    <section class="block add">
-      <h2>기록 추가</h2>
+    <section class="block add" id="mBlock">
+      <h2 id="mTitle">기록 추가</h2>
       <form class="row" id="mform">
         <label class="f">날짜<input type="date" id="mDate" required></label>
         <label class="f">키 (cm)<input type="number" id="mH" step="0.1" min="30" max="200" inputmode="decimal" placeholder="예: 96.5"></label>
         <label class="f">몸무게 (kg)<input type="number" id="mW" step="0.01" min="1" max="120" inputmode="decimal" placeholder="예: 14.2"></label>
         <label class="f">머리둘레 (cm)<input type="number" id="mHC" step="0.1" min="25" max="65" inputmode="decimal" placeholder="예: 48.0"></label>
         <button class="btn" type="submit" id="mSave">저장</button>
+        <button class="btn ghost" type="button" id="mCancel" hidden>취소</button>
       </form>
       <div class="note">영유아 검진 결과지 숫자를 그대로 넣으면 됩니다. 비워 둔 항목은 저장하지 않아요.</div>
     </section>
@@ -723,7 +724,7 @@ function renderGrowth(){
   var src=metric==='h'?'3세 미만 WHO 성장 기준 · 3세부터 2017 소아청소년 성장도표(질병관리청). 영유아 검진과 같은 기준이에요.':metric==='hc'?'WHO 성장 기준(0~5세). 검진과 같은 기준이에요.':'5세 미만 WHO 성장 기준(검진과 같음) · 5세 이후 CDC 2000이라 검진 결과지와 몇 % 다를 수 있어요.';
   $('chartNote').textContent=src+' 3% 아래·97% 위면 검진 때 물어보세요.';
   $('mEmpty').hidden=ms.length>0;
-  ms.slice().reverse().forEach(function(m){ var a=ageMonths(k.birth,m.date); var tr=document.createElement('tr'); function cell(mk){ if(m[mk]==null) return '<td class="num">–</td>'; var p=pctile(mk,k.sex,a,m[mk]); return '<td class="num">'+fmt(m[mk],METRIC[mk].dec)+(p!=null?'<span class="pct">'+pctText(p)+'</span>':'')+'</td>'; } tr.innerHTML='<td>'+m.date+'</td><td class="num">'+Math.floor(a)+'</td>'+cell('h')+cell('w')+cell('hc')+'<td class="act"><button class="link" type="button">삭제</button></td>'; tr.querySelector('button').addEventListener('click',function(){ if(tr.dataset.arm){ deleteMeasure(m.id).then(function(){toast('삭제했어요');}); } else { tr.dataset.arm='1'; this.textContent='정말 삭제'; var self=this; setTimeout(function(){ delete tr.dataset.arm; self.textContent='삭제'; },2500); } }); tb.appendChild(tr); });
+  ms.slice().reverse().forEach(function(m){ var a=ageMonths(k.birth,m.date); var tr=document.createElement('tr'); function cell(mk){ if(m[mk]==null) return '<td class="num">–</td>'; var p=pctile(mk,k.sex,a,m[mk]); return '<td class="num">'+fmt(m[mk],METRIC[mk].dec)+(p!=null?'<span class="pct">'+pctText(p)+'</span>':'')+'</td>'; } tr.innerHTML='<td>'+m.date+'</td><td class="num">'+Math.floor(a)+'</td>'+cell('h')+cell('w')+cell('hc')+'<td class="act"><button class="link ed" type="button">수정</button> <button class="link del" type="button">삭제</button></td>'; tr.querySelector('.ed').addEventListener('click',function(){ startEdit(m); }); tr.querySelector('.del').addEventListener('click',function(){ if(tr.dataset.arm){ deleteMeasure(m.id).then(function(){toast('삭제했어요');}); } else { tr.dataset.arm='1'; this.textContent='정말 삭제'; var self=this; setTimeout(function(){ delete tr.dataset.arm; self.textContent='삭제'; },2500); } }); tb.appendChild(tr); });
 }
 
 /* dev */
@@ -793,7 +794,11 @@ $('bnav').addEventListener('click',function(ev){ var b=ev.target.closest('button
 try{ var savedTab=localStorage.getItem(LS+':tab'); if(savedTab&&['home','growth','dev','play'].indexOf(savedTab)>=0&&savedTab!=='home') goTab(savedTab); }catch(e){}
 $('metricSeg').addEventListener('click',function(ev){ var b=ev.target.closest('button'); if(!b||b.disabled) return; metric=b.dataset.m; renderGrowth(); });
 $('mDate').value=today();
-$('mform').addEventListener('submit',function(ev){ ev.preventDefault(); var k=kidById(cur); if(!k){ toast('아이를 먼저 추가해 주세요'); return; } var h=$('mH').value, w=$('mW').value, hc=$('mHC').value; if(!h&&!w&&!hc){ toast('키·몸무게·머리둘레 중 하나는 넣어 주세요'); return; } var m={id:uid(),kid:k.id,date:$('mDate').value}; if(h) m.h=+h; if(w) m.w=+w; if(hc) m.hc=+hc; $('mSave').disabled=true; writeMeasure(m).then(function(){ toast('저장했어요'); $('mH').value=$('mW').value=$('mHC').value=''; }).catch(function(e){ toast('저장 실패: '+e.code); }).then(function(){ $('mSave').disabled=false; }); });
+var editId=null;
+function endEdit(){ editId=null; $('mTitle').textContent='기록 추가'; $('mSave').textContent='저장'; $('mCancel').hidden=true; $('mH').value=$('mW').value=$('mHC').value=''; $('mDate').value=today(); }
+function startEdit(m){ editId=m.id; $('mTitle').textContent='기록 수정'; $('mSave').textContent='수정 저장'; $('mCancel').hidden=false; $('mDate').value=m.date; $('mH').value=m.h!=null?m.h:''; $('mW').value=m.w!=null?m.w:''; $('mHC').value=m.hc!=null?m.hc:''; var b=$('mBlock'); if(b.scrollIntoView) b.scrollIntoView({behavior:'smooth',block:'start'}); }
+$('mCancel').addEventListener('click',endEdit);
+$('mform').addEventListener('submit',function(ev){ ev.preventDefault(); var k=kidById(cur); if(!k){ toast('아이를 먼저 추가해 주세요'); return; } var h=$('mH').value, w=$('mW').value, hc=$('mHC').value; if(!h&&!w&&!hc){ toast('키·몸무게·머리둘레 중 하나는 넣어 주세요'); return; } var wasEdit=!!editId; var m={id:editId||uid(),kid:k.id,date:$('mDate').value}; if(h) m.h=+h; if(w) m.w=+w; if(hc) m.hc=+hc; $('mSave').disabled=true; writeMeasure(m).then(function(){ toast(wasEdit?'수정했어요':'저장했어요'); endEdit(); }).catch(function(e){ toast('저장 실패: '+e.code); }).then(function(){ $('mSave').disabled=false; }); });
 $('devMode').addEventListener('click',function(ev){ var b=ev.target.closest('button'); if(!b) return; devMode=b.dataset.mode; Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){ x.setAttribute('aria-pressed',String(x===b)); }); try{localStorage.setItem(LS+':devMode',devMode);}catch(e){} renderDev(); });
 
 $('bandSel').addEventListener('change',function(){ band=+this.value; bandKid=cur; renderDev(); });
