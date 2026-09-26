@@ -43,7 +43,8 @@ button{cursor:pointer}
 .btn:hover{border-color:var(--accent)}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
 .btn.ghost{background:transparent}
-.wrap{max-width:1180px;margin:0 auto;display:grid;gap:22px;grid-template-columns:1fr}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:22px;grid-template-columns:minmax(0,1fr)}
+.stage-col,.edit-col{min-width:0}
 @media (min-width:920px){.wrap{grid-template-columns:minmax(0,440px) minmax(0,1fr)} .stage-col{position:sticky;top:12px;align-self:start}}
 .stage{position:relative;background:var(--stage);border-radius:18px;padding:12px;display:flex;justify-content:center}
 #cv{display:block;max-width:100%;max-height:64vh;width:auto;height:auto;border-radius:8px;touch-action:none;cursor:grab;background:#000}
@@ -52,12 +53,24 @@ button{cursor:pointer}
 .play{width:44px;height:44px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
 .play svg{width:18px;height:18px;fill:currentColor}
 .tc{font:500 14px "IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--muted)}
-.timeline{flex:1;min-width:0}
-#scrub{width:100%;accent-color:var(--accent);margin:0}
-.lanes{position:relative;height:22px;margin-top:4px;border-radius:6px;background:var(--field);border:1px solid var(--line);overflow:hidden}
-.lane{position:absolute;top:3px;bottom:3px;border-radius:4px;border:0;padding:0;opacity:.55}
-.lane.on{opacity:1;box-shadow:0 0 0 2px var(--ink)}
-.hint{color:var(--muted);font-size:13px;margin:10px 2px 0}
+.tl{margin-top:10px;border:1px solid var(--line);background:var(--field);border-radius:12px;overflow-x:auto;overflow-y:hidden}
+.tl-inner{position:relative;min-width:100%}
+.ruler{position:relative;height:24px;border-bottom:1px solid var(--line);touch-action:none;cursor:pointer;user-select:none;-webkit-user-select:none}
+.tick{position:absolute;top:0;bottom:0;border-left:1px solid var(--line);font:500 10px "IBM Plex Mono",monospace;color:var(--muted);padding:5px 0 0 3px;pointer-events:none;font-variant-numeric:tabular-nums}
+.tracks{position:relative;touch-action:pan-x}
+.bar{position:absolute;height:34px;border-radius:8px;color:#fff;font-size:12px;font-weight:700;line-height:34px;padding:0 18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;text-shadow:0 1px 2px rgba(0,0,0,.45);opacity:.8;touch-action:pan-x}
+.bar.on{opacity:1;box-shadow:0 0 0 2px var(--ink);z-index:2;padding:0 26px;touch-action:none}
+.bar .h{position:absolute;top:0;bottom:0;width:14px;background:rgba(0,0,0,.18);cursor:ew-resize}
+.bar.on .h{touch-action:none}
+.bar.on .h{width:24px;background:rgba(0,0,0,.42)}
+.bar .h::after{content:"";position:absolute;left:50%;top:9px;bottom:9px;width:2px;margin-left:-1px;border-radius:2px;background:#fff}
+.bar .h.l{left:0}
+.bar .h.r{right:0}
+.bar .txt{pointer-events:none}
+.playhead{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--accent);pointer-events:none;z-index:3}
+.playhead::before{content:"";position:absolute;top:0;left:-5px;border-left:6px solid transparent;border-right:6px solid transparent;border-top:9px solid var(--accent)}
+.hint{color:var(--muted);font-size:13px;margin:10px 2px 0;line-height:1.6}
+.hint b{color:var(--ink);font-weight:700}
 .edit-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .edit-head h2{font:400 22px "Black Han Sans",sans-serif;margin:0}
 .edit-head div{display:flex;gap:8px;flex-wrap:wrap}
@@ -86,8 +99,8 @@ input[type=color]{width:100%;height:36px;border:1px solid var(--line);border-rad
 .dialog{background:var(--panel);border-radius:18px;padding:22px;width:min(420px,100%);display:grid;gap:14px;max-height:92vh;overflow:auto}
 .dialog h3{margin:0;font:400 22px "Black Han Sans",sans-serif}
 .dialog p{margin:0;color:var(--muted);font-size:14px}
-.bar{height:10px;border-radius:99px;background:var(--field);border:1px solid var(--line);overflow:hidden}
-.bar i{display:block;height:100%;width:0;background:var(--accent)}
+.progress{height:10px;border-radius:99px;background:var(--field);border:1px solid var(--line);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent)}
 .dialog video{width:100%;max-height:50vh;border-radius:10px;background:#000}
 .dialog .btns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:20;max-width:calc(100% - 32px)}
@@ -111,13 +124,16 @@ input[type=color]{width:100%;height:36px;border:1px solid var(--line);border-rad
     </div>
     <div class="transport">
       <button id="playBtn" class="play" type="button" aria-label="재생"></button>
-      <div class="timeline">
-        <input id="scrub" type="range" min="0" max="10" step="0.01" value="0" aria-label="재생 위치">
-        <div id="lanes" class="lanes"></div>
-      </div>
       <span id="tc" class="tc">0.0 / 10.0</span>
     </div>
-    <p class="hint">미리보기의 자막을 손가락이나 마우스로 끌면 위치가 바뀌어요.</p>
+    <div id="tl" class="tl">
+      <div id="tlInner" class="tl-inner">
+        <div id="ruler" class="ruler" role="slider" aria-label="재생 위치"></div>
+        <div id="tracks" class="tracks"></div>
+        <div id="playhead" class="playhead"></div>
+      </div>
+    </div>
+    <p class="hint">타임라인: 자막 막대를 눌러 고른 뒤 <b>양 끝</b>을 끌면 시작·끝 시간이 바뀌고, <b>가운데</b>를 끌면 통째로 옮겨져요.<br>미리보기: 자막을 끌어 옮기고, <b>두 손가락으로 벌리거나 모서리 동그라미</b>를 끌면 크기가 바뀌어요.</p>
   </section>
 
   <section class="edit-col">
@@ -137,7 +153,7 @@ input[type=color]{width:100%;height:36px;border:1px solid var(--line);border-rad
     <h3 id="exTitle">영상 만드는 중</h3>
     <div id="exWorking">
       <p>영상을 처음부터 끝까지 재생하면서 녹화해요. 이 화면을 켜둔 채로 기다려 주세요.</p>
-      <div class="bar" style="margin-top:12px"><i id="exBar"></i></div>
+      <div class="progress" style="margin-top:12px"><i id="exBar"></i></div>
     </div>
     <div id="exDone" hidden>
       <video id="exVideo" controls playsinline></video>
@@ -491,9 +507,11 @@ function drawDemo(t) {
 }
 
 // ---------- frame loop ----------
-const scrub = $('#scrub'), tc = $('#tc'), playBtn = $('#playBtn');
+const tc = $('#tc'), playBtn = $('#playBtn');
+const tl = $('#tl'), tlInner = $('#tlInner'), ruler = $('#ruler'), tracks = $('#tracks'), playhead = $('#playhead');
+let pps = 40, tdrag = null;
 const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>', ICON_PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 4h4.5v16H6zM13.5 4H18v16h-4.5z"/></svg>';
-let lastPlaying = null, scrubbing = false;
+let lastPlaying = null;
 function frame() {
   const t = now();
   if (hasVideo && video.readyState >= 2) ctx.drawImage(video, 0, 0, W, H);
@@ -505,12 +523,19 @@ function frame() {
       const b = c._bbox, p = 18*W/1080;
       ctx.save(); ctx.setLineDash([16*W/1080, 10*W/1080]); ctx.lineWidth = 4*W/1080; ctx.strokeStyle = '#ff4f93';
       ctx.strokeRect(b.x - p, b.y - p, b.w + p*2, b.h + p*2); ctx.restore();
+      const [hx, hy] = handlePos(c), hr = 40*W/1080;
+      ctx.save(); ctx.beginPath(); ctx.arc(hx, hy, hr, 0, Math.PI*2);
+      ctx.fillStyle = '#ff4f93'; ctx.fill(); ctx.lineWidth = 5*W/1080; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+      ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(hx - hr*.45, hy - hr*.45); ctx.lineTo(hx + hr*.45, hy + hr*.45);
+      ctx.moveTo(hx + hr*.45, hy + hr*.05); ctx.lineTo(hx + hr*.45, hy + hr*.45); ctx.lineTo(hx + hr*.05, hy + hr*.45);
+      ctx.moveTo(hx - hr*.45, hy - hr*.05); ctx.lineTo(hx - hr*.45, hy - hr*.45); ctx.lineTo(hx - hr*.05, hy - hr*.45); ctx.stroke(); ctx.restore();
     }
   } else {
     $('#exBar').style.width = (clamp(t/dur)*100).toFixed(1) + '%';
     if (!hasVideo && t >= dur && exporting.rec.state === 'recording') exporting.rec.stop();
   }
-  if (!scrubbing) scrub.value = t;
+  const px = t*pps; playhead.style.left = px + 'px';
+  if (isPlaying() && !tdrag && (px < tl.scrollLeft || px > tl.scrollLeft + tl.clientWidth - 24)) tl.scrollLeft = Math.max(0, px - 24);
   tc.textContent = `${t.toFixed(1)} / ${dur.toFixed(1)}`;
   const pl = isPlaying();
   if (pl !== lastPlaying) { lastPlaying = pl; playBtn.innerHTML = pl ? ICON_PAUSE : ICON_PLAY; playBtn.setAttribute('aria-label', pl ? '일시정지' : '재생'); }
@@ -522,32 +547,98 @@ function ensureFont(c) { if (document.fonts && document.fonts.load) document.fon
 caps.forEach(ensureFont);
 
 // ---------- editor UI ----------
-const list = $('#list'), lanes = $('#lanes');
+const list = $('#list');
 const esc = s => s.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const fmt = n => (+n).toFixed(1);
-function renderLanes() {
-  lanes.innerHTML = '';
-  caps.forEach(c => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'lane' + (c.id === sel ? ' on' : '');
-    b.style.left = (c.start/dur*100) + '%'; b.style.width = Math.max(.5, (c.end - c.start)/dur*100) + '%';
-    b.style.background = STYLES[c.style].lane; b.title = c.text.replace(/\n/g, ' ');
-    b.setAttribute('aria-label', `${fmt(c.start)}초 자막: ${b.title}`);
-    b.onclick = () => select(c.id, true);
-    lanes.appendChild(b);
+const ROW = 42, MINLEN = .2;
+function renderTimeline() {
+  pps = Math.max((tl.clientWidth - 2) / dur, 64);
+  tlInner.style.width = (dur*pps) + 'px';
+  const step = [.5, 1, 2, 5, 10, 15, 30, 60].find(v => v*pps >= 40) || 60;
+  ruler.innerHTML = '';
+  for (let v = 0; v <= dur + 1e-6; v += step) {
+    const d = document.createElement('div'); d.className = 'tick'; d.style.left = (v*pps) + 'px';
+    d.textContent = (step < 1 ? v.toFixed(1) : Math.round(v)) + 's'; ruler.appendChild(d);
+  }
+  tracks.innerHTML = '';
+  const rows = [];
+  [...caps].sort((a, b) => a.start - b.start).forEach(c => {
+    let r = rows.findIndex(end => end <= c.start + 1e-3); if (r < 0) { r = rows.length; rows.push(0); } rows[r] = c.end;
+    const el = document.createElement('div');
+    el.className = 'bar' + (c.id === sel ? ' on' : ''); el.dataset.id = c.id;
+    el.style.background = STYLES[c.style].lane; el.style.top = (8 + r*ROW) + 'px';
+    el.innerHTML = '<span class="h l" data-m="l"></span><span class="txt"></span><span class="h r" data-m="r"></span>';
+    el.querySelector('.txt').textContent = c.text.replace(/\n/g, ' ') || '(빈 자막)';
+    el.title = '양 끝을 끌면 시간 조절, 가운데를 끌면 이동';
+    placeBar(el, c); tracks.appendChild(el);
   });
+  tracks.style.height = (22 + Math.max(1, rows.length)*ROW) + 'px';
 }
+function placeBar(el, c) { el.style.left = (c.start*pps) + 'px'; el.style.width = Math.max(10, (c.end - c.start)*pps) + 'px'; }
+function syncCard(c) {
+  const card = list.querySelector(`.card[data-id="${c.id}"]`); if (!card) return;
+  card.querySelector('.tm').textContent = `${fmt(c.start)}–${fmt(c.end)}초`;
+  const q = k => card.querySelector(`[data-k="${k}"]`);
+  if (q('start')) { q('start').value = fmt(c.start); q('end').value = fmt(c.end); q('size').value = Math.round(c.size); }
+}
+tracks.addEventListener('pointerdown', e => {
+  const el = e.target.closest('.bar'); if (!el || exporting) return;
+  const c = caps.find(x => x.id == el.dataset.id); if (!c) return;
+  const selectOnly = e.pointerType === 'touch' && sel !== c.id;
+  if (!selectOnly) e.preventDefault();
+  pause();
+  tdrag = {c, el, mode:selectOnly ? 'tap' : (e.target.dataset.m || 'move'), x0:e.clientX, s0:c.start, e0:c.end, ph:now(), moved:false};
+  el.setPointerCapture(e.pointerId);
+  if (sel !== c.id) { sel = c.id; tracks.querySelectorAll('.bar').forEach(b => b.classList.toggle('on', b === el)); renderCards(); }
+});
+tracks.addEventListener('pointermove', e => {
+  const d = tdrag; if (!d || d.mode === 'tap') return;
+  const dx = e.clientX - d.x0;
+  if (!d.moved && Math.abs(dx) < 4) return;
+  d.moved = true;
+  const dt = dx/pps, len = d.e0 - d.s0, tol = 8/pps;
+  const marks = [d.ph, 0, dur]; caps.forEach(o => { if (o !== d.c) marks.push(o.start, o.end); });
+  const snap = v => { for (const m of marks) if (Math.abs(m - v) < tol) return m; return v; };
+  const r2 = v => Math.round(v*100)/100;
+  if (d.mode === 'l') { d.c.start = r2(clamp(snap(d.s0 + dt), 0, d.e0 - MINLEN)); seek(d.c.start + .02); }
+  else if (d.mode === 'r') { d.c.end = r2(clamp(snap(d.e0 + dt), d.s0 + MINLEN, dur)); seek(Math.max(d.c.start, d.c.end - .05)); }
+  else {
+    let st = clamp(d.s0 + dt, 0, Math.max(0, dur - len));
+    const a = snap(st), b = snap(st + len);
+    if (a !== st) st = a; else if (b !== st + len) st = b - len;
+    st = clamp(st, 0, Math.max(0, dur - len));
+    d.c.start = r2(st); d.c.end = r2(st + len); seek(d.c.start + Math.min(.5, len/2));
+  }
+  placeBar(d.el, d.c);
+  d.el.querySelector('.txt').textContent = `${fmt(d.c.start)}s – ${fmt(d.c.end)}s`;
+  syncCard(d.c);
+});
+const tEnd = () => {
+  const d = tdrag; if (!d) return; tdrag = null;
+  if (!d.moved) seek(d.c.start + Math.min(.6, (d.c.end - d.c.start)*.6));
+  persist(); renderList();
+};
+tracks.addEventListener('pointerup', tEnd);
+tracks.addEventListener('pointercancel', () => { if (tdrag) { const moved = tdrag.moved; tdrag = null; if (moved) persist(); renderList(); } });
+let rdrag = false;
+const tlSeek = e => { const r = tlInner.getBoundingClientRect(); seek((e.clientX - r.left)/pps); };
+ruler.addEventListener('pointerdown', e => { if (exporting) return; rdrag = true; ruler.setPointerCapture(e.pointerId); pause(); tlSeek(e); });
+ruler.addEventListener('pointermove', e => { if (rdrag) tlSeek(e); });
+ruler.addEventListener('pointerup', () => rdrag = false); ruler.addEventListener('pointercancel', () => rdrag = false);
+tracks.addEventListener('click', e => { if (e.target === tracks && !exporting) { pause(); tlSeek(e); } });
+window.addEventListener('resize', () => renderTimeline());
 function select(id, jump) {
   sel = id; const c = caps.find(c => c.id === id);
   if (c && jump) { pause(); seek(c.start + Math.min(.6, (c.end - c.start)*.6)); }
   renderList();
 }
-function renderList() {
+function renderList() { renderCards(); renderTimeline(); }
+function renderCards() {
   caps.sort((a, b) => a.start - b.start);
   list.innerHTML = '';
   for (const c of caps) {
     const st = STYLES[c.style], open = c.id === sel;
-    const card = document.createElement('article'); card.className = 'card' + (open ? ' open' : '');
+    const card = document.createElement('article'); card.className = 'card' + (open ? ' open' : ''); card.dataset.id = c.id;
     card.innerHTML = `<button type="button" class="card-head" aria-expanded="${open}"><span class="tm">${fmt(c.start)}–${fmt(c.end)}초</span><span class="prev">${esc(c.text.replace(/\n/g, ' ')) || '(빈 자막)'}</span><span class="tag">${st.name}</span></button>`;
     card.querySelector('.card-head').onclick = () => select(open ? null : c.id, !open);
     if (open) {
@@ -558,7 +649,7 @@ function renderList() {
         <div><span class="lbl">효과</span><div class="chips">${Object.entries(STYLES).map(([k, v]) => `<button type="button" class="chip" data-style="${k}" aria-pressed="${k === c.style}">${v.name}</button>`).join('')}</div></div>
         <div class="row">
           <div><label class="lbl" for="${idp}-font">글꼴</label><select id="${idp}-font" data-k="font">${FONTS.map(f => `<option ${f === c.font ? 'selected' : ''}>${f}</option>`).join('')}</select></div>
-          <div><label class="lbl" for="${idp}-size">글자 크기</label><input id="${idp}-size" type="range" min="40" max="240" step="1" data-k="size" value="${c.size}"></div>
+          <div><label class="lbl" for="${idp}-size">글자 크기</label><input id="${idp}-size" type="range" min="30" max="400" step="1" data-k="size" value="${c.size}"></div>
         </div>
         <div class="row">
           <div><label class="lbl" for="${idp}-start">시작 (초)</label><div class="timefield"><input id="${idp}-start" type="number" step="0.1" min="0" data-k="start" value="${fmt(c.start)}"><button type="button" data-now="start">지금</button></div></div>
@@ -576,8 +667,8 @@ function renderList() {
         if (k === 'end') v = clamp(v, 0, dur);
         c[k] = v;
         if (k === 'text' || k === 'font') ensureFont(c);
-        if (k === 'text') card.querySelector('.prev').textContent = c.text.replace(/\n/g, ' ') || '(빈 자막)';
-        if (k === 'start' || k === 'end') { card.querySelector('.tm').textContent = `${fmt(c.start)}–${fmt(c.end)}초`; renderLanes(); if (!isPlaying()) seek(k === 'start' ? c.start + .05 : Math.max(c.start, c.end - .3)); }
+        if (k === 'text') { card.querySelector('.prev').textContent = c.text.replace(/\n/g, ' ') || '(빈 자막)'; renderTimeline(); }
+        if (k === 'start' || k === 'end') { card.querySelector('.tm').textContent = `${fmt(c.start)}–${fmt(c.end)}초`; renderTimeline(); if (!isPlaying()) seek(k === 'start' ? c.start + .05 : Math.max(c.start, c.end - .3)); }
         persist();
       }));
       body.querySelectorAll('[data-style]').forEach(el => el.onclick = () => {
@@ -596,7 +687,6 @@ function renderList() {
     }
     list.appendChild(card);
   }
-  renderLanes();
 }
 $('#addBtn').onclick = () => {
   const t = +now().toFixed(2), prev = caps.find(c => c.id === sel);
@@ -608,28 +698,60 @@ $('#addBtn').onclick = () => {
 $('#resetBtn').onclick = () => { caps = SAMPLE.map(mk); caps.forEach(ensureFont); sel = caps[0].id; persist(); pause(); seek(0); renderList(); toast('예시 자막으로 되돌렸어요'); };
 
 playBtn.onclick = () => isPlaying() ? pause() : play();
-scrub.addEventListener('input', () => { scrubbing = true; seek(parseFloat(scrub.value)); });
-scrub.addEventListener('change', () => { scrubbing = false; });
 
-// drag captions on the canvas
-let drag = null;
+// canvas gestures: drag to move, corner handle / pinch / wheel to resize
+const pts = new Map(); let gest = null;
 const toCanvas = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left)/r.width*W, (e.clientY - r.top)/r.height*H]; };
+const selCap = () => caps.find(c => c.id === sel && c._bbox);
+function handlePos(c) { const b = c._bbox, p = 18*W/1080; return [Math.min(W - 44*W/1080, b.x + b.w + p), Math.min(H - 44*W/1080, b.y + b.h + p)]; }
+const nearHandle = (c, P) => { const [hx, hy] = handlePos(c); return Math.hypot(P[0] - hx, P[1] - hy) < 100*W/1080; };
+const hitCap = P => { const pad = 30*W/1080; return [...caps].reverse().find(c => c._bbox && P[0] > c._bbox.x - pad && P[0] < c._bbox.x + c._bbox.w + pad && P[1] > c._bbox.y - pad && P[1] < c._bbox.y + c._bbox.h + pad); };
+const setSize = (c, v) => { c.size = Math.round(clamp(v, 30, 400)); syncCard(c); };
+function startPinch() {
+  const c = selCap(); if (!c) return null;
+  const [a, b] = [...pts.values()];
+  return {type:'pinch', c, d0:Math.max(1, Math.hypot(a[0] - b[0], a[1] - b[1])), s0:c.size, m0:[(a[0] + b[0])/2, (a[1] + b[1])/2], x0:c.x, y0:c.y};
+}
 cv.addEventListener('pointerdown', e => {
   if (exporting) return;
-  const [x, y] = toCanvas(e), pad = 30*W/1080;
-  const hit = [...caps].reverse().find(c => c._bbox && x > c._bbox.x - pad && x < c._bbox.x + c._bbox.w + pad && y > c._bbox.y - pad && y < c._bbox.y + c._bbox.h + pad);
-  if (!hit) return;
+  const P = toCanvas(e); pts.set(e.pointerId, P); cv.setPointerCapture(e.pointerId);
+  if (pts.size === 2) { gest = startPinch(); return; }
+  if (pts.size > 2) return;
+  const cur = selCap();
+  if (cur && nearHandle(cur, P)) { gest = {type:'resize', c:cur, s0:cur.size, d0:Math.max(1, Math.hypot(P[0] - cur.x*W, P[1] - cur.y*H))}; return; }
+  const hit = hitCap(P);
+  if (!hit) { gest = null; return; }
   if (sel !== hit.id) { sel = hit.id; renderList(); }
-  drag = {c:hit, ox:x - hit.x*W, oy:y - hit.y*H};
-  cv.setPointerCapture(e.pointerId); cv.style.cursor = 'grabbing';
+  gest = {type:'move', c:hit, ox:P[0] - hit.x*W, oy:P[1] - hit.y*H}; cv.style.cursor = 'grabbing';
 });
 cv.addEventListener('pointermove', e => {
-  if (!drag) return;
-  const [x, y] = toCanvas(e);
-  drag.c.x = clamp((x - drag.ox)/W, .02, .98); drag.c.y = clamp((y - drag.oy)/H, .02, .98);
+  const P = toCanvas(e);
+  if (!pts.has(e.pointerId)) {
+    const cur = selCap();
+    cv.style.cursor = cur && nearHandle(cur, P) ? 'nwse-resize' : hitCap(P) ? 'grab' : 'default';
+    return;
+  }
+  pts.set(e.pointerId, P);
+  if (!gest) return;
+  const c = gest.c;
+  if (gest.type === 'move') { c.x = clamp((P[0] - gest.ox)/W, .02, .98); c.y = clamp((P[1] - gest.oy)/H, .02, .98); }
+  else if (gest.type === 'resize') setSize(c, gest.s0 * Math.hypot(P[0] - c.x*W, P[1] - c.y*H) / gest.d0);
+  else if (gest.type === 'pinch' && pts.size >= 2) {
+    const [a, b] = [...pts.values()];
+    setSize(c, gest.s0 * Math.hypot(a[0] - b[0], a[1] - b[1]) / gest.d0);
+    c.x = clamp(gest.x0 + ((a[0] + b[0])/2 - gest.m0[0])/W, .02, .98);
+    c.y = clamp(gest.y0 + ((a[1] + b[1])/2 - gest.m0[1])/H, .02, .98);
+  }
 });
-const endDrag = () => { if (drag) { drag = null; cv.style.cursor = ''; persist(); } };
-cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+const endGest = e => {
+  pts.delete(e.pointerId);
+  if (gest && (gest.type === 'pinch' || pts.size === 0)) { gest = null; cv.style.cursor = ''; persist(); }
+};
+cv.addEventListener('pointerup', endGest); cv.addEventListener('pointercancel', endGest);
+cv.addEventListener('wheel', e => {
+  const c = selCap(); if (!c || exporting) return;
+  e.preventDefault(); setSize(c, c.size * (e.deltaY < 0 ? 1.06 : 1/1.06)); persist();
+}, {passive:false});
 
 // ---------- video loading ----------
 $('#file').addEventListener('change', e => {
@@ -640,7 +762,7 @@ $('#file').addEventListener('change', e => {
     hasVideo = true; dur = video.duration || 10;
     W = 1080; H = Math.round(1080 * video.videoHeight / video.videoWidth) || 1920;
     cv.width = W; cv.height = H;
-    scrub.max = dur; $('#demoBadge').hidden = true;
+    $('#demoBadge').hidden = true;
     caps.forEach(c => { if (c.start >= dur) { c.start = Math.max(0, dur - 1); } c.end = Math.min(c.end, dur); if (c.end <= c.start) c.end = Math.min(dur, c.start + .5); });
     video.currentTime = 0; renderList(); toast(`영상을 불러왔어요 (${dur.toFixed(1)}초)`);
   };
