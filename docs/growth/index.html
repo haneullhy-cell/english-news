@@ -667,7 +667,7 @@ function erf(x){ var s=x<0?-1:1; x=Math.abs(x); var t=1/(1+0.3275911*x); var y=1
 function pctOf(z){ return 50*(1+erf(z/Math.SQRT2)); }
 function tableFor(m,sex){ var key=m+'_'+(sex==='M'?'boys':'girls'); return LMS[key]||null; }
 function lmsAt(tbl,age){ if(!tbl) return null; if(age<tbl[0][0]||age>tbl[tbl.length-1][0]) return null; var lo=0,hi=tbl.length-1; while(hi-lo>1){ var mid=(lo+hi)>>1; if(tbl[mid][0]<=age) lo=mid; else hi=mid; } var a=tbl[lo], b=tbl[hi]; if(a[0]===b[0]) return {L:a[1],M:a[2],S:a[3]}; var t=(age-a[0])/(b[0]-a[0]); return {L:a[1]+(b[1]-a[1])*t, M:a[2]+(b[2]-a[2])*t, S:a[3]+(b[3]-a[3])*t}; }
-function zOf(m,sex,age,x){ if(!x) return null; if(useKR(m,sex,age)) return zFromSD(krRow(sex,age),x); var p=lmsAt(tableFor(m,sex),age); if(!p) return null; var z=Math.abs(p.L)<1e-6?Math.log(x/p.M)/p.S:(Math.pow(x/p.M,p.L)-1)/(p.L*p.S); return z; }
+function zOf(m,sex,age,x){ if(!x) return null; if(useKR(m,sex,age)) return zFromSD(krRow(sex,age),x); var p=lmsAt(tableFor(m,sex),Math.floor(age)); if(!p) return null; var z=Math.abs(p.L)<1e-6?Math.log(x/p.M)/p.S:(Math.pow(x/p.M,p.L)-1)/(p.L*p.S); return z; }
 function pctile(m,sex,age,x){ var z=zOf(m,sex,age,x); if(z==null) return null; return Math.max(0.1,Math.min(99.9,pctOf(z))); }
 function xAtZ(p,z){ return Math.abs(p.L)<1e-6?p.M*Math.exp(p.S*z):p.M*Math.pow(1+p.L*p.S*z,1/p.L); }
 function pctText(p){ if(p==null) return ''; return (p<1?'<1':p>99?'>99':Math.round(p))+'%'; }
