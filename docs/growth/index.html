@@ -471,6 +471,13 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
     how.classList.add('on');
   }
 })();
+(function(){
+  var ME=false; try{ ME=!!localStorage.getItem('stats:me'); }catch(e){}
+  var HIT='https://mathfolder-growth.netlify.app/api/hit';
+  var standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  function hit(t,extra){ if(ME) return; try{ var body=JSON.stringify(Object.assign({t:t,app:standalone?1:0,inapp:window.__inApp?1:0,r:(document.referrer||'').replace(/^https?:\/\//,'').split('/')[0]},extra||{})); if(navigator.sendBeacon){ navigator.sendBeacon(HIT,new Blob([body],{type:'text/plain'})); } else { fetch(HIT,{method:'POST',body:body,keepalive:true,mode:'no-cors'}).catch(function(){}); } }catch(e){} }
+  window.__hit=hit; hit('open'); window.addEventListener('appinstalled',function(){ hit('install'); });
+})();
 </script>
 
 <header class="apphead">
@@ -645,8 +652,8 @@ function namePdf(name){
     var b64=c.toDataURL('image/jpeg',0.9).split(',')[1]; var bin=atob(b64); var u8=new Uint8Array(bin.length); for(var k=0;k<bin.length;k++) u8[k]=bin.charCodeAt(k);
     return pdfFromJpeg(u8,W,H); });
 }
-document.addEventListener('click',function(ev){ var a=ev.target.closest&&ev.target.closest('a.wsbtn[download]'); if(a&&window.fetch){ ev.preventDefault(); var fn=a.getAttribute('download'); fetch(a.getAttribute('href')).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(bl){ saveBlob(new Blob([bl],{type:'application/pdf'}),fn); toast('PDF를 저장했어요'); }).catch(function(){ location.href=a.getAttribute('href'); }); return; } });
-document.addEventListener('click',function(ev){ var b=ev.target.closest&&ev.target.closest('[data-wsname]'); if(!b) return; var k=kidById(cur); var nm=(k&&k.name||'').trim(); if(!nm||/^(첫째|둘째|셋째|넷째|아이)$/.test(nm)){ var v=prompt('따라 쓸 이름을 적어 주세요',nm&&!/^(첫째|둘째|셋째|넷째|아이)$/.test(nm)?nm:''); if(v==null) return; nm=v.trim(); } if(!nm) return; nm=nm.slice(0,6); b.disabled=true; namePdf(nm).then(function(blob){ saveBlob(blob,'mureokmureok_name.pdf'); toast('PDF를 저장했어요'); }).catch(function(){ toast('PDF를 못 만들었어요'); }).then(function(){ b.disabled=false; }); });
+document.addEventListener('click',function(ev){ var a=ev.target.closest&&ev.target.closest('a.wsbtn[download]'); if(a&&window.fetch){ ev.preventDefault(); var fn=a.getAttribute('download'); fetch(a.getAttribute('href')).then(function(r){ if(!r.ok) throw 0; return r.blob(); }).then(function(bl){ saveBlob(new Blob([bl],{type:'application/pdf'}),fn); toast('PDF를 저장했어요'); if(window.__hit) __hit('dl',{f:fn.replace('mureokmureok_','').replace('.pdf','')}); }).catch(function(){ location.href=a.getAttribute('href'); }); return; } });
+document.addEventListener('click',function(ev){ var b=ev.target.closest&&ev.target.closest('[data-wsname]'); if(!b) return; var k=kidById(cur); var nm=(k&&k.name||'').trim(); if(!nm||/^(첫째|둘째|셋째|넷째|아이)$/.test(nm)){ var v=prompt('따라 쓸 이름을 적어 주세요',nm&&!/^(첫째|둘째|셋째|넷째|아이)$/.test(nm)?nm:''); if(v==null) return; nm=v.trim(); } if(!nm) return; nm=nm.slice(0,6); b.disabled=true; namePdf(nm).then(function(blob){ saveBlob(blob,'mureokmureok_name.pdf'); toast('PDF를 저장했어요'); if(window.__hit) __hit('dl',{f:'name'}); }).catch(function(){ toast('PDF를 못 만들었어요'); }).then(function(){ b.disabled=false; }); });
 function helpBox(q,tip,isExtra){ var more=MORE[q]||[]; var moreHtml=more.length?'<details class="more"><summary>다른 놀이 '+more.length+'개 더 보기</summary><ul>'+more.map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('')+'</ul></details>':''; return '<div class="help"><b>'+(isExtra?'검진 때':'이렇게 해 보세요')+'</b>'+esc(tip)+moreHtml+wsLinks(q)+shopChips(q)+'</div>'; }
 var ZP = [[3,-1.8808],[15,-1.0364],[50,0],[85,1.0364],[97,1.8808]];
 var METRIC = {h:{name:'키',unit:'cm',dec:1},w:{name:'몸무게',unit:'kg',dec:2},hc:{name:'머리둘레',unit:'cm',dec:1}};
@@ -685,7 +692,7 @@ function loadLocal(){ try{ var s=localStorage.getItem(LS); if(s){ var o=JSON.par
 function saveLocal(){ try{ localStorage.setItem(LS,JSON.stringify({kids:kids,measures:measures,items:items,answers:answers})); }catch(e){} }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
-function writeKid(k){ if(db) return db.doc('kids/'+k.id).set(k); var i=kids.findIndex(function(x){return x.id===k.id;}); if(i<0) kids.push(k); else kids[i]=k; saveLocal(); render(); return Promise.resolve(); }
+function writeKid(k){ if(db) return db.doc('kids/'+k.id).set(k); var i=kids.findIndex(function(x){return x.id===k.id;}); if(i<0&&window.__hit) __hit('kid'); if(i<0) kids.push(k); else kids[i]=k; saveLocal(); render(); return Promise.resolve(); }
 function deleteKid(id){ if(db) return db.doc('kids/'+id).delete(); kids=kids.filter(function(x){return x.id!==id;}); saveLocal(); render(); return Promise.resolve(); }
 function writeMeasure(m){ if(db) return db.doc('measures/'+m.id).set(m); var i=measures.findIndex(function(x){return x.id===m.id;}); if(i<0) measures.push(m); else measures[i]=m; saveLocal(); render(); return Promise.resolve(); }
 function deleteMeasure(id){ if(db) return db.doc('measures/'+id).delete(); measures=measures.filter(function(x){return x.id!==id;}); saveLocal(); render(); return Promise.resolve(); }
@@ -878,7 +885,7 @@ function resultCard(k,bi,ikey,akey,idoc,adoc){
   var saved=(adoc.results||[]).slice().reverse();
   var hist=saved.length?'<div class="rhist"><div class="rh">저장한 결과</div>'+saved.map(function(x,j){ var idx=saved.length-1-j; return '<div class="rrow"><span class="rd">'+x.date+'</span><span class="rs">'+x.rows.map(function(r){ return r.name.replace('운동','')+' <b>'+r.sum+'</b>'+(r.vd?'<i class="dot v-'+r.vd[0]+'" title="'+r.vd[1]+'"></i>':''); }).join(' · ')+(x.yes?' · 추가 예 '+x.yes:'')+'</span><button type="button" class="link" data-rdel="'+idx+'">삭제</button></div>'; }).join('')+'</div>':'';
   box.innerHTML='<div class="rhead"><h2>결과표 <span class="pill">'+bandName(bi)+'</span></h2><button type="button" class="btn small" id="rSave">이 결과 저장</button></div>'+body+exLine+'<div class="note">총점이 <b>다</b> 이상이면 빠른 수준, <b>나</b> 이상이면 또래 수준, <b>가</b> 이상이면 추적검사 요망, <b>가</b> 미만이면 심화평가 권고예요. 영역 문항을 다 체크해야 평가가 나와요. 최종 판정은 검진 때 의사 선생님이 해요.</div>'+hist;
-  box.querySelector('#rSave').addEventListener('click',function(){ var nd=JSON.parse(JSON.stringify(adoc)); nd.kid=k.id; nd.band=ikey; nd.results=nd.results||[]; nd.results.push({date:today(),rows:R.rows.map(function(r){ return {code:r.code,name:r.name,sum:r.sum,n:r.n,len:r.len,vd:r.vd}; }),yes:R.yes,exn:R.exn}); nd.date=nd.date||today(); writeAnswer(akey,nd).then(function(){ toast(R.allDone?'결과를 저장했어요':'체크 중인 결과로 저장했어요'); }).catch(function(e){ toast('저장 실패: '+e.code); }); });
+  box.querySelector('#rSave').addEventListener('click',function(){ var nd=JSON.parse(JSON.stringify(adoc)); nd.kid=k.id; nd.band=ikey; nd.results=nd.results||[]; nd.results.push({date:today(),rows:R.rows.map(function(r){ return {code:r.code,name:r.name,sum:r.sum,n:r.n,len:r.len,vd:r.vd}; }),yes:R.yes,exn:R.exn}); nd.date=nd.date||today(); writeAnswer(akey,nd).then(function(){ toast(R.allDone?'결과를 저장했어요':'체크 중인 결과로 저장했어요'); if(window.__hit) __hit('result'); }).catch(function(e){ toast('저장 실패: '+e.code); }); });
   Array.prototype.forEach.call(box.querySelectorAll('[data-rdel]'),function(b){ b.addEventListener('click',function(){ if(!b.dataset.arm){ b.dataset.arm='1'; b.textContent='정말 삭제'; setTimeout(function(){ delete b.dataset.arm; b.textContent='삭제'; },2500); return; } var nd=JSON.parse(JSON.stringify(adoc)); nd.results.splice(+b.dataset.rdel,1); writeAnswer(akey,nd).then(function(){ toast('삭제했어요'); }); }); });
   return box;
 }
