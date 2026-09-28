@@ -389,11 +389,56 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
 #instHow b{display:block;font-size:16px;margin-bottom:6px}
 #instHow ol{margin:6px 0 10px;padding-left:20px}
 #instHow .ok{display:block;width:100%;border:0;border-radius:10px;padding:11px;background:var(--accent);color:#fff;font-size:15px;font-weight:700}
+#inApp{display:none;position:fixed;inset:0;z-index:80;background:rgba(20,18,14,.55);align-items:flex-end;justify-content:center}
+#inApp.on{display:flex}
+#inApp .card{width:100%;max-width:520px;background:var(--surface,#fff);color:var(--ink,#222);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.25);font-size:15px;line-height:1.6;max-height:92vh;overflow:auto}
+#inApp .hd{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+#inApp .hd img{width:52px;height:52px;border-radius:13px;flex:none}
+#inApp .hd b{display:block;font-size:18px;line-height:1.3}
+#inApp .hd span{font-size:13px;color:var(--ink-3,#777)}
+#inApp .warn{background:var(--warn-soft,#fff3e0);color:var(--ink,#222);border-radius:12px;padding:9px 12px;font-size:13.5px;margin:10px 0}
+#inApp ol{margin:6px 0 12px;padding-left:22px}#inApp li{margin:3px 0}
+#inApp .go{display:block;width:100%;border:0;border-radius:12px;padding:13px;background:var(--accent,#2f6b4f);color:#fff;font-size:16px;font-weight:800;margin-top:6px}
+#inApp .sub{display:block;width:100%;border:0;border-radius:12px;padding:11px;background:var(--surface-3,#eee);color:var(--ink,#222);font-size:14px;font-weight:700;margin-top:8px}
+#inApp .skip{display:block;width:100%;border:0;background:none;color:var(--ink-3,#888);font-size:13px;margin-top:10px;text-decoration:underline}
+#inApp .kbd{display:inline-block;border:1px solid var(--line,#ccc);border-radius:6px;padding:0 6px;font-weight:700;font-size:13px}
 </style>
+<div id="inApp" role="dialog" aria-modal="true" aria-label="앱으로 설치하기"><div class="card">
+<div class="hd"><img src="icon-192.png" alt=""><div><b>무럭무럭, 앱으로 깔아서 쓰세요</b><span>설치 없이 홈 화면에 아이콘이 생겨요 · 무료</span></div></div>
+<div class="warn">지금은 <b id="inAppName">인스타그램</b> 안에서 열려 있어요. 여기서는 앱 설치가 안 되고, 체크한 기록이 나중에 앱으로 옮겨지지 않아요.</div>
+<div id="inAppSteps"></div>
+<button type="button" class="skip" id="inAppSkip">그냥 여기서 둘러볼게요</button>
+</div></div>
 <div id="instBar" role="region" aria-label="홈 화면에 추가"><img src="icon-192.png" alt=""><div class="t"><b>홈 화면에 추가하면 앱처럼 열려요</b>기록도 그대로 남아요</div><button type="button" id="instGo">추가하기</button><button type="button" class="x" id="instX" aria-label="닫기">×</button></div>
 <div id="instHow"><b>홈 화면에 추가하는 법</b><div id="instSteps"></div><button type="button" class="ok" id="instOk">알겠어요</button></div>
 <script>
 (function(){
+  var ua=navigator.userAgent||'';
+  var m=ua.match(/Instagram|FBAN|FBAV|KAKAOTALK|NAVER\(inapp|Line\/|DaumApps|Barcelona|Threads|everytimeApp|BAND\//);
+  if(!m) return;
+  try{ if(sessionStorage.getItem('inAppSkip')) return; }catch(e){}
+  var name=/Instagram/.test(ua)?'인스타그램':/Barcelona|Threads/.test(ua)?'스레드':/FBAN|FBAV/.test(ua)?'페이스북':/KAKAOTALK/.test(ua)?'카카오톡':/NAVER/.test(ua)?'네이버 앱':/Line\//.test(ua)?'라인':/BAND/.test(ua)?'밴드':'앱';
+  var ios=/iPhone|iPad|iPod/.test(ua), url=location.href.split('#')[0];
+  var box=document.getElementById('inApp'), steps=document.getElementById('inAppSteps');
+  document.getElementById('inAppName').textContent=name;
+  function copy(btn){ var done=function(){ btn.textContent='주소를 복사했어요 ✓'; }; if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done,function(){ prompt('이 주소를 길게 눌러 복사하세요',url); }); } else prompt('이 주소를 길게 눌러 복사하세요',url); }
+  if(/KAKAOTALK/.test(ua)){
+    steps.innerHTML='<button type="button" class="go" id="inGo">'+(ios?'사파리로 열기':'크롬으로 열기')+'</button><ol style="margin-top:12px"><li>열린 화면 위쪽 <b>홈 화면에 추가하면 앱처럼 열려요</b> 띠에서 <b>추가하기</b>를 눌러요.</li></ol>';
+    document.getElementById('inGo').onclick=function(){ location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(url); };
+  } else if(!ios){
+    steps.innerHTML='<button type="button" class="go" id="inGo">크롬으로 열기</button><ol style="margin-top:12px"><li>크롬이 열리면 위쪽 초록 띠의 <b>추가하기</b>를 눌러요.</li><li><b>설치</b>를 누르면 홈 화면에 무럭무럭이 생겨요.</li></ol><div style="font-size:13px;color:var(--ink-3,#777)">크롬이 안 열리면 오른쪽 위 <span class="kbd">⋮</span> → <b>다른 브라우저로 열기</b>를 눌러 주세요.</div><button type="button" class="sub" id="inCopy">주소 복사하기</button>';
+    document.getElementById('inGo').onclick=function(){ var u=url.replace(/^https?:\/\//,''); location.href='intent://'+u+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(url)+';end'; };
+    document.getElementById('inCopy').onclick=function(){ copy(this); };
+  } else {
+    steps.innerHTML='<ol><li>오른쪽 위 <span class="kbd">⋯</span>을 눌러요.</li><li><b>외부 브라우저에서 열기</b>를 눌러요. 사파리가 열려요.</li><li>사파리 아래 <b>공유 버튼</b>(네모에 화살표) → <b>홈 화면에 추가</b> → <b>추가</b>.</li></ol><div style="font-size:13px;color:var(--ink-3,#777)">메뉴가 안 보이면 주소를 복사해서 사파리 주소창에 붙여 넣어 주세요.</div><button type="button" class="go" id="inCopy">주소 복사하기</button>';
+    document.getElementById('inCopy').onclick=function(){ copy(this); };
+  }
+  document.getElementById('inAppSkip').onclick=function(){ box.classList.remove('on'); try{ sessionStorage.setItem('inAppSkip','1'); }catch(e){} };
+  box.classList.add('on');
+  window.__inApp=true;
+})();
+(function(){
+  if(window.__inApp) return;
   var KEY='growth-notes-v1:instHide';
   var standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
   if(standalone) return;
