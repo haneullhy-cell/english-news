@@ -261,6 +261,8 @@ tr:last-child td{border-bottom:0}
 .span{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--surface-3);color:var(--ink-3);margin-left:5px;vertical-align:middle;font-variant-numeric:tabular-nums;font-weight:600;line-height:1.5}
 .span.new{background:var(--k1);color:#fff}
 .span.last{background:var(--bad-soft);color:var(--bad)}
+.spanlegend{font-size:12px;color:var(--ink-3);line-height:1.9;margin:0 2px 12px}.spanlegend .span{margin-left:0}
+.bkrow{display:flex;gap:8px;flex-wrap:wrap}.bkrow label.btn{display:inline-flex;align-items:center}
 .scale{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .scale label{position:relative;flex:1 1 calc(25% - 6px);min-width:0;text-align:center;padding:9px 4px;border:1.5px solid var(--line);border-radius:11px;font-size:13px;font-weight:600;color:var(--ink-2);background:var(--surface);cursor:pointer;line-height:1.25;white-space:nowrap}
 .scale label:nth-child(5){border-style:dashed;font-weight:500}
@@ -491,6 +493,16 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
   <div class="panel" id="panelHome">
     <div id="home"></div>
     <div class="overview" id="overview"></div>
+    <section class="block backup">
+      <h2>기록 백업</h2>
+      <p class="note" style="margin:0 0 12px">기록은 이 폰 안에만 저장돼요. 폰을 바꾸거나 앱·브라우저 데이터를 지우기 전에 백업 파일을 저장해 두세요. 불러오면 파일 속 기록이 지금 기록에 합쳐져요.</p>
+      <div class="bkrow">
+        <button class="btn small" type="button" id="bkSave">백업 파일 저장</button>
+        <label class="btn ghost small" for="bkFile">백업 불러오기</label>
+        <input type="file" id="bkFile" accept=".json,application/json" hidden>
+      </div>
+      <div class="note" id="bkLast"></div>
+    </section>
   </div>
 
   <div class="tabs" role="tablist" hidden>
@@ -542,6 +554,7 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
         <span class="pill" id="bandAuto"></span>
       </div>
     </div>
+    <div class="spanlegend" id="spanLegend"><span class="span">42~53개월</span> 이 문항이 나오는 검사지 구간 · <span class="span new">NEW</span> 이번 검사지에 처음 나온 문항 · <span class="span last">마지막</span> 다음 검사지부터 빠지는 문항이라 이 시기에 되어야 해요</div>
     <div id="domains"></div>
     <div class="editor" id="editor" hidden>
       <p class="hint">영역을 고르고 문항을 한 줄에 하나씩 붙여 넣으세요. 검진 문진표(K-DST) 문항을 그대로 옮기면 됩니다.</p>
@@ -983,6 +996,19 @@ $('kCancel').addEventListener('click',closeKidDlg);
 $('kidForm').addEventListener('submit',function(ev){ ev.preventDefault(); var k=editing?Object.assign({},editing):{id:uid(),order:kids.length}; k.name=$('kName').value.trim(); k.birth=$('kBirth').value; k.sex=$('kSex').value; k.color=+$('kColor').value; if(!k.name||!k.birth||!k.sex){ toast('이름·생년월일·성별을 모두 넣어 주세요'); return; } writeKid(k).then(function(){ cur=k.id; closeKidDlg(); toast(editing?'수정했어요':'추가했어요'); }).catch(function(e){ toast('저장 실패: '+e.code); }); });
 $('kDelete').addEventListener('click',function(){ if(!editing) return; if(!this.dataset.arm){ this.dataset.arm='1'; this.textContent='기록까지 모두 삭제할까요? 한 번 더'; return; } var id=editing.id; var ms=measures.filter(function(m){return m.kid===id;}); Promise.all(ms.map(function(m){return deleteMeasure(m.id);})).then(function(){ return deleteKid(id); }).then(function(){ closeKidDlg(); toast('삭제했어요'); }); });
 
+
+/* 백업 · 불러오기 */
+var BK=LS+':bk';
+function bkLastText(){ var s=null; try{ s=localStorage.getItem(BK); }catch(e){} $('bkLast').textContent=s?'마지막 백업 '+s:'아직 백업한 적 없어요'; }
+$('bkSave').addEventListener('click',function(){ var data={app:'mureok',v:1,saved:today(),kids:kids,measures:measures,items:items,answers:answers}; saveBlob(new Blob([JSON.stringify(data)],{type:'application/json'}),'mureok-backup-'+today()+'.json'); try{ localStorage.setItem(BK,today()); }catch(e){} bkLastText(); toast('백업 파일을 저장했어요. 파일 앱·다운로드에서 찾을 수 있어요'); });
+$('bkFile').addEventListener('change',function(){ var f=this.files&&this.files[0]; var inp=this; if(!f) return; var r=new FileReader(); r.onload=function(){ var o=null; try{ o=JSON.parse(r.result); }catch(e){} inp.value=''; if(!o||o.app!=='mureok'||!Array.isArray(o.kids)){ toast('무럭무럭 백업 파일이 아니에요'); return; } var nk=o.kids.length, nm=(o.measures||[]).length; if(!confirm('백업 파일('+(o.saved||'')+')의 아이 '+nk+'명, 성장 기록 '+nm+'개를 불러올까요? 같은 기록은 파일 내용으로 바뀌고, 나머지 지금 기록은 그대로 남아요.')) return;
+  if(db){ var ps=[]; o.kids.forEach(function(k){ var c=Object.assign({},k); ps.push(writeKid(c)); }); (o.measures||[]).forEach(function(m){ ps.push(writeMeasure(Object.assign({},m))); }); Object.keys(o.items||{}).forEach(function(key){ var d=Object.assign({},o.items[key]); delete d.id; ps.push(writeItems(key,d)); }); Object.keys(o.answers||{}).forEach(function(key){ var d=Object.assign({},o.answers[key]); delete d.id; ps.push(writeAnswer(key,d)); }); Promise.all(ps).then(function(){ toast('불러왔어요'); }).catch(function(e){ toast('불러오기 실패: '+(e&&e.code||'')); }); return; }
+  o.kids.forEach(function(k){ var i=kids.findIndex(function(x){return x.id===k.id;}); if(i<0) kids.push(k); else kids[i]=k; });
+  (o.measures||[]).forEach(function(m){ var i=measures.findIndex(function(x){return x.id===m.id;}); if(i<0) measures.push(m); else measures[i]=m; });
+  Object.keys(o.items||{}).forEach(function(key){ items[key]=o.items[key]; });
+  Object.keys(o.answers||{}).forEach(function(key){ answers[key]=o.answers[key]; });
+  if(!cur&&kids.length) cur=kids[0].id; fixFresh(); saveLocal(); render(); toast('불러왔어요. 아이 '+nk+'명 기록이 들어왔어요'); }; r.readAsText(f); });
+bkLastText();
 /* ---------- boot ---------- */
 loadLocal(); fixFresh(); render();
 setStatus('연결 중…');
