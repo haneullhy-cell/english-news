@@ -697,6 +697,8 @@ function deleteKid(id){ if(db) return db.doc('kids/'+id).delete(); kids=kids.fil
 function writeMeasure(m){ if(db) return db.doc('measures/'+m.id).set(m); var i=measures.findIndex(function(x){return x.id===m.id;}); if(i<0) measures.push(m); else measures[i]=m; saveLocal(); render(); return Promise.resolve(); }
 function deleteMeasure(id){ if(db) return db.doc('measures/'+id).delete(); measures=measures.filter(function(x){return x.id!==id;}); saveLocal(); render(); return Promise.resolve(); }
 function writeItems(key,doc){ if(db) return db.doc('kdst_items/'+key).set(doc); items[key]=doc; saveLocal(); render(); return Promise.resolve(); }
+/* 예전 버전은 이어받은 검사지의 새 문항을 '안 시켜 봄'(-1)으로 채워 연습 목록이 넘쳤어요. 한 번만 비워 줘요. */
+function fixFresh(){ var out=[]; Object.keys(answers).forEach(function(key){ var d=answers[key]; if(!d||!d.inheritedFrom||d.fx1||!d.answers) return; var src=items[d.inheritedFrom]||{items:DEFAULT_ITEMS[d.inheritedFrom]||{}}; var me=items[d.band]||{items:DEFAULT_ITEMS[d.band]||{}}; var nd=JSON.parse(JSON.stringify(d)); delete nd.id; Object.keys(nd.answers).forEach(function(code){ if(code==='extra') return; var plist=(src.items&&src.items[code])||[]; var list=(me.items&&me.items[code])||[]; (nd.answers[code]||[]).forEach(function(v,i){ if(v===-1&&list[i]&&plist.indexOf(list[i])<0) nd.answers[code][i]=null; }); }); nd.fx1=1; out.push([key,nd]); }); if(!out.length) return; if(db){ out.forEach(function(x){ db.doc('kdst_answers/'+x[0]).set(x[1]).catch(function(){}); }); } else { out.forEach(function(x){ answers[x[0]]=x[1]; }); saveLocal(); } }
 function writeAnswer(key,doc){ if(db) return db.doc('kdst_answers/'+key).set(doc); answers[key]=doc; saveLocal(); render(); return Promise.resolve(); }
 
 function subscribe(){
@@ -704,7 +706,7 @@ function subscribe(){
   coll('kids',function(a){ kids=a.sort(function(x,y){return (x.order||0)-(y.order||0)||x.birth.localeCompare(y.birth);}); });
   coll('measures',function(a){ measures=a; });
   coll('kdst_items',function(a){ items={}; a.forEach(function(d){ items[d.id]=d; }); });
-  coll('kdst_answers',function(a){ answers={}; a.forEach(function(d){ answers[d.id]=d; }); });
+  coll('kdst_answers',function(a){ answers={}; a.forEach(function(d){ answers[d.id]=d; }); fixFresh(); });
 }
 
 /* ---------- render ---------- */
@@ -905,7 +907,7 @@ function renderDev(){
     var prev=null; Object.keys(answers).forEach(function(key){ var d=answers[key]; if(d.kid===k.id&&d.band&&d.band!==ikey&&d.answers){ if(!prev||(d.date||'')>(prev.date||'')) prev=d; } });
     if(prev){ var pidoc=items[prev.band]||{items:DEFAULT_ITEMS[prev.band]||{}}; var inh={}, got=0, fresh=0;
       DOMAINS.forEach(function(d){ var code=d[0]; if(code==='extra') return; var list=(idoc.items&&idoc.items[code])||[]; if(!list.length) return; var plist=(pidoc.items&&pidoc.items[code])||[]; var pans=(prev.answers&&prev.answers[code])||[]; inh[code]=list.map(function(q){ var j=plist.indexOf(q); if(j>=0&&pans[j]!=null){ got++; return pans[j]; } fresh++; return null; }); });
-      if(got){ adoc={answers:inh,note:'',inheritedFrom:prev.band}; inherited={from:prev.band,got:got,fresh:fresh}; }
+      if(got){ adoc={answers:inh,note:'',inheritedFrom:prev.band,fx1:1}; inherited={from:prev.band,got:got,fresh:fresh}; }
     }
   }
   dom.innerHTML='';
@@ -982,7 +984,7 @@ $('kidForm').addEventListener('submit',function(ev){ ev.preventDefault(); var k=
 $('kDelete').addEventListener('click',function(){ if(!editing) return; if(!this.dataset.arm){ this.dataset.arm='1'; this.textContent='기록까지 모두 삭제할까요? 한 번 더'; return; } var id=editing.id; var ms=measures.filter(function(m){return m.kid===id;}); Promise.all(ms.map(function(m){return deleteMeasure(m.id);})).then(function(){ return deleteKid(id); }).then(function(){ closeKidDlg(); toast('삭제했어요'); }); });
 
 /* ---------- boot ---------- */
-loadLocal(); render();
+loadLocal(); fixFresh(); render();
 setStatus('연결 중…');
 var useP = (window.claude && typeof window.claude.use==='function') ? window.claude.use('db') : Promise.resolve(null);
 useP.then(function(d){
