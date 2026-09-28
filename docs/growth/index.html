@@ -261,7 +261,7 @@ tr:last-child td{border-bottom:0}
 .span{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--surface-3);color:var(--ink-3);margin-left:5px;vertical-align:middle;font-variant-numeric:tabular-nums;font-weight:600;line-height:1.5}
 .span.new{background:var(--k1);color:#fff}
 .span.last{background:var(--bad-soft);color:var(--bad)}
-.spanlegend{font-size:12px;color:var(--ink-3);line-height:1.9;margin:0 2px 12px}.spanlegend .span{margin-left:0}
+.spanlegend{font-size:12px;color:var(--ink-3);line-height:1.6;margin:0 2px 12px}.spanlegend div{margin:3px 0}.spanlegend .span{margin-right:4px}.spanlegend .span{margin-left:0}
 .bkrow{display:flex;gap:8px;flex-wrap:wrap}.bkrow label.btn{display:inline-flex;align-items:center}
 .scale{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .scale label{position:relative;flex:1 1 calc(25% - 6px);min-width:0;text-align:center;padding:9px 4px;border:1.5px solid var(--line);border-radius:11px;font-size:13px;font-weight:600;color:var(--ink-2);background:var(--surface);cursor:pointer;line-height:1.25;white-space:nowrap}
@@ -554,7 +554,7 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
         <span class="pill" id="bandAuto"></span>
       </div>
     </div>
-    <div class="spanlegend" id="spanLegend"><span class="span">42~53개월</span> 이 문항이 나오는 검사지 구간 · <span class="span new">NEW</span> 이번 검사지에 처음 나온 문항 · <span class="span last">마지막</span> 다음 검사지부터 빠지는 문항이라 이 시기에 되어야 해요</div>
+    <div class="spanlegend" id="spanLegend"><div><span class="span">42~53개월</span> 이 문항이 나오는 검사지 구간</div><div><span class="span new">NEW</span> 이번 검사지에 처음 나온 문항</div><div><span class="span last">마지막</span> 다음 검사지부터 빠지는 문항이라 이 시기에 되어야 해요</div></div>
     <div id="domains"></div>
     <div class="editor" id="editor" hidden>
       <p class="hint">영역을 고르고 문항을 한 줄에 하나씩 붙여 넣으세요. 검진 문진표(K-DST) 문항을 그대로 옮기면 됩니다.</p>
