@@ -127,6 +127,11 @@ button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var
 .meter{height:6px;border-radius:3px;margin-top:10px;position:relative;background:linear-gradient(90deg,rgba(255,160,140,.6) 0 7%,rgba(255,255,255,.26) 7% 93%,rgba(255,215,130,.65) 93% 100%)}
 .meter i{position:absolute;top:50%;width:15px;height:15px;border-radius:50%;background:#fff;border:3px solid var(--kc);transform:translate(-50%,-50%);box-shadow:0 2px 5px rgba(0,0,0,.3)}
 .todo{display:grid;gap:8px;margin-bottom:6px}
+.examcard{background:var(--surface);border-radius:18px;padding:14px 16px;margin:0 0 12px;box-shadow:var(--shadow)}
+.examcard.now{background:color-mix(in srgb,var(--warn) 12%,var(--surface));border:1.5px solid color-mix(in srgb,var(--warn) 45%,transparent)}
+.examcard.soon{border:1.5px dashed var(--line)}
+.ex-t{font-weight:800;font-size:15.5px;margin-bottom:8px}.ex-row{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:6px 0}.ex-row+.ex-row{border-top:1px solid var(--line-soft)}
+.ex-row b{font-size:15px}.ex-row span{font-size:13px;color:var(--ink-2)}.ex-d{font-size:12.5px;color:var(--ink-3);margin-top:2px}.ex-foot{margin-top:6px;display:flex;gap:6px;align-items:center}
 .todo::before{content:"할 일";font-size:13px;font-weight:600;color:var(--ink-3);margin:0 0 -2px 4px}
 .todo button{position:relative;display:flex;align-items:center;gap:12px;width:100%;background:var(--surface);border:0;border-radius:18px;padding:13px 16px 13px 14px;font:inherit;color:var(--ink);text-align:left;cursor:pointer;box-shadow:var(--shadow);--tile-bg:var(--accent-soft);--tile-ink:var(--accent-deep)}
 .todo button:active{transform:scale(.985)}
@@ -652,6 +657,7 @@ function renderHome(){
   var hero=document.createElement('div'); hero.className='hero'; hero.style.setProperty('--kc',KC[k.color]||KC[1]);
   hero.innerHTML='<div class="nm">'+esc(k.name)+'<small>'+k.birth+' · '+(k.sex==='M'?'남':'여')+'</small></div><div class="age">'+ageLabel(age)+'<small>'+Math.floor(age)+'개월</small></div><div class="sub2">'+(bi>=0?'지금 검사지 '+bandName(bi):(age<4?'K-DST는 4개월부터':'K-DST 대상은 71개월까지'))+(lastM?' · 마지막 측정 '+lastM.date:'')+'</div><div class="tiles">'+tiles+'</div>';
   box.appendChild(hero);
+  var ec=examCard(k); if(ec) box.appendChild(ec);
   if(bi>=0){ var tp=todayPlay(k,bi); if(tp) box.appendChild(tp); }
   var todo=document.createElement('div'); todo.className='todo';
   var items=[];
@@ -664,6 +670,40 @@ function renderHome(){
   todo.innerHTML=items.map(function(it){ return '<button type="button" data-go="'+it.tab+'"><span><div class="t">'+it.t+'</div><div class="d">'+it.d+'</div></span><span class="n'+(it.warn?' warn':'')+'">'+it.n+'</span></button>'; }).join('');
   todo.addEventListener('click',function(ev){ var b=ev.target.closest('[data-go]'); if(b) goTab(b.dataset.go); });
   box.appendChild(todo);
+}
+
+/* ---------- 영유아건강검진 시기 ---------- */
+var EXAMS=[{id:'e1',t:'1차',day:[14,35],lab:'생후 14~35일'},{id:'e2',t:'2차',m:[4,6]},{id:'e3',t:'3차',m:[9,12]},{id:'e4',t:'4차',m:[18,24]},{id:'e5',t:'5차',m:[30,36]},{id:'e6',t:'6차',m:[42,48]},{id:'e7',t:'7차',m:[54,60]},{id:'e8',t:'8차',m:[66,71],note:'75개월까지 연장 예정'}];
+var ORAL=[{id:'o1',t:'구강 1차',m:[18,29]},{id:'o2',t:'구강 2차',m:[42,53]},{id:'o3',t:'구강 3차',m:[54,65]}];
+function addMo(d,m){ var y=d.getFullYear(), mo=d.getMonth()+m, day=d.getDate(); var last=new Date(y,mo+1,0).getDate(); return new Date(y,mo,Math.min(day,last)); }
+function dstr(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dko(d,withYear){ return ((withYear||d.getFullYear()!==new Date().getFullYear())?d.getFullYear()+'년 ':'')+(d.getMonth()+1)+'월 '+d.getDate()+'일'; }
+function examWin(k,e){ var b=parseD(k.birth); if(e.day){ var s0=new Date(b); s0.setDate(s0.getDate()+e.day[0]); var e0=new Date(b); e0.setDate(e0.getDate()+e.day[1]); return [s0,e0]; } var st=addMo(b,e.m[0]); var en=addMo(b,e.m[1]+1); en.setDate(en.getDate()-1); return [st,en]; }
+function examLab(e){ return e.lab||(e.m[0]+'~'+e.m[1]+'개월'); }
+function examState(k){ var now=parseD(today()), done=k.exams||{}; var act=[], next=null;
+  EXAMS.concat(ORAL).forEach(function(e){ var w=examWin(k,e); if(now>=w[0]&&now<=w[1]&&!done[e.id]) act.push({e:e,w:w}); });
+  EXAMS.forEach(function(e){ var w=examWin(k,e); if(!next&&w[0]>now&&!done[e.id]) next={e:e,w:w}; });
+  return {act:act,next:next,now:now}; }
+function markExam(k,id,on){ var nk=JSON.parse(JSON.stringify(k)); nk.exams=nk.exams||{}; if(on) nk.exams[id]=today(); else delete nk.exams[id]; return writeKid(nk); }
+function examCard(k){
+  if(!k||!k.birth) return null; var S=examState(k); var DAY=86400000;
+  var main=S.act.filter(function(a){ return a.e.id[0]==='e'; })[0], oral=S.act.filter(function(a){ return a.e.id[0]==='o'; })[0];
+  var box=document.createElement('section'); box.className='examcard';
+  if(main||oral){ var a=main||oral; var left=Math.round((a.w[1]-S.now)/DAY);
+    var h='<div class="ex-t">🩺 영유아검진 받을 시기예요</div>';
+    function row(x){ var l=Math.round((x.w[1]-S.now)/DAY); return '<div class="ex-row"><div><b>'+x.e.t+'</b> <span>'+examLab(x.e)+'</span><div class="ex-d">'+dko(x.w[1])+'까지 · D-'+l+(x.e.note?' · '+x.e.note:'')+'</div></div><button type="button" class="btn small" data-exam="'+x.e.id+'">받았어요</button></div>'; }
+    h+=(main?row(main):'')+(oral?row(oral):'');
+    h+='<div class="ex-foot"><button type="button" class="link" data-go2="dev">검진 전에 발달 체크하기 ›</button></div>';
+    box.innerHTML=h; box.classList.add('now');
+  } else if(S.next){ var dl=Math.round((S.next.w[0]-S.now)/DAY);
+    var last=null; EXAMS.forEach(function(e){ if(k.exams&&k.exams[e.id]) last=e; });
+    box.innerHTML='<div class="ex-t">'+(dl<=30?'🗓️ 곧 영유아검진 시기예요':'🗓️ 다음 영유아검진')+'</div><div class="ex-row"><div><b>'+S.next.e.t+'</b> <span>'+examLab(S.next.e)+'</span><div class="ex-d">'+dko(S.next.w[0],dl>300)+'부터 '+dko(S.next.w[1],dl>300)+'까지 · '+(dl>0?dl+'일 남았어요':'오늘부터')+(S.next.e.note?' · '+S.next.e.note:'')+'</div></div></div>'+(last?'<div class="ex-foot"><span class="ex-d">'+last.t+' 받음 '+k.exams[last.id]+'</span> <button type="button" class="link" data-unexam="'+last.id+'">취소</button></div>':'');
+    if(dl<=30) box.classList.add('soon');
+  } else return null;
+  box.addEventListener('click',function(ev){ var b=ev.target.closest('[data-exam]'); if(b){ var id=b.dataset.exam; b.disabled=true; markExam(k,id,true).then(function(){ var nk=kidById(k.id)||k; var n2=examState(nk).next; toast(n2&&id[0]==='e'?'기록했어요 · 다음은 '+n2.e.t+' ('+examLab(n2.e)+'), '+dko(n2.w[0],true)+'부터예요':'기록했어요'); }); return; }
+    var u=ev.target.closest('[data-unexam]'); if(u){ markExam(k,u.dataset.unexam,false).then(function(){ toast('되돌렸어요'); }); return; }
+    var g=ev.target.closest('[data-go2]'); if(g) goTab(g.dataset.go2); });
+  return box;
 }
 
 var lastTodayQ='';
