@@ -418,15 +418,15 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
   if(!m) return;
   try{ if(sessionStorage.getItem('inAppSkip')) return; }catch(e){}
   var name=/Instagram/.test(ua)?'인스타그램':/Barcelona|Threads/.test(ua)?'스레드':/FBAN|FBAV/.test(ua)?'페이스북':/KAKAOTALK/.test(ua)?'카카오톡':/NAVER/.test(ua)?'네이버 앱':/Line\//.test(ua)?'라인':/BAND/.test(ua)?'밴드':'앱';
-  var ios=/iPhone|iPad|iPod/.test(ua), url=location.href.split('#')[0];
+  var ios=/iPhone|iPad|iPod/.test(ua), base=location.href.split('#')[0], url=base+(base.indexOf('?')<0?'?':'&')+'install=1';
   var box=document.getElementById('inApp'), steps=document.getElementById('inAppSteps');
   document.getElementById('inAppName').textContent=name;
   function copy(btn){ var done=function(){ btn.textContent='주소를 복사했어요 ✓'; }; if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done,function(){ prompt('이 주소를 길게 눌러 복사하세요',url); }); } else prompt('이 주소를 길게 눌러 복사하세요',url); }
   if(/KAKAOTALK/.test(ua)){
-    steps.innerHTML='<button type="button" class="go" id="inGo">'+(ios?'사파리로 열기':'크롬으로 열기')+'</button><ol style="margin-top:12px"><li>열린 화면 위쪽 <b>홈 화면에 추가하면 앱처럼 열려요</b> 띠에서 <b>추가하기</b>를 눌러요.</li></ol>';
+    steps.innerHTML='<button type="button" class="go" id="inGo">'+(ios?'사파리에서 설치하기':'크롬에서 설치하기')+'</button><ol style="margin-top:12px"><li>'+(ios?'사파리가 열리면서 설치 방법이 바로 떠요.':'크롬이 열리면서 설치 창이 떠요. <b>설치</b>를 누르면 끝이에요.')+'</li></ol>';
     document.getElementById('inGo').onclick=function(){ location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(url); };
   } else if(!ios){
-    steps.innerHTML='<button type="button" class="go" id="inGo">크롬으로 열기</button><ol style="margin-top:12px"><li>크롬이 열리면 위쪽 초록 띠의 <b>추가하기</b>를 눌러요.</li><li><b>설치</b>를 누르면 홈 화면에 무럭무럭이 생겨요.</li></ol><div style="font-size:13px;color:var(--ink-3,#777)">크롬이 안 열리면 오른쪽 위 <span class="kbd">⋮</span> → <b>다른 브라우저로 열기</b>를 눌러 주세요.</div><button type="button" class="sub" id="inCopy">주소 복사하기</button>';
+    steps.innerHTML='<button type="button" class="go" id="inGo">크롬에서 설치하기</button><ol style="margin-top:12px"><li>크롬이 열리면서 설치 창이 떠요.</li><li><b>설치</b>를 누르면 홈 화면에 무럭무럭이 생겨요.</li></ol><div style="font-size:13px;color:var(--ink-3,#777)">크롬이 안 열리면 오른쪽 위 <span class="kbd">⋮</span> → <b>다른 브라우저로 열기</b>를 눌러 주세요.</div><button type="button" class="sub" id="inCopy">주소 복사하기</button>';
     document.getElementById('inGo').onclick=function(){ var u=url.replace(/^https?:\/\//,''); location.href='intent://'+u+'#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='+encodeURIComponent(url)+';end'; };
     document.getElementById('inCopy').onclick=function(){ copy(this); };
   } else {
@@ -442,7 +442,8 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
   var KEY='growth-notes-v1:instHide';
   var standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
   if(standalone) return;
-  try{ var h=localStorage.getItem(KEY); if(h&&Date.now()-Number(h)<7*86400000) return; }catch(e){}
+  var want=/[?&]install=1/.test(location.search); if(want){ try{ history.replaceState(null,'',location.pathname+location.search.replace(/([?&])install=1&?/,'$1').replace(/[?&]$/,'')+location.hash); }catch(e){} }
+  try{ var h=localStorage.getItem(KEY); if(want) h=null; if(h&&Date.now()-Number(h)<7*86400000) return; }catch(e){}
   var bar=document.getElementById('instBar'), how=document.getElementById('instHow'), steps=document.getElementById('instSteps');
   var ua=navigator.userAgent||''; var ios=/iPhone|iPad|iPod/.test(ua); var deferred=null;
   bar.classList.add('on');
@@ -456,7 +457,19 @@ dialog .actions .end{display:flex;gap:8px;margin-left:auto}
     else { steps.innerHTML='<ol><li>브라우저 오른쪽 위 <b style="display:inline">메뉴(⋮)</b>를 눌러요.</li><li><b style="display:inline">홈 화면에 추가</b> 또는 <b style="display:inline">앱 설치</b>를 눌러요.</li></ol><div style="font-size:13px;color:var(--ink-3)">삼성 인터넷은 아래 메뉴(≡)에서 \'현재 페이지 추가 → 홈 화면\'이에요.</div>'; }
     how.classList.add('on');
   };
-  window.addEventListener('appinstalled',hide);
+  window.addEventListener('appinstalled',function(){ hide(); var g=document.getElementById('instGo'); if(g) g.textContent='설치됐어요'; how.classList.remove('on'); if(typeof toast==='function') toast('설치됐어요. 홈 화면에서 무럭무럭을 열어 주세요'); });
+  if(want){
+    var t0=Date.now();
+    (function wait(){ if(deferred||ios||Date.now()-t0>2500){ showSheet(); } else setTimeout(wait,150); })();
+  }
+  function showSheet(){
+    if(ios){ document.getElementById('instGo').click(); steps.insertAdjacentHTML('afterbegin','<div style="font-size:14px;margin-bottom:4px">아이폰은 한 번만 직접 눌러 주세요. 10초면 끝나요.</div>'); return; }
+    steps.innerHTML=deferred?'<div style="font-size:15px">버튼을 누르면 홈 화면에 <b style="display:inline">무럭무럭</b> 앱이 생겨요.</div>':'<ol><li>오른쪽 위 <b style="display:inline">메뉴(⋮)</b>를 눌러요.</li><li><b style="display:inline">앱 설치</b> 또는 <b style="display:inline">홈 화면에 추가</b>를 눌러요.</li></ol>';
+    var ok=document.getElementById('instOk'); ok.textContent=deferred?'무럭무럭 설치하기':'알겠어요';
+    ok.onclick=function(){ if(deferred){ var d=deferred; d.prompt(); d.userChoice.then(function(r){ if(r&&r.outcome==='accepted') hide(); deferred=null; how.classList.remove('on'); ok.textContent='알겠어요'; ok.onclick=function(){ how.classList.remove('on'); }; }); } else how.classList.remove('on'); };
+    how.querySelector('b').textContent=deferred?'무럭무럭 앱 설치':'홈 화면에 추가하는 법';
+    how.classList.add('on');
+  }
 })();
 </script>
 
