@@ -667,7 +667,7 @@ function toast(msg){ var t=$('toast'); t.textContent=msg; t.classList.add('on');
 function setStatus(msg,err){ var s=$('status'); s.textContent=msg; s.className='status'+(err?' err':''); }
 function today(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function parseD(s){ var p=s.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
-function ageMonths(birth,at){ var b=parseD(birth), a=at?parseD(at):new Date(); var m=(a.getFullYear()-b.getFullYear())*12+(a.getMonth()-b.getMonth()); var d=a.getDate()-b.getDate(); if(d<0){m--; var prev=new Date(a.getFullYear(),a.getMonth(),0).getDate(); d+=prev;} return m+d/30.4375; }
+function ageMonths(birth,at){ var b=parseD(birth), a=at?parseD(at):new Date(); /* 2017 성장도표 지침 연령 공식: (년차×12)+(월차)+(일차÷30.4), 버림은 쓰는 쪽에서 */ return (a.getFullYear()-b.getFullYear())*12+(a.getMonth()-b.getMonth())+(a.getDate()-b.getDate())/30.4; }
 function ageLabel(m){ var mm=Math.floor(m); if(mm<24) return mm+'개월'; var y=Math.floor(mm/12), r=mm%12; return y+'살'+(r?' '+r+'개월':''); }
 function fmt(v,dec){ return v==null||isNaN(v)?'':Number(v).toFixed(dec); }
 function erf(x){ var s=x<0?-1:1; x=Math.abs(x); var t=1/(1+0.3275911*x); var y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return s*y; }
@@ -677,7 +677,7 @@ function lmsAt(tbl,age){ if(!tbl) return null; if(age<tbl[0][0]||age>tbl[tbl.len
 function zOf(m,sex,age,x){ if(!x) return null; if(useKR(m,sex,age)) return zFromSD(krRow(sex,age),x); var p=lmsAt(tableFor(m,sex),Math.floor(age)); if(!p) return null; var z=Math.abs(p.L)<1e-6?Math.log(x/p.M)/p.S:(Math.pow(x/p.M,p.L)-1)/(p.L*p.S); return z; }
 function pctile(m,sex,age,x){ var z=zOf(m,sex,age,x); if(z==null) return null; return Math.max(0.1,Math.min(99.9,pctOf(z))); }
 function xAtZ(p,z){ return Math.abs(p.L)<1e-6?p.M*Math.exp(p.S*z):p.M*Math.pow(1+p.L*p.S*z,1/p.L); }
-function pctText(p){ if(p==null) return ''; return (p<1?'<1':p>99?'>99':Math.round(p))+'%'; }
+function pctText(p){ if(p==null) return ''; return (p<1?'<1':Math.min(99,Math.floor(p)))+'%'; }
 function bandFor(m){ var mm=Math.floor(m); for(var i=0;i<BANDS.length;i++){ if(mm>=BANDS[i][0]&&mm<=BANDS[i][1]) return i; } return -1; }
 function bandName(i){ return BANDS[i][0]+'~'+BANDS[i][1]+'개월'; }
 function bandKey(i){ return 'b'+BANDS[i][0]+'_'+BANDS[i][1]; }
@@ -729,7 +729,7 @@ function renderOverview(){
   var h4=document.createElement('h4'); h4.textContent='다른 아이'; box.appendChild(h4);
   others.forEach(function(k){
     var age=ageMonths(k.birth); var c=document.createElement('div'); c.className='card'; c.style.setProperty('--kc',KC[k.color]||KC[1]);
-    var stats=['h','w','hc'].map(function(m){ var L=latest(k,m); if(!L) return '<div class="stat"><div class="l">'+METRIC[m].name+'</div><div class="v">–</div><div class="p">기록 없음</div></div>'; var a=ageMonths(k.birth,L.date); var p=pctile(m,k.sex,a,L[m]); var cls=p==null?'':p<3?' low':p>97?' high':''; return '<div class="stat"><div class="l">'+METRIC[m].name+'</div><div class="v">'+fmt(L[m],METRIC[m].dec)+'<small>'+METRIC[m].unit+'</small></div><div class="p'+cls+'">'+(p==null?(m==='hc'&&a>81?'6세 9개월까지 기준':'기준 없음'):'백분위 '+pctText(p))+'</div></div>'; }).join('');
+    var stats=['h','w','hc'].map(function(m){ var L=latest(k,m); if(!L) return '<div class="stat"><div class="l">'+METRIC[m].name+'</div><div class="v">–</div><div class="p">기록 없음</div></div>'; var a=ageMonths(k.birth,L.date); var p=pctile(m,k.sex,a,L[m]); var cls=p==null?'':p<5?' low':p>=95?' high':''; return '<div class="stat"><div class="l">'+METRIC[m].name+'</div><div class="v">'+fmt(L[m],METRIC[m].dec)+'<small>'+METRIC[m].unit+'</small></div><div class="p'+cls+'">'+(p==null?(m==='hc'&&a>81?'6세 9개월까지 기준':'기준 없음'):'백분위 '+pctText(p))+'</div></div>'; }).join('');
     var bi=bandFor(age); var dev;
     if(bi<0){ dev=age<4?'<span class="pill">K-DST 4개월부터</span>':'<span class="pill">K-DST 대상 아님 (71개월까지)</span>'; }
     else { var ans=answers[k.id+'_'+bandKey(bi)]; var done=ans&&ans.answers?Object.keys(ans.answers).reduce(function(n,d){return n+(ans.answers[d]||[]).filter(function(v){return v!=null;}).length;},0):0; var prac=ans&&ans.answers?Object.keys(ans.answers).filter(function(d){return d!=='extra';}).reduce(function(n,d){return n+(ans.answers[d]||[]).filter(function(v){return v!=null&&v<=1;}).length;},0):0; dev='<span class="pill'+(done?' on':'')+'">'+bandName(bi)+' 검사지'+(done?' · '+done+'문항 체크'+(prac?' · 연습 중 '+prac:''):' · 아직 체크 전')+'</span>'; }
@@ -746,7 +746,7 @@ function renderHome(){
   var k=kidById(cur);
   if(!k){ box.innerHTML='<div class="onboard"><h2>우리 아이 성장, 한 화면에</h2><p>키·몸무게 백분위와 영유아 검진 발달 체크(K-DST)를 기록해요.</p><ol><li>아이 이름·생년월일·성별을 넣어요.</li><li>검진 결과지 숫자를 그대로 적으면 백분위가 나와요.</li><li>월령에 맞는 검사지가 자동으로 떠요. 못하는 건 놀이가 붙어요.</li></ol><button class="btn" type="button" id="obAdd">+ 아이 추가</button></div>'; $('obAdd').addEventListener('click',function(){ openKidDlg(null); }); return; }
   var age=ageMonths(k.birth); var bi=bandFor(age);
-  var tiles=['h','w','hc'].map(function(m){ var L=latest(k,m); if(!L) return '<div class="tile"><div class="l">'+METRIC[m].name+'</div><div class="v">–</div><div class="p">기록 없음</div></div>'; var a=ageMonths(k.birth,L.date); var p=pctile(m,k.sex,a,L[m]); var cls=p==null?'':p<3?' low':p>97?' high':''; var meter=p==null?'':'<div class="meter"><i style="left:'+Math.max(2,Math.min(98,p))+'%"></i></div>'; return '<div class="tile"><div class="l">'+METRIC[m].name+'</div><div class="v">'+fmt(L[m],METRIC[m].dec)+'<small>'+METRIC[m].unit+'</small></div><div class="p'+cls+'">'+(p==null?(m==='hc'&&a>81?'6세 9개월까지 기준':'기준 없음'):'백분위 '+pctText(p))+'</div>'+meter+'</div>'; }).join('');
+  var tiles=['h','w','hc'].map(function(m){ var L=latest(k,m); if(!L) return '<div class="tile"><div class="l">'+METRIC[m].name+'</div><div class="v">–</div><div class="p">기록 없음</div></div>'; var a=ageMonths(k.birth,L.date); var p=pctile(m,k.sex,a,L[m]); var cls=p==null?'':p<5?' low':p>=95?' high':''; var meter=p==null?'':'<div class="meter"><i style="left:'+Math.max(2,Math.min(98,p))+'%"></i></div>'; return '<div class="tile"><div class="l">'+METRIC[m].name+'</div><div class="v">'+fmt(L[m],METRIC[m].dec)+'<small>'+METRIC[m].unit+'</small></div><div class="p'+cls+'">'+(p==null?(m==='hc'&&a>81?'6세 9개월까지 기준':'기준 없음'):'백분위 '+pctText(p))+'</div>'+meter+'</div>'; }).join('');
   var lastM=measuresOf(k).slice(-1)[0];
   var hero=document.createElement('div'); hero.className='hero'; hero.style.setProperty('--kc',KC[k.color]||KC[1]);
   hero.innerHTML='<div class="nm">'+esc(k.name)+'<small>'+k.birth+' · '+(k.sex==='M'?'남':'여')+'</small></div><div class="age">'+ageLabel(age)+'<small>'+Math.floor(age)+'개월</small></div><div class="sub2">'+(bi>=0?'지금 검사지 '+bandName(bi):(age<4?'K-DST는 4개월부터':'K-DST 대상은 71개월까지'))+(lastM?' · 마지막 측정 '+lastM.date:'')+'</div><div class="tiles">'+tiles+'</div>';
@@ -865,7 +865,7 @@ function renderGrowth(){
   svg.style.cursor=pts.length?'pointer':'default';
   box.insertBefore(svg,tip);
   var src=metric==='h'?'영유아 검진 결과지와 같은 기준이에요(국민건강보험공단 영유아 성장도표 기준표: 3세 미만 WHO, 3세부터 2017 소아청소년 성장도표). 7세 이후는 2017 성장도표 표준점수표.':metric==='hc'?'영유아 검진 결과지와 같은 기준이에요(3세 미만 WHO, 3세부터 2017 소아청소년 성장도표). 6세 9개월까지 있어요.':'영유아 검진 결과지와 같은 기준이에요(3세 미만 WHO, 3세부터 2017 소아청소년 성장도표). 7세 이후는 CDC 2000이라 몇 % 다를 수 있어요.';
-  $('chartNote').textContent=src+' 3% 아래·97% 위면 검진 때 물어보세요.';
+  $('chartNote').textContent=src+' 5% 아래·95% 이상이면 검진 판정 기준으로 \'정밀평가 필요\'예요. 검진 때 물어보세요.';
   $('mEmpty').hidden=ms.length>0;
   ms.slice().reverse().forEach(function(m){ var a=ageMonths(k.birth,m.date); var tr=document.createElement('tr'); function cell(mk){ if(m[mk]==null) return '<td class="num">–</td>'; var p=pctile(mk,k.sex,a,m[mk]); return '<td class="num">'+fmt(m[mk],METRIC[mk].dec)+(p!=null?'<span class="pct">'+pctText(p)+'</span>':'')+'</td>'; } tr.innerHTML='<td>'+m.date+'</td><td class="num">'+Math.floor(a)+'</td>'+cell('h')+cell('w')+cell('hc')+'<td class="act"><button class="link ed" type="button">수정</button> <button class="link del" type="button">삭제</button></td>'; tr.querySelector('.ed').addEventListener('click',function(){ startEdit(m); }); tr.querySelector('.del').addEventListener('click',function(){ if(tr.dataset.arm){ deleteMeasure(m.id).then(function(){toast('삭제했어요');}); } else { tr.dataset.arm='1'; this.textContent='정말 삭제'; var self=this; setTimeout(function(){ delete tr.dataset.arm; self.textContent='삭제'; },2500); } }); tb.appendChild(tr); });
 }
