@@ -1,0 +1,61 @@
+name: 매주 스레드 글감
+
+on:
+  schedule:
+    # UTC 기준입니다. 일요일 11:00 UTC = 일요일 저녁 8시 (한국시간)
+    - cron: "0 11 * * 0"
+    # 첫 번째가 실패했을 때를 위한 재시도 (한국시간 8:40)
+    # 이미 다음 주 글감이 있으면 아무것도 하지 않고 그냥 끝납니다.
+    - cron: "40 11 * * 0"
+  workflow_dispatch:   # GitHub에서 수동 실행 버튼
+
+permissions:
+  contents: write      # 만든 HTML을 저장소에 커밋하기 위해 필요
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 저장소 가져오기
+        uses: actions/checkout@v4
+
+      - name: 다음 주 글감이 이미 있는지 확인
+        id: check
+        run: |
+          WEEK=$(TZ=Asia/Seoul date -d 'next monday' +'%Y-%m-%d')
+          if [ -f "docs/threads/$WEEK.html" ] && [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "다음 주($WEEK) 글감이 이미 있습니다. 건너뜁니다."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 파이썬 설치
+        if: steps.check.outputs.skip != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 필요한 것 설치
+        if: steps.check.outputs.skip != 'true'
+        run: pip install -r requirements.txt
+
+      - name: 스레드 글감 만들어서 카톡 보내기
+        if: steps.check.outputs.skip != 'true'
+        env:
+          KAKAO_REST_API_KEY:  ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+          GEMINI_API_KEY:      ${{ secrets.GEMINI_API_KEY }}
+          GH_PAT:              ${{ secrets.GH_PAT }}
+        run: python send_threads.py
+
+      - name: 만든 글감 저장하기
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/threads/
+          git diff --staged --quiet || git commit -m "스레드 글감 $(TZ=Asia/Seoul date -d 'next monday' +'%Y-%m-%d')"
+          git pull --rebase
+          git push
