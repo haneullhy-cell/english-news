@@ -48,19 +48,25 @@
     if (!R || !sido) return null;
     var s = R.sido[sido];
     if (!s) return null;
-    if (sgg && s.depop && s.depop[sgg]) return s.depop[sgg];
+    if (sgg && s.sgg && s.sgg[sgg]) return s.sgg[sgg];
     return s.metro ? 'metro' : 'nonmetro';
   }
 
   /* ---------- 아동수당 ---------- */
-  function allowAgeLimit(year, includePlanned) {
-    var A = DATA.childAllow;
-    var lim = A.ageLimit.base;
-    for (var y in A.ageLimit.byYear) {
-      var row = A.ageLimit.byYear[y];
-      if (year >= +y && (row.enacted || includePlanned)) lim = Math.max(lim, row.limit);
-    }
+  // 아동수당법 부칙 제2조①: 2026년 9세, 2027년 10세 … 2030년부터 제4조① 13세
+  function allowAgeLimit(year) {
+    var A = DATA.childAllow.ageLimit, lim = A.base;
+    for (var y in A.byYear) if (year >= +y) lim = Math.max(lim, A.byYear[y]);
     return lim;
+  }
+  // 부칙 제2조②: 2017년생은 2026~2029년에 나이와 관계없이 1~12월분을 받습니다.
+  function allowSpecialYear(birthYear, year) {
+    var sp = DATA.childAllow.special;
+    if (!sp) return false;
+    for (var j = 0; j < sp.length; j++) {
+      if (sp[j].birthYear === birthYear && year >= sp[j].from && year <= sp[j].to) return true;
+    }
+    return false;
   }
   function allowAmount(cls, localCurrency) {
     var t = DATA.childAllow.amount[cls];
@@ -70,8 +76,7 @@
 
   /* ---------- 본 계산 ----------
    * p = { born:bool, date:'YYYY-MM-DD', order:1|2|3, sido, sgg, local:bool,
-   *       careAt: 개월(어린이집·유치원 다니기 시작하는 월령) 또는 null(초등 입학 전까지 집에서),
-   *       planned: 아동수당 확대 '계획'분까지 넣을지 }
+   *       careAt: 개월(어린이집·유치원 다니기 시작하는 월령) 또는 null(초등 입학 전까지 집에서) }
    * today = 'YYYY-MM-DD' */
   function calc(p, today) {
     var t = parseDate(today), b = parseDate(p.date);
@@ -111,15 +116,16 @@
       else if (k < 24) add(i, k, 'parentPay', PP.age1);
       // 가정양육수당: 부모급여가 끝난 뒤, 기관에 다니기 전까지
       if (k >= HC.fromMonth && k < HC.toMonth && (careAt === null || k < careAt)) add(i, k, 'homeCare', HC.amount);
-      // 아동수당
-      if (k < 12 * allowAgeLimit(y, !!p.planned)) add(i, k, 'childAllow', allowAmount(cls, !!p.local));
+      // 아동수당: 그해 나이 기준(L)이 되는 생일이 든 달의 전달까지 (아동수당법 제10조①, 부칙 제2조)
+      if (k < 12 * allowAgeLimit(y) || allowSpecialYear(b.y, y)) add(i, k, 'childAllow', allowAmount(cls, !!p.local));
     }
 
     // 한 번에 받는 돈
     var once = [];
     var fmAmt = (p.order || 1) >= 2 ? FM.second : FM.first;
     var fmUpcoming = !born || within60;
-    once.push({ id: 'firstMeet', amount: fmAmt, upcoming: fmUpcoming });
+    // 지금 금액(200만/300만)은 2024.1.1 이후 출생아에게만 맞습니다. 그 전에 태어났으면 보여 주지 않습니다.
+    if (!born || fmtDate(b) >= FM.fromBirth) once.push({ id: 'firstMeet', amount: fmAmt, upcoming: fmUpcoming });
     if (!born) once.push({ id: 'pregVoucher', amount: DATA.pregVoucher.single, upcoming: true });
     once.forEach(function (o) { if (o.upcoming) totals[o.id] = (totals[o.id] || 0) + o.amount; });
 
@@ -143,12 +149,11 @@
     });
 
     return {
-      born: born, within60: within60, cls: cls,
+      born: born, within60: within60, cls: cls, allowMonthly: allowAmount(cls, !!p.local),
       birthIdx: birthI, startIdx: startI, nowIdx: nowI,
       total: total, totals: totals, once: once,
       months: months, byAge: byAge.filter(Boolean),
-      thisMonth: monthSum(Math.max(nowI, startI)),
-      ageLimitNow: allowAgeLimit(idxYear(nowI), !!p.planned)
+      thisMonth: monthSum(Math.max(nowI, startI))
     };
   }
 
@@ -156,15 +161,20 @@
   function todos(p, today) {
     var b = parseDate(p.date), t = parseDate(today);
     if (!b || !t) return [];
-    var born = !!p.born && daysBetween(b, t) >= 0;
+    var ageDays = daysBetween(b, t);
+    var born = !!p.born && ageDays >= 0;
     var list = [];
     (DATA.todos || []).forEach(function (td) {
       if (td.when === 'pregnant' && born) return;
+      if (td.when === 'early' && born && ageDays > 90) return;
+      if (td.when === 'under3' && born && daysBetween(t, addMonthsDate(b, 36)) <= 0) return;
+      if (td.when === 'birthYear' && born && !(b.y === t.y || (b.y === t.y - 1 && t.m <= 2))) return;
       var due = null;
       if (td.dueDays !== undefined) due = addDays(b, td.dueDays);
       if (td.dueMonths !== undefined) due = addMonthsDate(b, td.dueMonths);
+      if (due && td.dueAdjDays) due = addDays(due, td.dueAdjDays);
       list.push({
-        id: td.id, title: td.title, body: td.body, src: td.src, when: td.when,
+        id: td.id, title: td.title, body: td.body, src: td.src, when: td.when, first: !!td.first,
         due: due ? fmtDate(due) : null,
         dLeft: due ? daysBetween(t, due) : null
       });

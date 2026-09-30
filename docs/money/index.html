@@ -74,8 +74,7 @@ button{font:inherit;color:inherit}
 .hero-v small{font-size:20px;letter-spacing:0;font-family:var(--body);font-weight:700;opacity:.9}
 .hero-s{font-size:12.5px;opacity:.82}
 .hero-acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;position:relative;z-index:1}
-.hero-acts button,.hero-acts label{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-.hero-acts input{accent-color:#fff;margin:0}
+.hero-acts button{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .brk{list-style:none;margin:0;padding:0}
 .brk li{padding:10px 0;border-top:1px solid var(--line-soft)}
 .brk li:first-child{border-top:0;padding-top:0}
@@ -200,7 +199,6 @@ details.ex dd{margin:1px 0 0}
       <div class="hero-s" id="heroS"></div>
       <div class="hero-acts">
         <button id="shareBtn" type="button">공유하기</button>
-        <label id="planWrap" hidden><input type="checkbox" id="planChk"> <span id="planLabel"></span></label>
       </div>
     </div>
     <div class="card" id="nowCard"></div>
@@ -273,22 +271,24 @@ function fillSgg(){
   var s = D.regions.sido[$('fSido').value], sel = $('fSgg');
   if (!s) { sel.innerHTML = '<option value="">시·군·구</option>'; sel.disabled = true; showLocal(); return; }
   sel.disabled = false;
-  var names = Object.keys(s.depop || {}).sort(), h = '';
+  var names = Object.keys(s.sgg || {}).sort(), h = '';
+  function opts(){ names.forEach(function(n){ h += '<option value="' + esc(n) + '">' + esc(n) + '</option>'; }); }
   if (!names.length) h = '<option value="">' + esc($('fSido').value) + ' 전체</option>';
-  else {
-    h = '<option value="">그 밖의 시·군·구</option><optgroup label="인구감소지역">';
-    names.forEach(function(n){ h += '<option value="' + esc(n) + '">' + esc(n) + '</option>'; });
-    h += '</optgroup>';
-  }
+  else if (s.metro) { h = '<option value="">그 밖의 시·군·구</option><optgroup label="인구감소지역">'; opts(); h += '</optgroup>'; }
+  else { h = '<option value="">시·군·구 선택</option>'; opts(); }
   sel.innerHTML = h;
   showLocal();
+}
+function needSgg(){
+  var s = D.regions.sido[$('fSido').value];
+  return !!(s && !s.metro && Object.keys(s.sgg || {}).length);
 }
 function showLocal(){
   var cls = M.regionClass($('fSido').value, $('fSgg').value);
   var t = cls && D.childAllow.amount[cls];
   var on = !!(t && t.local);
   $('localWrap').hidden = !on;
-  if (on) $('localLabel').textContent = '지역사랑상품권으로 (+' + M.man(t.local - t.cash) + ')';
+  if (on) $('localLabel').textContent = '지역사랑상품권으로 (+' + M.man(t.local - t.cash) + ', 조례가 있는 곳만)';
 }
 function syncDateLabel(){
   var born = document.querySelector('input[name=born]:checked').value === '1';
@@ -326,6 +326,7 @@ function submit(e){
   else if (!born && M.daysBetween(td, dd) > 300) err = '예정일이 너무 멀어요. 날짜를 확인해 주세요.';
   else if (born && M.daysBetween(dd, td) > 365 * 13) err = '13살 이상은 이 계산기에서 받을 돈이 없어요.';
   else if (!$('fSido').value) err = '사는 시·도를 골라 주세요.';
+  else if (needSgg() && !$('fSgg').value) err = '사는 시·군·구를 골라 주세요. 아동수당 금액이 달라져요.';
   $('formErr').textContent = err;
   if (err) return;
   var care = $('fCare').value;
@@ -334,8 +335,7 @@ function submit(e){
     order: +document.querySelector('input[name=order]:checked').value,
     sido: $('fSido').value, sgg: $('fSgg').value,
     local: document.querySelector('input[name=local]:checked').value === '1' && !$('localWrap').hidden,
-    careAt: care === '' ? null : +care,
-    planned: S.p ? !!S.p.planned : false
+    careAt: care === '' ? null : +care
   };
   save(); show('home');
 }
@@ -348,28 +348,20 @@ function render(){
 
   // 영웅 카드
   $('heroK').textContent = r.born ? subj(name) + ' 앞으로 받을 돈' : subj(name) + ' 태어나면 받을 돈';
-  $('heroV').innerHTML = '약 ' + esc(M.man(r.total).replace('만', '')) + '<small>만 원</small>';
-  var ageL = r.ageLimitNow;
-  $('heroS').textContent = D.asOf.replace(/-/g, '.') + ' 제도 기준 예상 금액 · 아동수당 만 ' + ageL + '세 미만 기준';
-
-  // 확대 계획 토글
-  var plannedRows = [];
-  for (var y in D.childAllow.ageLimit.byYear) { var row = D.childAllow.ageLimit.byYear[y]; if (!row.enacted) plannedRows.push(row); }
-  if (plannedRows.length) {
-    var alt = M.calc(Object.assign({}, p, { planned: true }), today);
-    var base = M.calc(Object.assign({}, p, { planned: false }), today);
-    var diff = alt.total - base.total;
-    $('planWrap').hidden = diff <= 0;
-    $('planChk').checked = !!p.planned;
-    $('planLabel').textContent = '아동수당 확대 계획 넣기 (+' + M.man(diff) + ')';
-  } else $('planWrap').hidden = true;
+  if (r.total > 0) {
+    $('heroV').innerHTML = '약 ' + esc(M.man(r.total).replace('만', '')) + '<small>만 원</small>';
+    $('heroS').textContent = D.asOf.replace(/-/g, '.') + ' 법·제도 기준 예상 금액';
+  } else {
+    $('heroV').innerHTML = '0<small>원</small>';
+    $('heroS').textContent = '지금 제도로는 앞으로 받을 돈이 없어요. 우리 동네 지원은 정부24 혜택알리미에서 확인해 보세요.';
+  }
 
   // 이번 달
   var nm = r.thisMonth, nc = $('nowCard');
   if (nm) {
     var parts = Object.keys(nm.items).map(function(id){ return info(id).name + ' ' + M.man(nm.items[id]); });
-    var label = nm.i === r.nowIdx ? '이번 달(' + M.idxMonth(nm.i) + '월)' : M.idxYear(nm.i) + '년 ' + M.idxMonth(nm.i) + '월';
-    nc.innerHTML = '<h3>' + esc(label) + '에 받을 돈</h3><div class="nowbox"><div class="big">' + esc(won(nm.sum)) + '</div><div class="small">' + esc(parts.join(' + ')) + (D.payDayNote ? '<br><span class="muted">' + esc(D.payDayNote) + '</span>' : '') + '</div></div>';
+    var label = (M.idxYear(nm.i) !== M.idxYear(r.nowIdx) ? M.idxYear(nm.i) + '년 ' : '') + M.idxMonth(nm.i) + '월분';
+    nc.innerHTML = '<h3>' + esc(label) + ' 받을 돈</h3><div class="nowbox"><div class="big">' + esc(won(nm.sum)) + '</div><div class="small">' + esc(parts.join(' + ')) + (D.payDayNote ? '<br><span class="muted">' + esc(D.payDayNote) + '</span>' : '') + '</div></div>';
     nc.hidden = false;
   } else nc.hidden = true;
 
@@ -383,6 +375,7 @@ function render(){
     if (!amt && !once) return;
     var sub = inf.short || '';
     if (once && !once.upcoming) { h += '<li class="done"><div class="l1"><i class="dot" style="background:var(--c-' + id + ')"></i><span class="nm">' + esc(inf.name) + '</span><span class="amt">' + esc(won(once.amount)) + '</span></div><div class="sub">출생 때 한 번 · 이미 받았을 거예요 (합계에서 뺐어요)</div></li>'; return; }
+    if (id === 'childAllow') sub = '월 ' + won(r.allowMonthly) + ' · ' + ym(lastMonth(r, 'childAllow')) + '까지';
     if (id === 'homeCare' && p.careAt !== null) sub += ' · ' + p.careAt + '개월에 기관에 가면 멈춰요';
     if (id === 'parentPay' && p.careAt !== null && p.careAt < 24) sub += ' · 어린이집 다니는 달은 일부가 보육료로 나가요';
     h += '<li><div class="l1"><i class="dot" style="background:var(--c-' + id + ')"></i><span class="nm">' + esc(inf.name) + '</span><span class="amt">' + esc(won(amt)) + '</span></div>' +
@@ -430,6 +423,10 @@ function render(){
   $('about').innerHTML = D.about;
   $('foot').innerHTML = D.footer;
 }
+function lastMonth(r, id){
+  for (var j = r.months.length - 1; j >= 0; j--) if (r.months[j].items[id]) return r.months[j].i;
+  return r.startIdx;
+}
 function group(title, when, chips, sum){
   return '<div class="tl-g"><div class="tl-h"><b>' + esc(title) + '</b><span>' + esc(M.man(sum)) + '</span></div><div class="tl-d">' + esc(when) + '</div>' +
     chips.map(function(c){ return '<span class="chip"><i style="background:var(--c-' + c.id + ')"></i>' + esc(c.text) + '</span>'; }).join('') + '</div>';
@@ -437,6 +434,7 @@ function group(title, when, chips, sum){
 function sortTodo(a, b){
   var ca = S.checks[a.id] ? 1 : 0, cb = S.checks[b.id] ? 1 : 0;
   if (ca !== cb) return ca - cb;
+  if (a.first !== b.first) return a.first ? -1 : 1;
   if (a.due && b.due) return a.due < b.due ? -1 : a.due > b.due ? 1 : 0;
   return a.due ? -1 : b.due ? 1 : 0;
 }
@@ -487,7 +485,6 @@ document.querySelectorAll('input[name=born]').forEach(function(r){ r.addEventLis
 $('editBtn').addEventListener('click', function(){ if (!$('setup').hidden && S.p) show(S.tab || 'home'); else openSetup(); });
 $('bnav').addEventListener('click', function(e){ var b = e.target.closest('button[data-tab]'); if (b) show(b.dataset.tab); });
 $('shareBtn').addEventListener('click', share);
-$('planChk').addEventListener('change', function(){ S.p.planned = $('planChk').checked; save(); render(); });
 if (S.p && M.parseDate(S.p.date)) show(S.tab); else openSetup();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
 })();
