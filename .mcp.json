@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "uplika": {
+      "type": "http",
+      "url": "https://api.uplika.com/mcp"
+    }
+  }
+}
