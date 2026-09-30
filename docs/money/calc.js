@@ -95,12 +95,11 @@
     var cls = regionClass(p.sido, p.sgg) || 'metro';
     var careAt = (p.careAt === null || p.careAt === undefined) ? null : +p.careAt;
 
-    var months = [];   // { i, k(월령), items:{id:amount} }
+    var rows = {};     // i → { i, k(월령), items:{id:amount}, sum }
     var totals = {};
     function add(i, k, id, amt) {
       if (!amt) return;
-      var row = months[months.length - 1];
-      if (!row || row.i !== i) { row = { i: i, k: k, items: {}, sum: 0 }; months.push(row); }
+      var row = rows[i] || (rows[i] = { i: i, k: k, items: {}, sum: 0 });
       row.items[id] = (row.items[id] || 0) + amt;
       row.sum += amt;
       totals[id] = (totals[id] || 0) + amt;
@@ -119,6 +118,19 @@
       // 아동수당: 그해 나이 기준(L)이 되는 생일이 든 달의 전달까지 (아동수당법 제10조①, 부칙 제2조)
       if (k < 12 * allowAgeLimit(y) || allowSpecialYear(b.y, y)) add(i, k, 'childAllow', allowAmount(cls, !!p.local));
     }
+
+    // 육아휴직 급여 (계획을 넣고 '총액에 넣기'를 켠 경우)
+    var lv = null;
+    if (p.leave && p.leave.include) {
+      lv = leave(p.leave);
+      lv.parents.forEach(function (q) {
+        q.monthly.forEach(function (v, j) {
+          var kk = q.startK + j, ii = birthI + kk;
+          if (ii >= startI) add(ii, kk, 'leave', v);
+        });
+      });
+    }
+    var months = Object.keys(rows).map(function (x) { return rows[x]; }).sort(function (a, c) { return a.i - c.i; });
 
     // 한 번에 받는 돈
     var once = [];
@@ -151,7 +163,7 @@
     return {
       born: born, within60: within60, cls: cls, allowMonthly: allowAmount(cls, !!p.local),
       birthIdx: birthI, startIdx: startI, nowIdx: nowI,
-      total: total, totals: totals, once: once,
+      total: total, totals: totals, once: once, leave: lv,
       months: months, byAge: byAge.filter(Boolean),
       thisMonth: monthSum(Math.max(nowI, startI))
     };
@@ -169,6 +181,8 @@
       if (td.when === 'early' && born && ageDays > 90) return;
       if (td.when === 'under3' && born && daysBetween(t, addMonthsDate(b, 36)) <= 0) return;
       if (td.when === 'birthYear' && born && !(b.y === t.y || (b.y === t.y - 1 && t.m <= 2))) return;
+      if (td.when === 'leave' && !(p.leave && (p.leave.parents || []).some(function (q) {
+        var r = DATA.leave.jobs[q.job]; return r && r.canLeave && +q.months > 0; }))) return;
       var due = null;
       if (td.dueDays !== undefined) due = addDays(b, td.dueDays);
       if (td.dueMonths !== undefined) due = addMonthsDate(b, td.dueMonths);
@@ -182,6 +196,66 @@
     return list;
   }
 
+  /* ---------- 육아휴직 급여 ----------
+   * plan = { single:bool, parents:[{ job, wage(월 통상임금, 원), months, startK(휴직 시작 때 아이 개월) }] }
+   * 직업별 규칙은 DATA.leave.jobs 에 있습니다. 월 단위로만 계산합니다(일할 계산·회사 지급 금품 감액은 빼고). */
+  function bandPay(bands, floor, wage, m) {
+    for (var j = 0; j < bands.length; j++) {
+      if (m <= bands[j].upTo) {
+        var v = Math.round(wage * bands[j].rate);
+        if (bands[j].cap && v > bands[j].cap) v = bands[j].cap;
+        if (floor && v < floor) v = floor;
+        return v;
+      }
+    }
+    return 0;
+  }
+  function leave(plan) {
+    var L = DATA.leave;
+    var ps = (plan.parents || []).slice(0, plan.single ? 1 : 2).map(function (q) {
+      var rule = L.jobs[q.job] || L.jobs.none;
+      return { job: q.job, rule: rule, wage: Math.max(0, +q.wage || 0), want: rule.canLeave ? Math.max(0, +q.months || 0) : 0, startK: Math.max(0, +q.startK || 0) };
+    });
+    var two = !plan.single && ps.length === 2;
+    // 남녀고용평등법 제19조②: 부모가 각각 3개월 이상 쓰거나 한부모면 6개월 더
+    var longer = plan.single || (two && ps[0].want >= L.extendNeedEach && ps[1].want >= L.extendNeedEach);
+    var maxMonths = L.baseMonths + (longer ? L.extendMonths : 0);
+    ps.forEach(function (q) { q.months = Math.min(q.want, maxMonths); q.over = q.want > maxMonths; });
+    // 부모 함께 쓰는 특례(6+6): 둘 다 휴직, 둘 다 아이 18개월 전에 시작, 둘 다 특례가 있는 직업
+    var both = two && ps[0].months > 0 && ps[1].months > 0;
+    var inWindow = both && ps[0].startK < L.sixsix.windowMonths && ps[1].startK < L.sixsix.windowMonths;
+    var together = both && inWindow && ps[0].rule.sixsix && ps[1].rule.sixsix && ps[0].rule.countsSpouse && ps[1].rule.countsSpouse;
+    var common = together ? Math.min(ps[0].months, ps[1].months, L.sixsix.maxMonths) : 0;
+    var total = 0;
+    ps.forEach(function (q) {
+      var r = q.rule, monthly = [];
+      for (var m = 1; m <= q.months; m++) {
+        var v;
+        if (common && m <= common) v = bandPay([{ upTo: m, rate: r.sixsix.rate, cap: r.sixsix.caps[m - 1] }], r.floor, q.wage, m);
+        else v = bandPay(plan.single && r.singleBands ? r.singleBands : r.bands, r.floor, q.wage, m);
+        monthly.push(v);
+      }
+      q.monthly = monthly;
+      q.total = monthly.reduce(function (a, b) { return a + b; }, 0);
+      total += q.total;
+    });
+    return { parents: ps, total: total, together: together, common: common, both: both, inWindow: inWindow, maxMonths: maxMonths };
+  }
+  // 부부가 합쳐 n개월 쉴 때 나누는 방법별 금액 (많은 순)
+  function leaveSplits(plan, n) {
+    var out = [];
+    for (var a = 0; a <= n; a++) {
+      var p2 = { single: false, parents: plan.parents.map(function (q, j) { var c = {}; for (var k in q) c[k] = q[k]; c.months = j === 0 ? a : n - a; return c; }) };
+      var r = leave(p2);
+      if (r.parents[0].over || r.parents[1].over) continue;
+      if (!r.parents[0].rule.canLeave && a > 0) continue;
+      if (!r.parents[1].rule.canLeave && n - a > 0) continue;
+      out.push({ a: a, b: n - a, total: r.total, together: r.together });
+    }
+    out.sort(function (x, y) { return y.total - x.total || Math.abs(x.a - x.b) - Math.abs(y.a - y.b); });
+    return out;
+  }
+
   /* ---------- 표시 ---------- */
   function man(won) {           // 105000 → '10.5만', 20000000 → '2,000만'
     var v = won / 10000;
@@ -192,7 +266,7 @@
   }
 
   var Money = {
-    DATA: DATA, calc: calc, todos: todos, regionClass: regionClass,
+    DATA: DATA, calc: calc, todos: todos, regionClass: regionClass, leave: leave, leaveSplits: leaveSplits,
     allowAgeLimit: allowAgeLimit, man: man,
     parseDate: parseDate, monthIdx: monthIdx, idxYear: idxYear, idxMonth: idxMonth,
     fmtDate: fmtDate, addDays: addDays, daysBetween: daysBetween

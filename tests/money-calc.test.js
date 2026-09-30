@@ -136,3 +136,83 @@ test('지역별 아동수당 월액: 10만 / 10.5만 / 11만 / 12만, 상품권 
   assert.equal(at('전남광주통합특별시', '신안군', true), 130000);
   assert.equal(at('제주특별자치도', '제주시', true), 105000); // 상품권 추가는 인구감소지역만
 });
+
+// ---------- 육아휴직 급여 (고용보험법 시행령 제95조·제95조의3) ----------
+const ei = (wage, months, startK = 3) => ({ job: 'ei', wage: wage * MAN, months, startK });
+const leaveTotal = plan => M.leave(plan).total / MAN;
+
+test('혼자 12개월, 월급 300만: 250×3 + 200×3 + 160×6 = 2,310만', () => {
+  const r = M.leave({ single: false, parents: [ei(300, 12), ei(300, 0)] });
+  assert.deepEqual(r.parents[0].monthly.map(v => v / MAN), [250, 250, 250, 200, 200, 200, 160, 160, 160, 160, 160, 160]);
+  assert.equal(r.total / MAN, 2310);
+  assert.equal(r.together, false);
+});
+
+test('정부 예시: 부부가 18개월 안에 각각 1년 → 각각 2,960만, 합계 5,920만', () => {
+  assert.equal(leaveTotal({ parents: [ei(500, 12), ei(500, 12, 9)] }), 5920);
+});
+
+test('6+6: 둘 다 6개월, 월급이 높으면 각각 250·250·300·350·400·450', () => {
+  const r = M.leave({ parents: [ei(600, 6), ei(600, 6, 9)] });
+  assert.equal(r.together, true);
+  assert.deepEqual(r.parents[1].monthly.map(v => v / MAN), [250, 250, 300, 350, 400, 450]);
+  assert.equal(r.total / MAN, 4000);
+});
+
+test('6+6은 공통 개월만: 4개월 + 5개월이면 4개월까지 특례, 5개월째는 일반(상한 200만)', () => {
+  const r = M.leave({ parents: [ei(500, 4), ei(500, 5, 6)] });
+  assert.equal(r.common, 4);
+  assert.deepEqual(r.parents[0].monthly.map(v => v / MAN), [250, 250, 300, 350]);
+  assert.deepEqual(r.parents[1].monthly.map(v => v / MAN), [250, 250, 300, 350, 200]);
+});
+
+test('통상임금이 상한보다 낮으면 월급만큼, 70만 원보다 낮으면 70만 원', () => {
+  const r = M.leave({ parents: [ei(320, 6), ei(50, 6, 9)] });
+  assert.deepEqual(r.parents[0].monthly.map(v => v / MAN), [250, 250, 300, 320, 320, 320]);
+  assert.deepEqual(r.parents[1].monthly.map(v => v / MAN), [70, 70, 70, 70, 70, 70]);
+});
+
+test('아이 18개월이 지나 시작하면 6+6 없음', () => {
+  const r = M.leave({ parents: [ei(500, 6), ei(500, 6, 18)] });
+  assert.equal(r.together, false);
+  assert.equal(r.inWindow, false);
+  assert.equal(r.total / MAN, 2 * (250 * 3 + 200 * 3));
+});
+
+test('기간: 둘 다 3개월 이상이면 한 사람 18개월까지, 아니면 12개월에서 자름', () => {
+  const long = M.leave({ parents: [ei(300, 18), ei(300, 3, 9)] });
+  assert.equal(long.maxMonths, 18);
+  assert.equal(long.parents[0].months, 18);
+  const short = M.leave({ parents: [ei(300, 18), ei(300, 2, 9)] });
+  assert.equal(short.maxMonths, 12);
+  assert.equal(short.parents[0].months, 12);
+  assert.equal(short.parents[0].over, true);
+});
+
+test('한부모 12개월, 월급 400만: 300×3 + 200×3 + 160×6 = 2,460만', () => {
+  assert.equal(leaveTotal({ single: true, parents: [ei(400, 12), ei(0, 0)] }), 2460);
+});
+
+test('자영업·일하지 않음은 육아휴직 급여 0, 6+6도 없음', () => {
+  const r = M.leave({ parents: [ei(400, 6), { job: 'self', wage: 300 * MAN, months: 6, startK: 3 }] });
+  assert.equal(r.parents[1].total, 0);
+  assert.equal(r.together, false);
+});
+
+test('나누는 방법 비교: 엄마 300만·아빠 500만, 합쳐 12개월이면 6+6이 1위 (3,700만)', () => {
+  const sp = M.leaveSplits({ parents: [ei(300, 12), ei(500, 0, 9)] }, 12);
+  assert.equal(sp[0].a, 6);
+  assert.equal(sp[0].b, 6);
+  assert.equal(sp[0].total / MAN, 1700 + 2000);
+  const alone = sp.find(x => x.a === 12);
+  assert.equal(alone.total / MAN, 2310);
+});
+
+test('총액에 넣으면 앞으로 받을 돈에 더해짐 (지난달 휴직분은 빼고)', () => {
+  const leave = { include: true, parents: [ei(600, 6, 0), ei(600, 6, 0)] };
+  const r = M.calc({ ...base, date: '2026-09-15', leave }, '2026-09-30');
+  assert.equal(r.totals.leave, 4000 * MAN);
+  assert.equal(r.total, (3680 + 4000) * MAN);
+  const off = M.calc({ ...base, date: '2026-09-15', leave: { ...leave, include: false } }, '2026-09-30');
+  assert.equal(off.totals.leave, undefined);
+});

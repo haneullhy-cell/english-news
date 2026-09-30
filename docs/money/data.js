@@ -26,6 +26,11 @@
     lawTax:        { label: '소득세법 제59조의2', url: 'https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=280405' },
     mohwMomBaby:   { label: '2026 산모·신생아 건강관리 사업안내', url: 'https://www.mohw.go.kr/board.es?mid=a10409020000&bid=0026&list_no=1488490&act=view' },
     bojo24:        { label: '정부24 혜택알리미(보조금24)', url: 'https://plus.gov.kr/portal/benefitV2/' },
+    eiDecree:      { label: '고용보험법 시행령 제95조·제95조의3', url: 'https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=288717&efYd=20260918' },
+    equalAct:      { label: '남녀고용평등법 제19조', url: 'https://www.law.go.kr/법령/남녀고용평등과일ㆍ가정양립지원에관한법률' },
+    moel66:        { label: '고용노동부 6+6 부모육아휴직제 Q&A', url: 'https://www.moel.go.kr/policy/policydata/view.do?bbs_seq=20240102052' },
+    gov24Leave:    { label: '정부24 육아휴직 급여', url: 'https://www.gov.kr/portal/rcvfvrSvc/dtlEx/999000000008' },
+    eiAct:         { label: '고용보험법 제70조', url: 'https://www.law.go.kr/법령/고용보험법' },
     regionNotice:  { label: '아동수당 추가지급 대상지역 고시', url: 'https://www.law.go.kr/LSW/admRulInfoP.do?admRulSeq=2100000276802' },
     lawJeonnamGwangju: { label: '전남광주통합특별시 설치법', url: 'https://www.law.go.kr/법령/전남광주통합특별시설치를위한특별법' }
   };
@@ -53,6 +58,26 @@
       nonmetro:     { cash: 105000 },
       depopPref:    { cash: 110000, local: 120000 },
       depopSpecial: { cash: 120000, local: 130000 }
+    }
+  };
+
+  // 육아휴직 급여
+  // 고용보험: 고용보험법 시행령 제95조①(일반), 제95조의3①(부모 함께 = 6+6), 제95조의3③(한부모) [시행 2026.9.18]
+  // 기간: 남녀고용평등법 제19조② – 1년, 부모가 각각 3개월 이상 쓰거나 한부모면 6개월 더
+  D.leave = {
+    baseMonths: 12, extendMonths: 6, extendNeedEach: 3,
+    sixsix: { windowMonths: 18, maxMonths: 6 },   // 아이 18개월 전에 둘 다 시작 (고용노동부 6+6 Q&A)
+    jobOrder: ['ei', 'self', 'none'],
+    jobs: {
+      ei: {
+        label: '회사원', canLeave: true, countsSpouse: true, floor: 700000,
+        bands: [{ upTo: 3, rate: 1, cap: 2500000 }, { upTo: 6, rate: 1, cap: 2000000 }, { upTo: 999, rate: 0.8, cap: 1600000 }],
+        singleBands: [{ upTo: 3, rate: 1, cap: 3000000 }, { upTo: 6, rate: 1, cap: 2000000 }, { upTo: 999, rate: 0.8, cap: 1600000 }],
+        sixsix: { rate: 1, caps: [2500000, 2500000, 3000000, 3500000, 4000000, 4500000] },
+        wageLabel: '고용보험 · 월 통상임금', src: ['eiDecree', 'equalAct', 'moel66', 'gov24Leave']
+      },
+      self: { label: '자영업·프리랜서', canLeave: false, note: '고용보험 육아휴직 급여 대상이 아니에요.' },
+      none: { label: '일 안 해요', canLeave: false, note: '' }
     }
   };
 
@@ -97,7 +122,23 @@
     }
   };
 
-  // 할 일: when = 'pregnant'(태어나기 전만) | 'early'(태어나기 전 ~ 생후 90일) | 'under3'(3살 전) | 'birthYear'(태어난 해까지) | 'always'
+  D.info.leave = {
+    name: '육아휴직 급여', short: '',
+    what: '회사원(고용보험)은 휴직 1~3개월 통상임금 100%(월 250만 원까지), 4~6개월 100%(월 200만 원까지), 7개월부터 80%(월 160만 원까지)를 받아요. 최소 월 70만 원이에요. 아이가 18개월이 되기 전에 부모가 모두 휴직을 시작하면(같이 써도, 차례로 써도 돼요), 둘이 같이 쓴 처음 6개월은 상한이 월 250·250·300·350·400·450만 원으로 올라가요. 한부모는 1~3개월 상한이 월 300만 원이에요.',
+    who: '고용보험에 180일 이상 가입한 근로자 (30일 이상 휴직)',
+    how: '휴직을 시작하고 1개월 뒤부터 고용24에서 매월 신청해요.',
+    src: ['eiDecree', 'equalAct', 'moel66', 'gov24Leave']
+  };
+  D.leaveNotes = [
+    '월급은 <b>휴직을 시작하는 날 기준 월 통상임금</b>으로 계산해요. 성과급처럼 매달 고정이 아닌 돈은 빼요.',
+    '휴직 중에 회사에서 돈을 받아서 급여와 합한 금액이 통상임금보다 많으면, 넘는 만큼 급여에서 빼요.',
+    '한 달이 안 되는 기간은 쉰 날수만큼 나눠서 줘요. 이 계산은 달 단위로만 했어요.',
+    '육아휴직은 한 사람당 1년이고, 부모가 각각 3개월 이상 쓰거나 한부모면 6개월 더 쓸 수 있어요. 3번까지 나눠 쓸 수 있어요.',
+    '신청은 휴직 시작 1개월 뒤부터 해요. 법에는 휴직이 끝나고 12개월 안이라고 되어 있지만, 시행규칙은 매달 다음 달 말일까지 신청하라고 해요. 매달 챙기는 게 안전해요.',
+    '<b>공무원·교직원·군인</b>은 고용보험이 아니라 따로 정한 육아휴직수당을 받아요. 공식 자료로 확인한 뒤 추가할게요.'
+  ];
+
+  // 할 일: when = 'pregnant'(태어나기 전만) | 'early'(태어나기 전 ~ 생후 90일) | 'under3'(3살 전) | 'birthYear'(태어난 해까지) | 'leave'(휴직 계획이 있을 때) | 'always'
   D.todos = [
     { id: 'preg-voucher', when: 'pregnant', first: true, title: '임신·출산 진료비(국민행복카드) 신청',
       body: '병원에서 임신확인서를 받아 신청하면 100만 원(다태아 140만 원 이상)을 진료비로 써요.', src: ['gov24Preg'] },
@@ -111,6 +152,8 @@
       body: '태어난 날부터 3년이 안 된 아이가 있는 집은 주택용 전기요금을 30% 깎아 줘요 (월 1만 6천 원까지). 한전ON, 123 전화, 주민센터, 행복출산 원스톱에서 신청해요.', src: ['gov24Elec'] },
     { id: 'first-meet-use', when: 'always', dueMonths: 24, dueAdjDays: -1, title: '첫만남이용권 기한 안에 다 쓰기',
       body: '태어난 날부터 2년 안에 써야 해요. 남은 금액이 있으면 없어져요.', src: ['gov24First'] },
+    { id: 'leave-apply', when: 'leave', title: '육아휴직 급여 매달 신청하기',
+      body: '휴직을 시작하고 1개월이 지나면 고용24에서 신청해요. 시행규칙은 매달 다음 달 말일까지 신청하라고 하니 매달 챙겨요.', src: ['eiAct', 'gov24Leave'] },
     { id: 'tax-birth', when: 'birthYear', title: '연말정산 때 출산 세액공제 챙기기',
       body: '아이가 태어난 해의 연말정산(다음 해 1~2월)에 첫째 30만 원, 둘째 50만 원, 셋째 이상 70만 원을 세금에서 빼 줘요.', src: ['lawTax'] }
   ];

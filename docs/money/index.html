@@ -15,7 +15,7 @@
   --hero-a:#237a66; --hero-b:#175b4c; --hero-ink:#fff;
   --gold:#b87a0c; --gold-soft:#fbefd3;
   --warn:#b5670a; --warn-soft:#fdeed3; --bad:#c9463a; --bad-soft:#fbe3df;
-  --c-parentPay:#3b7ddd; --c-childAllow:#27a274; --c-homeCare:#e97c2a; --c-firstMeet:#c24f8f; --c-pregVoucher:#8a63d2;
+  --c-parentPay:#3b7ddd; --c-childAllow:#27a274; --c-homeCare:#e97c2a; --c-firstMeet:#c24f8f; --c-pregVoucher:#8a63d2; --c-leave:#0f8b8d;
   --shadow:0 1px 2px rgba(74,58,32,.05),0 12px 26px -16px rgba(74,58,32,.28);
   --shadow-nav:0 -2px 6px rgba(74,58,32,.04),0 14px 34px -12px rgba(74,58,32,.4);
   --radius:20px; --radius-s:14px;
@@ -29,7 +29,7 @@
   --hero-a:#1d5f50; --hero-b:#123f35; --hero-ink:#fff;
   --gold:#e8b44a; --gold-soft:#3a2f18;
   --warn:#eaa54a; --warn-soft:#3a2c15; --bad:#f07a6e; --bad-soft:#3d201c;
-  --c-parentPay:#6fa2ee; --c-childAllow:#4cc497; --c-homeCare:#f29a55; --c-firstMeet:#e07ab2; --c-pregVoucher:#a88ae6;
+  --c-parentPay:#6fa2ee; --c-childAllow:#4cc497; --c-homeCare:#f29a55; --c-firstMeet:#e07ab2; --c-pregVoucher:#a88ae6; --c-leave:#3cc0c2;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 26px -16px rgba(0,0,0,.6);
   --shadow-nav:0 14px 34px -12px rgba(0,0,0,.7);
 }}
@@ -128,6 +128,27 @@ details.ex dd{margin:1px 0 0}
 .note{background:var(--gold-soft);border-radius:var(--radius-s);padding:12px 14px;font-size:13.5px;color:var(--ink-2)}
 .note b{color:var(--ink)}
 
+/* ----- 휴직 ----- */
+.pblk{border:1px solid var(--line-soft);border-radius:var(--radius-s);padding:12px;margin-top:12px;background:var(--surface-2)}
+.pname{font-weight:800;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
+.pname span{font-weight:500;font-size:12.5px;color:var(--ink-3)}
+.pblk .row2+.row2{margin-top:8px}
+.pblk .field{font-size:15px;padding:10px}
+.unit{position:relative}.unit .field{padding-right:46px}.unit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:14px;pointer-events:none}
+.unit input::-webkit-outer-spin-button,.unit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.unit input{-moz-appearance:textfield}
+.chk{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px;margin-top:10px;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--accent);margin:0}
+.lv-big{font-family:var(--display);font-size:30px;color:var(--accent-deep);margin:2px 0 8px}
+.lv-p{padding:10px 0;border-top:1px solid var(--line-soft)}
+.lv-p b{font-size:15px}
+.badge{display:block;border-radius:12px;padding:10px 12px;font-size:13.5px;margin:10px 0 0}
+.badge.good{background:var(--accent-soft);color:var(--accent-deep)}
+.badge.warn{background:var(--warn-soft);color:var(--warn)}
+.split{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line-soft);font-size:14.5px}
+.split:first-of-type{border-top:0}
+.split .d{font-weight:800;white-space:nowrap}
+.split.cur{color:var(--ink-3)}
+.split .plus{color:var(--accent-deep);font-size:12.5px;display:block;text-align:right}
 /* ----- 하단 탭 ----- */
 .bnav{position:fixed;left:50%;transform:translateX(-50%);width:min(100% - 24px,420px);bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;justify-content:space-around;gap:4px;background:var(--surface);border:1px solid var(--line-soft);border-radius:28px;padding:6px 8px;box-shadow:var(--shadow-nav)}
 .bnav button{flex:1 1 0;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 2px;font-size:11.5px;font-weight:700;color:var(--ink-3);cursor:pointer;border-radius:12px}
@@ -214,6 +235,19 @@ details.ex dd{margin:1px 0 0}
     <div class="card"><h3>제도 설명과 출처</h3><div id="exList"></div></div>
   </section>
 
+  <!-- 휴직 -->
+  <section id="tab-leave" hidden>
+    <div class="card"><h3>육아휴직 급여 계산</h3>
+      <p class="small" style="margin:0">부모가 각자 몇 달, 언제 쉬는지 넣어 보세요. 월급은 세금 떼기 전 <b>월 통상임금</b>(기본급과 매달 고정으로 받는 수당)을 만 원 단위로 넣어요.</p>
+      <label class="chk"><input type="checkbox" id="lvSingle"> 혼자 키워요 (한부모)</label>
+      <div id="lvParents"></div>
+      <label class="chk"><input type="checkbox" id="lvInclude"> 홈 총액에 넣기</label>
+    </div>
+    <div class="card" id="lvResult"></div>
+    <div class="card" id="lvBest" hidden></div>
+    <div class="card"><h3>알아둘 것</h3><ul class="miss small" id="lvNotes"></ul></div>
+  </section>
+
   <!-- 할 일 -->
   <section id="tab-todo" hidden>
     <div class="card"><h3>신청하고 챙길 것</h3><ul class="todo" id="todoList"></ul></div>
@@ -226,6 +260,7 @@ details.ex dd{margin:1px 0 0}
 <nav class="bnav" id="bnav" hidden>
   <button data-tab="home" aria-pressed="true"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/></svg></span>홈</button>
   <button data-tab="time" aria-pressed="false"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 4v16M6 7h11M6 12h8M6 17h12"/></svg></span>타임라인</button>
+  <button data-tab="leave" aria-pressed="false"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></span>휴직</button>
   <button data-tab="todo" aria-pressed="false"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12.5l2.6 2.6L16 9.6"/></svg></span>할 일</button>
 </nav>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -245,6 +280,7 @@ function load(){
   if (!d || typeof d !== 'object') d = {};
   d.checks = d.checks || {};
   d.tab = d.tab || 'home';
+  if (!d.leave || !Array.isArray(d.leave.parents) || d.leave.parents.length !== 2) d.leave = defaultLeave();
   return d;
 }
 function save(){ try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e) {} }
@@ -310,7 +346,7 @@ function openSetup(){
   } else fillSgg();
   syncDateLabel(); showLocal();
   $('setup').hidden = false;
-  ['tab-home','tab-time','tab-todo'].forEach(function(id){ $(id).hidden = true; });
+  ['tab-home','tab-time','tab-leave','tab-todo'].forEach(function(id){ $(id).hidden = true; });
   $('bnav').hidden = true; $('editBtn').hidden = !S.p;
   $('editBtn').textContent = '닫기';
   window.scrollTo(0, 0);
@@ -342,7 +378,7 @@ function submit(e){
 
 /* ---------- 그리기 ---------- */
 function render(){
-  var p = S.p, today = todayStr(), r = M.calc(p, today);
+  var p = S.p, today = todayStr(), r = M.calc(full(), today);
   if (!r) { openSetup(); return; }
   var name = p.name;
 
@@ -366,7 +402,7 @@ function render(){
   } else nc.hidden = true;
 
   // 항목별
-  var ids = ['pregVoucher', 'firstMeet', 'parentPay', 'homeCare', 'childAllow'];
+  var ids = ['pregVoucher', 'firstMeet', 'parentPay', 'homeCare', 'childAllow', 'leave'];
   var max = 0; ids.forEach(function(id){ max = Math.max(max, r.totals[id] || 0); });
   var h = '';
   ids.forEach(function(id){
@@ -375,6 +411,7 @@ function render(){
     if (!amt && !once) return;
     var sub = inf.short || '';
     if (once && !once.upcoming) { h += '<li class="done"><div class="l1"><i class="dot" style="background:var(--c-' + id + ')"></i><span class="nm">' + esc(inf.name) + '</span><span class="amt">' + esc(won(once.amount)) + '</span></div><div class="sub">출생 때 한 번 · 이미 받았을 거예요 (합계에서 뺐어요)</div></li>'; return; }
+    if (id === 'leave' && r.leave) sub = r.leave.parents.map(function(q, j){ return q.months ? (S.leave.single ? '나' : PNAMES[j]) + ' ' + q.months + '개월' : ''; }).filter(Boolean).join(' + ') + (r.leave.together ? ' · 부모 함께 쓰는 특례' : '') + ' · 휴직 탭에서 바꿔요';
     if (id === 'childAllow') sub = '월 ' + won(r.allowMonthly) + ' · ' + ym(lastMonth(r, 'childAllow')) + '까지';
     if (id === 'homeCare' && p.careAt !== null) sub += ' · ' + p.careAt + '개월에 기관에 가면 멈춰요';
     if (id === 'parentPay' && p.careAt !== null && p.careAt < 24) sub += ' · 어린이집 다니는 달은 일부가 보육료로 나가요';
@@ -384,7 +421,7 @@ function render(){
   $('brk').innerHTML = h;
 
   // 다음 할 일
-  var tds = M.todos(p, today).filter(function(t){ return !S.checks[t.id]; });
+  var tds = M.todos(full(), today).filter(function(t){ return !S.checks[t.id]; });
   tds.sort(sortTodo);
   var nx = tds.slice(0, 2);
   $('nextTodo').innerHTML = '<h3>먼저 챙길 일</h3>' + (nx.length ? '<ul class="todo">' + nx.map(todoLi).join('') + '</ul>' : '<p class="small">지금 챙길 일은 다 했어요 👍</p>');
@@ -416,10 +453,11 @@ function render(){
   }).join('');
 
   // 할 일 전체
-  var all = M.todos(p, today); all.sort(sortTodo);
+  var all = M.todos(full(), today); all.sort(sortTodo);
   $('todoList').innerHTML = all.map(todoLi).join('') || '<li class="small">챙길 일이 없어요.</li>';
   bindTodo($('todoList'));
 
+  renderLeave();
   $('about').innerHTML = D.about;
   $('foot').innerHTML = D.footer;
 }
@@ -454,13 +492,119 @@ function bindTodo(root){
   });
 }
 
+/* ---------- 휴직 ---------- */
+var PNAMES = ['엄마', '아빠'];
+function defaultLeave(){
+  return { single: false, include: true, parents: [
+    { job: 'ei', wage: '', months: 12, startK: 3 },
+    { job: 'ei', wage: '', months: 0, startK: 3 } ] };
+}
+function full(){ var o = {}; for (var k in S.p) o[k] = S.p[k]; o.leave = planWon(S.leave); return o; }
+function buildLeaveForm(){
+  var L = D.leave, h = '';
+  var jobOpts = L.jobOrder.map(function(j){ return '<option value="' + j + '">' + esc(L.jobs[j].label) + '</option>'; }).join('');
+  var mOpts = '<option value="0">안 쉬어요</option>'; for (var m = 1; m <= L.baseMonths + L.extendMonths; m++) mOpts += '<option value="' + m + '">' + m + '개월 쉼</option>';
+  var kOpts = '<option value="0">태어나자마자</option>'; for (var k = 1; k <= 36; k++) kOpts += '<option value="' + k + '">아이 ' + k + '개월 때</option>';
+  [0, 1].forEach(function(j){
+    h += '<div class="pblk" id="pb' + j + '"><div class="pname"><b id="pn' + j + '"></b><span id="pd' + j + '"></span></div>' +
+      '<div class="row2"><select class="field" id="lvJob' + j + '" aria-label="직업">' + jobOpts + '</select>' +
+      '<div class="unit"><input class="field" id="lvWage' + j + '" type="number" inputmode="numeric" min="0" step="1" placeholder="월급" aria-label="월 통상임금 (만 원)"><span>만 원</span></div></div>' +
+      '<div class="row2"><select class="field" id="lvMonths' + j + '" aria-label="쉬는 기간">' + mOpts + '</select>' +
+      '<select class="field" id="lvStart' + j + '" aria-label="언제 시작">' + kOpts + '</select></div></div>';
+  });
+  $('lvParents').innerHTML = h;
+  [0, 1].forEach(function(j){ ['lvJob','lvWage','lvMonths','lvStart'].forEach(function(id){ $(id + j).addEventListener(id === 'lvWage' ? 'input' : 'change', readLeaveForm); }); });
+  $('lvSingle').addEventListener('change', readLeaveForm);
+  $('lvInclude').addEventListener('change', readLeaveForm);
+}
+function fillLeaveForm(){
+  var lv = S.leave;
+  $('lvSingle').checked = !!lv.single; $('lvInclude').checked = !!lv.include;
+  [0, 1].forEach(function(j){
+    var q = lv.parents[j];
+    $('lvJob' + j).value = q.job; $('lvWage' + j).value = q.wage === '' ? '' : q.wage;
+    $('lvMonths' + j).value = String(q.months); $('lvStart' + j).value = String(q.startK);
+  });
+}
+function readLeaveForm(){
+  var lv = S.leave;
+  lv.single = $('lvSingle').checked; lv.include = $('lvInclude').checked;
+  [0, 1].forEach(function(j){
+    var w = $('lvWage' + j).value.trim();
+    lv.parents[j] = { job: $('lvJob' + j).value, wage: w === '' ? '' : Math.max(0, Math.round(+w)), months: +$('lvMonths' + j).value, startK: +$('lvStart' + j).value };
+  });
+  save(); render();
+}
+function planWon(lv){
+  return { single: lv.single, include: lv.include, parents: lv.parents.map(function(q){ return { job: q.job, wage: (+q.wage || 0) * 10000, months: q.months, startK: q.startK }; }) };
+}
+function bandsText(monthly){
+  var out = [], j = 0;
+  while (j < monthly.length) {
+    var k = j; while (k + 1 < monthly.length && monthly[k + 1] === monthly[j]) k++;
+    out.push((j === k ? (j + 1) : (j + 1) + '~' + (k + 1)) + '개월 ' + M.man(monthly[j]));
+    j = k + 1;
+  }
+  return out.join(' · ');
+}
+function renderLeave(){
+  var L = D.leave, lv = S.leave, plan = planWon(lv), r = M.leave(plan), p = S.p;
+  var names = lv.single ? ['나'] : PNAMES;
+  $('pb1').hidden = !!lv.single;
+  [0, 1].forEach(function(j){
+    $('pn' + j).textContent = names[j] || '';
+    var rule = L.jobs[lv.parents[j].job];
+    var dis = !rule.canLeave;
+    ['lvWage','lvMonths','lvStart'].forEach(function(id){ $(id + j).disabled = dis; });
+    $('pd' + j).textContent = dis ? (rule.note || '') : (rule.wageLabel || '');
+  });
+  var b = M.parseDate(p.date);
+  function dateAtK(k, adj){ var d = M.addDays(M.parseDate(M.fmtDate(addMonths(b, k))), adj || 0); return M.fmtDate(d).replace(/-/g, '.'); }
+
+  // 결과
+  var h = '<h3>이렇게 쉬면 받는 급여</h3>';
+  var need = r.parents.some(function(q){ return q.rule.canLeave && q.months > 0 && !q.wage; });
+  if (need) h += '<p class="small">쉬는 사람의 월급(만 원)을 넣으면 계산해요.</p>';
+  h += '<div class="lv-big">' + (r.total ? '약 ' + esc(M.man(r.total)) + ' 원' : '0원') + '</div>';
+  r.parents.forEach(function(q, j){
+    if (!q.rule.canLeave) { h += '<div class="lv-p"><b>' + esc(names[j]) + '</b> · ' + esc(q.rule.note || '육아휴직 급여 없음') + '</div>'; return; }
+    if (!q.months) { h += '<div class="lv-p"><b>' + esc(names[j]) + '</b> · 쉬지 않아요</div>'; return; }
+    h += '<div class="lv-p"><b>' + esc(names[j]) + ' ' + q.months + '개월 · ' + esc(M.man(q.total)) + ' 원</b><div class="small">' + esc(bandsText(q.monthly)) + '</div>' +
+      (b ? '<div class="muted">' + esc(dateAtK(q.startK).slice(0, 7)) + '부터 ' + esc(dateAtK(q.startK + q.months - 1).slice(0, 7)) + '까지</div>' : '') + '</div>';
+  });
+  r.parents.forEach(function(q, j){ if (q.over) h += '<span class="badge warn">' + esc(names[j]) + '는 최대 ' + r.maxMonths + '개월까지만 계산했어요. 부모가 각각 3개월 이상 쓰거나 한부모면 1년 6개월까지 쓸 수 있어요.</span>'; });
+  if (r.together) h += '<span class="badge good">✓ 부모가 함께 쓰는 특례(6+6)를 받아요. 둘이 같이 쓴 처음 ' + r.common + '개월은 상한이 월 250만 원에서 450만 원까지 올라가요.</span>';
+  else if (r.both && !r.inWindow) h += '<span class="badge warn">아이가 18개월이 되기 전에 두 사람 모두 휴직을 시작해야 특례(6+6)를 받아요' + (b ? ' (' + esc(dateAtK(18, -1)) + '까지 시작)' : '') + '.</span>';
+  else if (!lv.single && r.parents.length === 2 && r.parents.every(function(q){ return q.rule.canLeave; }) && !r.both) h += '<span class="badge warn">두 사람이 모두 쉬면(아이 18개월 전에 시작) 처음 6개월 급여가 크게 올라가요. 아래 비교를 보세요.</span>';
+  if (r.both && r.maxMonths > L.baseMonths) h += '<span class="badge good">부모가 각각 3개월 이상 써서 한 사람당 최대 1년 6개월까지 쓸 수 있어요.</span>';
+  $('lvResult').innerHTML = h;
+
+  // 나누는 방법 비교
+  var n = r.parents.reduce(function(a, q){ return a + (q.months || 0); }, 0), best = $('lvBest');
+  var canBoth = !lv.single && plan.parents.every(function(q){ return D.leave.jobs[q.job].canLeave; });
+  var wagesIn = plan.parents.every(function(q){ return q.wage > 0; });
+  if (canBoth && n > 0 && wagesIn) {
+    var sp = M.leaveSplits(plan, n), cur = r.total, list = sp.slice(0, 3);
+    var here = sp.filter(function(x){ return x.a === r.parents[0].months && x.b === r.parents[1].months; })[0];
+    if (here && list.indexOf(here) < 0) list.push(here);
+    best.innerHTML = '<h3>부부가 합쳐 ' + n + '개월 쉰다면</h3>' + list.map(function(x){
+      var isCur = here && x === here, diff = x.total - cur;
+      return '<div class="split' + (isCur ? ' cur' : '') + '"><span>엄마 ' + x.a + '개월 + 아빠 ' + x.b + '개월' + (isCur ? ' (지금 계획)' : '') + '</span><span class="d">' + esc(M.man(x.total)) + ' 원' + (diff > 0 ? '<span class="plus">+' + esc(M.man(diff)) + '</span>' : '') + '</span></div>';
+    }).join('') + '<p class="muted" style="margin:8px 0 0">두 사람 다 아이 18개월 전에 시작한다고 보고 나라에서 받는 급여만 비교했어요. 쉬는 동안 줄어드는 월급은 따로 생각해야 해요.</p>';
+    best.hidden = false;
+  } else best.hidden = true;
+
+  $('lvNotes').innerHTML = D.leaveNotes.map(function(x){ return '<li>' + x + '</li>'; }).join('');
+}
+function addMonths(dt, n){ var i = M.monthIdx(dt) + n, y = M.idxYear(i), m = M.idxMonth(i); var last = new Date(Date.UTC(y, m, 0)).getUTCDate(); return { y: y, m: m, d: Math.min(dt.d, last) }; }
+
 /* ---------- 탭 ---------- */
 function show(tab){
   if (!S.p) { openSetup(); return; }
   S.tab = tab; save();
   $('setup').hidden = true; $('bnav').hidden = false;
   $('editBtn').hidden = false; $('editBtn').textContent = '정보 바꾸기';
-  ['home','time','todo'].forEach(function(t){ $('tab-' + t).hidden = t !== tab; });
+  ['home','time','leave','todo'].forEach(function(t){ $('tab-' + t).hidden = t !== tab; });
   document.querySelectorAll('#bnav button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.tab === tab ? 'true' : 'false'); });
   render();
   window.scrollTo(0, 0);
@@ -468,7 +612,7 @@ function show(tab){
 
 /* ---------- 공유 ---------- */
 function share(){
-  var r = M.calc(S.p, todayStr());
+  var r = M.calc(full(), todayStr());
   var text = (r.born ? '우리 아이가 앞으로 받을 돈 ' : '우리 아이가 태어나면 받을 돈 ') + '약 ' + M.man(r.total) + ' 원! 우리 아이는 얼마 받을까?';
   var url = location.href.split('#')[0].split('?')[0];
   if (navigator.share) { navigator.share({ title: '받을돈', text: text, url: url }).catch(function(){}); return; }
@@ -478,6 +622,7 @@ function share(){
 }
 
 /* ---------- 시작 ---------- */
+buildLeaveForm(); fillLeaveForm();
 $('form').addEventListener('submit', submit);
 $('fSido').addEventListener('change', fillSgg);
 $('fSgg').addEventListener('change', showLocal);
