@@ -1,0 +1,495 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>받을돈 – 우리 아이 받을 돈 계산기</title>
+<meta name="description" content="생일(또는 출산 예정일)과 사는 곳만 넣으면 부모급여·아동수당·첫만남이용권 등 우리 아이가 앞으로 받을 돈과 신청 마감일을 알려 줘요.">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="받을돈">
+<meta name="theme-color" content="#f7f3ea" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#151412" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<style>
+@font-face{font-family:"Cafe24Ssurround";font-weight:400 800;font-display:swap;src:url(fonts/Cafe24Ssurround.woff) format("woff")}
+[hidden]{display:none!important}
+:root{
+  --bg:#f7f3ea; --surface:#ffffff; --surface-2:#f2ecdf; --line:#e5dccb; --line-soft:#eee7da;
+  --ink:#28231c; --ink-2:#5f5649; --ink-3:#948877;
+  --accent:#1d6b5a; --accent-ink:#fff; --accent-soft:#dcefe8; --accent-deep:#134c40;
+  --hero-a:#237a66; --hero-b:#175b4c; --hero-ink:#fff;
+  --gold:#b87a0c; --gold-soft:#fbefd3;
+  --warn:#b5670a; --warn-soft:#fdeed3; --bad:#c9463a; --bad-soft:#fbe3df;
+  --c-parentPay:#3b7ddd; --c-childAllow:#27a274; --c-homeCare:#e97c2a; --c-firstMeet:#c24f8f; --c-pregVoucher:#8a63d2;
+  --shadow:0 1px 2px rgba(74,58,32,.05),0 12px 26px -16px rgba(74,58,32,.28);
+  --shadow-nav:0 -2px 6px rgba(74,58,32,.04),0 14px 34px -12px rgba(74,58,32,.4);
+  --radius:20px; --radius-s:14px;
+  --display:"Cafe24Ssurround","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#151412; --surface:#1f1d1a; --surface-2:#282521; --line:#37332d; --line-soft:#2e2b26;
+  --ink:#f1ebe0; --ink-2:#c3b9aa; --ink-3:#8f8577;
+  --accent:#4cb89a; --accent-ink:#0d2a22; --accent-soft:#1d352e; --accent-deep:#7fd4bb;
+  --hero-a:#1d5f50; --hero-b:#123f35; --hero-ink:#fff;
+  --gold:#e8b44a; --gold-soft:#3a2f18;
+  --warn:#eaa54a; --warn-soft:#3a2c15; --bad:#f07a6e; --bad-soft:#3d201c;
+  --c-parentPay:#6fa2ee; --c-childAllow:#4cc497; --c-homeCare:#f29a55; --c-firstMeet:#e07ab2; --c-pregVoucher:#a88ae6;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 26px -16px rgba(0,0,0,.6);
+  --shadow-nav:0 14px 34px -12px rgba(0,0,0,.7);
+}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px calc(110px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top,0px)) 2px 10px}
+.logo{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
+.logo i{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-style:normal;font-size:17px}
+.ghost{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:600;color:var(--ink-2);cursor:pointer}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin:14px 0}
+.card h3{margin:0 0 12px;font-size:16.5px;font-weight:800;letter-spacing:-.2px}
+.muted{color:var(--ink-3);font-size:13.5px}
+.small{font-size:13px;color:var(--ink-2)}
+
+/* ----- 시작 질문 ----- */
+.intro{padding:6px 2px 2px}
+.intro h1{font-family:var(--display);font-size:25px;line-height:1.35;margin:6px 0 6px;letter-spacing:-.4px}
+.intro p{margin:0;color:var(--ink-2)}
+.q{margin:18px 0 0}
+.q>label,.q>.ql{display:block;font-weight:700;font-size:14.5px;margin-bottom:8px}
+.q .hint{font-weight:400;color:var(--ink-3);font-size:12.5px;margin-left:4px}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{flex:1 1 auto;text-align:center;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;font-weight:600;font-size:14.5px;color:var(--ink-2);min-width:80px}
+.seg input:checked+label{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-deep)}
+.seg input:focus-visible+label{outline:2px solid var(--accent);outline-offset:2px}
+.field{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px}
+.field:focus{outline:none;border-color:var(--accent)}
+.row2{display:flex;gap:8px}.row2>*{flex:1 1 0;min-width:0}
+.cta{display:block;width:100%;margin:22px 0 4px;padding:15px;border:0;border-radius:16px;background:var(--accent);color:var(--accent-ink);font-weight:800;font-size:16.5px;cursor:pointer;box-shadow:0 10px 20px -12px var(--accent)}
+.err{color:var(--bad);font-size:13.5px;margin-top:8px;min-height:1em}
+
+/* ----- 홈 ----- */
+.hero{background:linear-gradient(150deg,var(--hero-a),var(--hero-b));color:var(--hero-ink);border-radius:24px;padding:22px 20px 18px;margin:8px 0 14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.07)}
+.hero-k{font-size:14.5px;opacity:.9;font-weight:600}
+.hero-v{font-family:var(--display);font-size:40px;line-height:1.15;margin:6px 0 4px;letter-spacing:-1px}
+.hero-v small{font-size:20px;letter-spacing:0;font-family:var(--body);font-weight:700;opacity:.9}
+.hero-s{font-size:12.5px;opacity:.82}
+.hero-acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;position:relative;z-index:1}
+.hero-acts button,.hero-acts label{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.hero-acts input{accent-color:#fff;margin:0}
+.brk{list-style:none;margin:0;padding:0}
+.brk li{padding:10px 0;border-top:1px solid var(--line-soft)}
+.brk li:first-child{border-top:0;padding-top:0}
+.brk .l1{display:flex;align-items:baseline;gap:8px}
+.brk .dot{width:10px;height:10px;border-radius:3px;flex:0 0 auto;transform:translateY(1px)}
+.brk .nm{font-weight:700;flex:1 1 auto}
+.brk .amt{font-weight:800;white-space:nowrap}
+.brk .sub{font-size:12.5px;color:var(--ink-3);margin:2px 0 6px 18px}
+.bar{height:6px;border-radius:99px;background:var(--surface-2);margin-left:18px;overflow:hidden}
+.bar b{display:block;height:100%;border-radius:99px}
+.done{opacity:.55}
+.nowbox{display:flex;align-items:center;gap:14px}
+.nowbox .big{font-family:var(--display);font-size:26px;color:var(--accent-deep);white-space:nowrap}
+.miss{margin:0;padding-left:18px}
+.miss li{margin:5px 0}
+
+/* ----- 타임라인 ----- */
+.tl{position:relative;margin:4px 0 0;padding:0 0 0 22px}
+.tl:before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl-g{position:relative;margin:0 0 16px}
+.tl-g:before{content:"";position:absolute;left:-20px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--accent)}
+.tl-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.tl-h b{font-size:15.5px}
+.tl-h span{font-weight:800;color:var(--accent-deep);white-space:nowrap}
+.tl-d{font-size:12.5px;color:var(--ink-3);margin:1px 0 6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;padding:3px 9px;border-radius:999px;background:var(--surface-2);margin:0 4px 4px 0;color:var(--ink-2)}
+.chip i{width:8px;height:8px;border-radius:2px;display:inline-block}
+details.ex{border-top:1px solid var(--line-soft);padding:10px 0}
+details.ex:first-of-type{border-top:0}
+details.ex summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;gap:8px}
+details.ex summary::-webkit-details-marker{display:none}
+details.ex summary:after{content:"＋";margin-left:auto;color:var(--ink-3)}
+details.ex[open] summary:after{content:"－"}
+details.ex dl{margin:8px 0 0;font-size:13.5px}
+details.ex dt{color:var(--ink-3);font-size:12.5px;margin-top:6px}
+details.ex dd{margin:1px 0 0}
+
+/* ----- 할 일 ----- */
+.todo{list-style:none;margin:0;padding:0}
+.todo li{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line-soft)}
+.todo li:first-child{border-top:0;padding-top:2px}
+.todo input{width:22px;height:22px;accent-color:var(--accent);flex:0 0 auto;margin-top:2px}
+.todo .tt{font-weight:700}
+.todo .tb{font-size:13.5px;color:var(--ink-2);margin-top:2px}
+.todo .tm{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.dd{font-size:12px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent-deep)}
+.dd.soon{background:var(--warn-soft);color:var(--warn)}
+.dd.over{background:var(--bad-soft);color:var(--bad)}
+.todo li.ok .tt{text-decoration:line-through;color:var(--ink-3)}
+.src{font-size:12px}
+.note{background:var(--gold-soft);border-radius:var(--radius-s);padding:12px 14px;font-size:13.5px;color:var(--ink-2)}
+.note b{color:var(--ink)}
+
+/* ----- 하단 탭 ----- */
+.bnav{position:fixed;left:50%;transform:translateX(-50%);width:min(100% - 24px,420px);bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;justify-content:space-around;gap:4px;background:var(--surface);border:1px solid var(--line-soft);border-radius:28px;padding:6px 8px;box-shadow:var(--shadow-nav)}
+.bnav button{flex:1 1 0;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 2px;font-size:11.5px;font-weight:700;color:var(--ink-3);cursor:pointer;border-radius:12px}
+.bnav .ic{display:inline-flex;align-items:center;justify-content:center;width:54px;height:30px;border-radius:999px}
+.bnav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.bnav button[aria-pressed="true"]{color:var(--accent-deep)}
+.bnav button[aria-pressed="true"] .ic{background:var(--accent);color:var(--accent-ink)}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;z-index:9;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.foot{font-size:12px;color:var(--ink-3);text-align:center;margin:18px 4px 0;line-height:1.6}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo"><i>₩</i>받을돈</div>
+    <button class="ghost" id="editBtn" hidden>정보 바꾸기</button>
+  </header>
+
+  <!-- 시작 질문 -->
+  <section id="setup" hidden>
+    <div class="intro">
+      <h1>우리 아이가 받을 돈,<br>한 번에 계산해요</h1>
+      <p>몇 가지만 알려 주세요. 입력한 정보는 이 폰에만 저장돼요.</p>
+    </div>
+    <form id="form" novalidate>
+      <div class="q"><label for="fName">아이 이름이나 태명 <span class="hint">안 써도 돼요</span></label>
+        <input class="field" id="fName" maxlength="10" placeholder="예: 하늘" autocomplete="off"></div>
+      <div class="q"><div class="ql">아이는</div>
+        <div class="seg">
+          <input type="radio" name="born" id="b1" value="1" checked><label for="b1">태어났어요</label>
+          <input type="radio" name="born" id="b0" value="0"><label for="b0">뱃속에 있어요</label>
+        </div></div>
+      <div class="q"><label for="fDate" id="dateLabel">생일</label>
+        <input class="field" type="date" id="fDate" required></div>
+      <div class="q"><div class="ql">몇째인가요</div>
+        <div class="seg">
+          <input type="radio" name="order" id="o1" value="1" checked><label for="o1">첫째</label>
+          <input type="radio" name="order" id="o2" value="2"><label for="o2">둘째</label>
+          <input type="radio" name="order" id="o3" value="3"><label for="o3">셋째 이상</label>
+        </div></div>
+      <div class="q"><div class="ql">사는 곳 <span class="hint">아동수당 금액이 지역마다 달라요</span></div>
+        <div class="row2">
+          <select class="field" id="fSido" aria-label="시·도"></select>
+          <select class="field" id="fSgg" aria-label="시·군·구"></select>
+        </div>
+        <div class="seg" id="localWrap" style="margin-top:8px" hidden>
+          <input type="radio" name="local" id="l0" value="0" checked><label for="l0">현금으로</label>
+          <input type="radio" name="local" id="l1" value="1"><label for="l1" id="localLabel">지역사랑상품권으로</label>
+        </div></div>
+      <div class="q"><label for="fCare">어린이집·유치원은 언제부터 <span class="hint">가정양육수당 계산에 써요</span></label>
+        <select class="field" id="fCare">
+          <option value="12">돌 무렵부터 (12개월)</option>
+          <option value="24">두 돌 무렵부터 (24개월)</option>
+          <option value="36" selected>세 돌 무렵부터 (36개월) · 잘 모르면 이것</option>
+          <option value="48">네 돌 무렵부터 (48개월)</option>
+          <option value="60">다섯 돌 무렵부터 (60개월)</option>
+          <option value="">초등학교 가기 전까지 집에서</option>
+        </select></div>
+      <div class="err" id="formErr" role="alert"></div>
+      <button class="cta" type="submit">받을 돈 계산하기</button>
+    </form>
+  </section>
+
+  <!-- 홈 -->
+  <section id="tab-home" hidden>
+    <div class="hero">
+      <div class="hero-k" id="heroK"></div>
+      <div class="hero-v" id="heroV"></div>
+      <div class="hero-s" id="heroS"></div>
+      <div class="hero-acts">
+        <button id="shareBtn" type="button">공유하기</button>
+        <label id="planWrap" hidden><input type="checkbox" id="planChk"> <span id="planLabel"></span></label>
+      </div>
+    </div>
+    <div class="card" id="nowCard"></div>
+    <div class="card"><h3>무엇을 얼마나 받나요</h3><ul class="brk" id="brk"></ul></div>
+    <div class="card" id="nextTodo"></div>
+    <div class="card"><h3>이 금액에 아직 없는 돈</h3>
+      <ul class="miss small" id="missList"></ul></div>
+  </section>
+
+  <!-- 타임라인 -->
+  <section id="tab-time" hidden>
+    <div class="card"><h3>나이별로 보기</h3><div class="tl" id="tl"></div></div>
+    <div class="card"><h3>제도 설명과 출처</h3><div id="exList"></div></div>
+  </section>
+
+  <!-- 할 일 -->
+  <section id="tab-todo" hidden>
+    <div class="card"><h3>신청하고 챙길 것</h3><ul class="todo" id="todoList"></ul></div>
+    <div class="card"><h3>이 앱에 대해</h3><div class="small" id="about"></div></div>
+  </section>
+
+  <p class="foot" id="foot"></p>
+</div>
+
+<nav class="bnav" id="bnav" hidden>
+  <button data-tab="home" aria-pressed="true"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/></svg></span>홈</button>
+  <button data-tab="time" aria-pressed="false"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 4v16M6 7h11M6 12h8M6 17h12"/></svg></span>타임라인</button>
+  <button data-tab="todo" aria-pressed="false"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12.5l2.6 2.6L16 9.6"/></svg></span>할 일</button>
+</nav>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="calc.js"></script>
+<script src="data.js"></script>
+<script>
+(function(){
+'use strict';
+var M = window.Money, D = M.DATA, LS = 'money-v1';
+var $ = function(id){ return document.getElementById(id); };
+var S = load();
+
+function load(){
+  var d = null;
+  try { d = JSON.parse(localStorage.getItem(LS) || 'null'); } catch(e) {}
+  if (!d || typeof d !== 'object') d = {};
+  d.checks = d.checks || {};
+  d.tab = d.tab || 'home';
+  return d;
+}
+function save(){ try { localStorage.setItem(LS, JSON.stringify(S)); } catch(e) {} }
+function todayStr(){
+  var n = new Date();
+  return n.getFullYear() + '-' + ('0' + (n.getMonth() + 1)).slice(-2) + '-' + ('0' + n.getDate()).slice(-2);
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function toast(msg){ var t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('on'); }, 1800); }
+function hasBatchim(s){ var c = s.charCodeAt(s.length - 1); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0; }
+function subj(name){ if (!name) return '우리 아이가'; return name + (hasBatchim(name) ? '이가' : '가'); }
+function ym(i){ return M.idxYear(i) + '.' + M.idxMonth(i); }
+function won(v){ return M.man(v) + ' 원'; }
+function info(id){ return D.info[id] || { name: id }; }
+function srcLink(key){ var s = D.src[key]; return s ? '<a class="src" href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + '</a>' : ''; }
+
+/* ---------- 시작 질문 ---------- */
+function fillSido(){
+  var sel = $('fSido'), h = '<option value="">시·도 선택</option>';
+  D.regions.order.forEach(function(k){ h += '<option value="' + esc(k) + '">' + esc(k) + '</option>'; });
+  sel.innerHTML = h;
+}
+function fillSgg(){
+  var s = D.regions.sido[$('fSido').value], sel = $('fSgg');
+  if (!s) { sel.innerHTML = '<option value="">시·군·구</option>'; sel.disabled = true; showLocal(); return; }
+  sel.disabled = false;
+  var names = Object.keys(s.depop || {}).sort(), h = '';
+  if (!names.length) h = '<option value="">' + esc($('fSido').value) + ' 전체</option>';
+  else {
+    h = '<option value="">그 밖의 시·군·구</option><optgroup label="인구감소지역">';
+    names.forEach(function(n){ h += '<option value="' + esc(n) + '">' + esc(n) + '</option>'; });
+    h += '</optgroup>';
+  }
+  sel.innerHTML = h;
+  showLocal();
+}
+function showLocal(){
+  var cls = M.regionClass($('fSido').value, $('fSgg').value);
+  var t = cls && D.childAllow.amount[cls];
+  var on = !!(t && t.local);
+  $('localWrap').hidden = !on;
+  if (on) $('localLabel').textContent = '지역사랑상품권으로 (+' + M.man(t.local - t.cash) + ')';
+}
+function syncDateLabel(){
+  var born = document.querySelector('input[name=born]:checked').value === '1';
+  $('dateLabel').textContent = born ? '생일' : '출산 예정일';
+}
+function openSetup(){
+  var p = S.p;
+  fillSido();
+  if (p) {
+    $('fName').value = p.name || '';
+    $(p.born ? 'b1' : 'b0').checked = true;
+    $('fDate').value = p.date;
+    $('o' + Math.min(3, p.order || 1)).checked = true;
+    $('fSido').value = p.sido || '';
+    fillSgg();
+    $('fSgg').value = p.sgg || '';
+    $(p.local ? 'l1' : 'l0').checked = true;
+    $('fCare').value = p.careAt === null ? '' : String(p.careAt);
+  } else fillSgg();
+  syncDateLabel(); showLocal();
+  $('setup').hidden = false;
+  ['tab-home','tab-time','tab-todo'].forEach(function(id){ $(id).hidden = true; });
+  $('bnav').hidden = true; $('editBtn').hidden = !S.p;
+  $('editBtn').textContent = '닫기';
+  window.scrollTo(0, 0);
+}
+function submit(e){
+  e.preventDefault();
+  var born = document.querySelector('input[name=born]:checked').value === '1';
+  var date = $('fDate').value, today = todayStr(), err = '';
+  var dd = M.parseDate(date), td = M.parseDate(today);
+  if (!dd) err = born ? '생일을 넣어 주세요.' : '출산 예정일을 넣어 주세요.';
+  else if (born && M.daysBetween(dd, td) < 0) err = '생일이 오늘보다 뒤예요. "뱃속에 있어요"를 골라 주세요.';
+  else if (!born && M.daysBetween(td, dd) < 0) err = '예정일이 지났어요. 태어났다면 "태어났어요"를 골라 주세요.';
+  else if (!born && M.daysBetween(td, dd) > 300) err = '예정일이 너무 멀어요. 날짜를 확인해 주세요.';
+  else if (born && M.daysBetween(dd, td) > 365 * 13) err = '13살 이상은 이 계산기에서 받을 돈이 없어요.';
+  else if (!$('fSido').value) err = '사는 시·도를 골라 주세요.';
+  $('formErr').textContent = err;
+  if (err) return;
+  var care = $('fCare').value;
+  S.p = {
+    name: $('fName').value.trim().slice(0, 10), born: born, date: date,
+    order: +document.querySelector('input[name=order]:checked').value,
+    sido: $('fSido').value, sgg: $('fSgg').value,
+    local: document.querySelector('input[name=local]:checked').value === '1' && !$('localWrap').hidden,
+    careAt: care === '' ? null : +care,
+    planned: S.p ? !!S.p.planned : false
+  };
+  save(); show('home');
+}
+
+/* ---------- 그리기 ---------- */
+function render(){
+  var p = S.p, today = todayStr(), r = M.calc(p, today);
+  if (!r) { openSetup(); return; }
+  var name = p.name;
+
+  // 영웅 카드
+  $('heroK').textContent = r.born ? subj(name) + ' 앞으로 받을 돈' : subj(name) + ' 태어나면 받을 돈';
+  $('heroV').innerHTML = '약 ' + esc(M.man(r.total).replace('만', '')) + '<small>만 원</small>';
+  var ageL = r.ageLimitNow;
+  $('heroS').textContent = D.asOf.replace(/-/g, '.') + ' 제도 기준 예상 금액 · 아동수당 만 ' + ageL + '세 미만 기준';
+
+  // 확대 계획 토글
+  var plannedRows = [];
+  for (var y in D.childAllow.ageLimit.byYear) { var row = D.childAllow.ageLimit.byYear[y]; if (!row.enacted) plannedRows.push(row); }
+  if (plannedRows.length) {
+    var alt = M.calc(Object.assign({}, p, { planned: true }), today);
+    var base = M.calc(Object.assign({}, p, { planned: false }), today);
+    var diff = alt.total - base.total;
+    $('planWrap').hidden = diff <= 0;
+    $('planChk').checked = !!p.planned;
+    $('planLabel').textContent = '아동수당 확대 계획 넣기 (+' + M.man(diff) + ')';
+  } else $('planWrap').hidden = true;
+
+  // 이번 달
+  var nm = r.thisMonth, nc = $('nowCard');
+  if (nm) {
+    var parts = Object.keys(nm.items).map(function(id){ return info(id).name + ' ' + M.man(nm.items[id]); });
+    var label = nm.i === r.nowIdx ? '이번 달(' + M.idxMonth(nm.i) + '월)' : M.idxYear(nm.i) + '년 ' + M.idxMonth(nm.i) + '월';
+    nc.innerHTML = '<h3>' + esc(label) + '에 받을 돈</h3><div class="nowbox"><div class="big">' + esc(won(nm.sum)) + '</div><div class="small">' + esc(parts.join(' + ')) + (D.payDayNote ? '<br><span class="muted">' + esc(D.payDayNote) + '</span>' : '') + '</div></div>';
+    nc.hidden = false;
+  } else nc.hidden = true;
+
+  // 항목별
+  var ids = ['pregVoucher', 'firstMeet', 'parentPay', 'homeCare', 'childAllow'];
+  var max = 0; ids.forEach(function(id){ max = Math.max(max, r.totals[id] || 0); });
+  var h = '';
+  ids.forEach(function(id){
+    var amt = r.totals[id] || 0, inf = info(id);
+    var once = r.once.filter(function(o){ return o.id === id; })[0];
+    if (!amt && !once) return;
+    var sub = inf.short || '';
+    if (once && !once.upcoming) { h += '<li class="done"><div class="l1"><i class="dot" style="background:var(--c-' + id + ')"></i><span class="nm">' + esc(inf.name) + '</span><span class="amt">' + esc(won(once.amount)) + '</span></div><div class="sub">출생 때 한 번 · 이미 받았을 거예요 (합계에서 뺐어요)</div></li>'; return; }
+    if (id === 'homeCare' && p.careAt !== null) sub += ' · ' + p.careAt + '개월에 기관에 가면 멈춰요';
+    if (id === 'parentPay' && p.careAt !== null && p.careAt < 24) sub += ' · 어린이집 다니는 달은 일부가 보육료로 나가요';
+    h += '<li><div class="l1"><i class="dot" style="background:var(--c-' + id + ')"></i><span class="nm">' + esc(inf.name) + '</span><span class="amt">' + esc(won(amt)) + '</span></div>' +
+      '<div class="sub">' + esc(sub) + '</div><div class="bar"><b style="width:' + (max ? Math.max(3, amt / max * 100) : 0) + '%;background:var(--c-' + id + ')"></b></div></li>';
+  });
+  $('brk').innerHTML = h;
+
+  // 다음 할 일
+  var tds = M.todos(p, today).filter(function(t){ return !S.checks[t.id]; });
+  tds.sort(sortTodo);
+  var nx = tds.slice(0, 2);
+  $('nextTodo').innerHTML = '<h3>먼저 챙길 일</h3>' + (nx.length ? '<ul class="todo">' + nx.map(todoLi).join('') + '</ul>' : '<p class="small">지금 챙길 일은 다 했어요 👍</p>');
+  bindTodo($('nextTodo'));
+
+  // 빠진 돈
+  $('missList').innerHTML = D.notIncluded.map(function(m){ return '<li>' + m + '</li>'; }).join('');
+
+  // 타임라인
+  var tl = '';
+  if (!r.born) tl += group('임신 중', '지금', [{ id: 'pregVoucher', text: '진료비 ' + M.man(D.pregVoucher.single) }], D.pregVoucher.single);
+  var fm = r.once.filter(function(o){ return o.id === 'firstMeet'; })[0];
+  if (fm && fm.upcoming) tl += group('태어나면', ym(r.birthIdx), [{ id: 'firstMeet', text: '첫만남이용권 ' + M.man(fm.amount) }], fm.amount);
+  r.byAge.forEach(function(g){
+    var chips = Object.keys(g.items).map(function(id){ return { id: id, text: info(id).name + ' ' + M.man(g.items[id]) }; });
+    tl += group('만 ' + g.age + '세', ym(g.from) + ' ~ ' + ym(g.to), chips, g.sum);
+  });
+  $('tl').innerHTML = tl;
+
+  // 제도 설명
+  $('exList').innerHTML = ids.map(function(id){
+    var inf = info(id);
+    if (!inf.what) return '';
+    return '<details class="ex"><summary><i class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c-' + id + ')"></i>' + esc(inf.name) + '</summary><dl>' +
+      '<dt>무엇</dt><dd>' + inf.what + '</dd>' +
+      (inf.who ? '<dt>누가</dt><dd>' + inf.who + '</dd>' : '') +
+      (inf.how ? '<dt>신청</dt><dd>' + inf.how + '</dd>' : '') +
+      '<dt>출처</dt><dd>' + (inf.src || []).map(srcLink).join(' · ') + '</dd></dl></details>';
+  }).join('');
+
+  // 할 일 전체
+  var all = M.todos(p, today); all.sort(sortTodo);
+  $('todoList').innerHTML = all.map(todoLi).join('') || '<li class="small">챙길 일이 없어요.</li>';
+  bindTodo($('todoList'));
+
+  $('about').innerHTML = D.about;
+  $('foot').innerHTML = D.footer;
+}
+function group(title, when, chips, sum){
+  return '<div class="tl-g"><div class="tl-h"><b>' + esc(title) + '</b><span>' + esc(M.man(sum)) + '</span></div><div class="tl-d">' + esc(when) + '</div>' +
+    chips.map(function(c){ return '<span class="chip"><i style="background:var(--c-' + c.id + ')"></i>' + esc(c.text) + '</span>'; }).join('') + '</div>';
+}
+function sortTodo(a, b){
+  var ca = S.checks[a.id] ? 1 : 0, cb = S.checks[b.id] ? 1 : 0;
+  if (ca !== cb) return ca - cb;
+  if (a.due && b.due) return a.due < b.due ? -1 : a.due > b.due ? 1 : 0;
+  return a.due ? -1 : b.due ? 1 : 0;
+}
+function todoLi(t){
+  var ok = !!S.checks[t.id], badge = '';
+  if (t.due) {
+    var cls = t.dLeft < 0 ? 'over' : t.dLeft <= 14 ? 'soon' : '';
+    var txt = t.dLeft < 0 ? '마감 지남' : t.dLeft === 0 ? '오늘 마감' : 'D-' + t.dLeft;
+    badge = '<span class="dd ' + cls + '">' + txt + '</span><span class="muted">' + esc(t.due.replace(/-/g, '.')) + '까지</span>';
+  }
+  return '<li class="' + (ok ? 'ok' : '') + '"><input type="checkbox" data-id="' + esc(t.id) + '"' + (ok ? ' checked' : '') + ' aria-label="' + esc(t.title) + ' 했어요">' +
+    '<div><div class="tt">' + esc(t.title) + '</div><div class="tb">' + t.body + '</div><div class="tm">' + (ok ? '' : badge) + ' ' + (t.src || []).map(srcLink).join(' ') + '</div></div></li>';
+}
+function bindTodo(root){
+  root.querySelectorAll('input[type=checkbox][data-id]').forEach(function(c){
+    c.addEventListener('change', function(){ if (c.checked) S.checks[c.dataset.id] = 1; else delete S.checks[c.dataset.id]; save(); render(); });
+  });
+}
+
+/* ---------- 탭 ---------- */
+function show(tab){
+  if (!S.p) { openSetup(); return; }
+  S.tab = tab; save();
+  $('setup').hidden = true; $('bnav').hidden = false;
+  $('editBtn').hidden = false; $('editBtn').textContent = '정보 바꾸기';
+  ['home','time','todo'].forEach(function(t){ $('tab-' + t).hidden = t !== tab; });
+  document.querySelectorAll('#bnav button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.tab === tab ? 'true' : 'false'); });
+  render();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 공유 ---------- */
+function share(){
+  var r = M.calc(S.p, todayStr());
+  var text = (r.born ? '우리 아이가 앞으로 받을 돈 ' : '우리 아이가 태어나면 받을 돈 ') + '약 ' + M.man(r.total) + ' 원! 우리 아이는 얼마 받을까?';
+  var url = location.href.split('#')[0].split('?')[0];
+  if (navigator.share) { navigator.share({ title: '받을돈', text: text, url: url }).catch(function(){}); return; }
+  var all = text + ' ' + url;
+  if (navigator.clipboard) navigator.clipboard.writeText(all).then(function(){ toast('복사했어요. 붙여 넣어 공유하세요'); }, function(){ toast(all); });
+  else toast(all);
+}
+
+/* ---------- 시작 ---------- */
+$('form').addEventListener('submit', submit);
+$('fSido').addEventListener('change', fillSgg);
+$('fSgg').addEventListener('change', showLocal);
+document.querySelectorAll('input[name=born]').forEach(function(r){ r.addEventListener('change', syncDateLabel); });
+$('editBtn').addEventListener('click', function(){ if (!$('setup').hidden && S.p) show(S.tab || 'home'); else openSetup(); });
+$('bnav').addEventListener('click', function(e){ var b = e.target.closest('button[data-tab]'); if (b) show(b.dataset.tab); });
+$('shareBtn').addEventListener('click', share);
+$('planChk').addEventListener('change', function(){ S.p.planned = $('planChk').checked; save(); render(); });
+if (S.p && M.parseDate(S.p.date)) show(S.tab); else openSetup();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+})();
+</script>
+</body></html>
