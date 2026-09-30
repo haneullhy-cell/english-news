@@ -30,6 +30,10 @@
     equalAct:      { label: '남녀고용평등법 제19조', url: 'https://www.law.go.kr/법령/남녀고용평등과일ㆍ가정양립지원에관한법률' },
     moel66:        { label: '고용노동부 6+6 부모육아휴직제 Q&A', url: 'https://www.moel.go.kr/policy/policydata/view.do?bbs_seq=20240102052' },
     gov24Leave:    { label: '정부24 육아휴직 급여', url: 'https://www.gov.kr/portal/rcvfvrSvc/dtlEx/999000000008' },
+    govAllow:      { label: '공무원수당 등에 관한 규정 제11조의3', url: 'https://www.law.go.kr/법령/공무원수당등에관한규정' },
+    mpmLeave:      { label: '인사혁신처 공무원 보수·수당 업무지침', url: 'https://www.mpm.go.kr/mpm/info/resultPay/payBoard/?boardId=bbs_0000000000000035&mode=view&cntId=693' },
+    privSchoolDecree: { label: '사립학교법 시행령 제24조의9', url: 'https://www.law.go.kr/법령/사립학교법시행령' },
+    gov24NoEiBirth: { label: '정부24 고용보험 미적용자 출산급여', url: 'https://www.gov.kr/portal/service/serviceInfo/149200000153' },
     eiAct:         { label: '고용보험법 제70조', url: 'https://www.law.go.kr/법령/고용보험법' },
     regionNotice:  { label: '아동수당 추가지급 대상지역 고시', url: 'https://www.law.go.kr/LSW/admRulInfoP.do?admRulSeq=2100000276802' },
     lawJeonnamGwangju: { label: '전남광주통합특별시 설치법', url: 'https://www.law.go.kr/법령/전남광주통합특별시설치를위한특별법' }
@@ -64,19 +68,36 @@
   // 육아휴직 급여
   // 고용보험: 고용보험법 시행령 제95조①(일반), 제95조의3①(부모 함께 = 6+6), 제95조의3③(한부모) [시행 2026.9.18]
   // 기간: 남녀고용평등법 제19조② – 1년, 부모가 각각 3개월 이상 쓰거나 한부모면 6개월 더
+  // 공무원: 공무원수당 등에 관한 규정 제11조의3 (지방은 지방공무원 수당 등에 관한 규정, 같은 내용)
+  //   ① 1~3개월 월봉급액 100%·상한 250만, 4~6개월 200만, 7개월부터 80%·160만, 하한 70만
+  //   ②1 부모가 모두 휴직하고 '두 번째'로 휴직한 사람이 공무원이면 그 사람만 1~6개월 상한 250·250·300·350·400·450만 (기간 조건 없음)
+  //   ②2 한부모 1~3개월 상한 300만 / ⑥⑦ 수당은 12개월, 부모가 각각 3개월 이상·한부모면 18개월
+  //   국공립 교원(교육공무원), 사립학교 교원(사립학교법 시행령 제24조의9 준용), 군인도 같은 규정
+  var BANDS = [{ upTo: 3, rate: 1, cap: 2500000 }, { upTo: 6, rate: 1, cap: 2000000 }, { upTo: 999, rate: 0.8, cap: 1600000 }];
+  var SINGLE = [{ upTo: 3, rate: 1, cap: 3000000 }, { upTo: 6, rate: 1, cap: 2000000 }, { upTo: 999, rate: 0.8, cap: 1600000 }];
+  var CAPS6 = [2500000, 2500000, 3000000, 3500000, 4000000, 4500000];
+  function govLike(label, extra) {
+    var j = { label: label, canLeave: true, floor: 700000, bands: BANDS, singleBands: SINGLE,
+      sixsix: { mode: 'second', maxMonths: 6, rate: 1, caps: CAPS6 },
+      wageLabel: '월봉급액(호봉 봉급)', src: ['govAllow', 'mpmLeave'] };
+    for (var k in extra || {}) j[k] = extra[k];
+    return j;
+  }
   D.leave = {
     baseMonths: 12, extendMonths: 6, extendNeedEach: 3,
-    sixsix: { windowMonths: 18, maxMonths: 6 },   // 아이 18개월 전에 둘 다 시작 (고용노동부 6+6 Q&A)
-    jobOrder: ['ei', 'self', 'none'],
+    jobOrder: ['ei', 'gov', 'teacher', 'military', 'privStaff', 'self', 'none'],
     jobs: {
       ei: {
-        label: '회사원', canLeave: true, countsSpouse: true, floor: 700000,
-        bands: [{ upTo: 3, rate: 1, cap: 2500000 }, { upTo: 6, rate: 1, cap: 2000000 }, { upTo: 999, rate: 0.8, cap: 1600000 }],
-        singleBands: [{ upTo: 3, rate: 1, cap: 3000000 }, { upTo: 6, rate: 1, cap: 2000000 }, { upTo: 999, rate: 0.8, cap: 1600000 }],
-        sixsix: { rate: 1, caps: [2500000, 2500000, 3000000, 3500000, 4000000, 4500000] },
+        label: '회사원', canLeave: true, floor: 700000, bands: BANDS, singleBands: SINGLE,
+        // 6+6: 아이 18개월 전에 부모 모두 시작 (고용노동부 Q&A), 같이 쓴 개월만. 배우자가 공무원이어도 적용(고용노동부 상담 답변)
+        sixsix: { mode: 'common', windowMonths: 18, maxMonths: 6, rate: 1, caps: CAPS6 },
         wageLabel: '고용보험 · 월 통상임금', src: ['eiDecree', 'equalAct', 'moel66', 'gov24Leave']
       },
-      self: { label: '자영업·프리랜서', canLeave: false, note: '고용보험 육아휴직 급여 대상이 아니에요.' },
+      gov: govLike('공무원'),
+      teacher: govLike('교사(국공립·사립)', { src: ['govAllow', 'privSchoolDecree'] }),
+      military: govLike('군인'),
+      privStaff: govLike('사립학교 사무직원', { warn: '사립학교 사무직원은 학교(법인) 정관에 따라 달라요. 공무원 기준으로 계산했으니 학교에 꼭 확인하세요.' }),
+      self: { label: '자영업·프리랜서', canLeave: false, note: '육아휴직 급여 대상이 아니에요.' },
       none: { label: '일 안 해요', canLeave: false, note: '' }
     }
   };
@@ -135,7 +156,9 @@
     '한 달이 안 되는 기간은 쉰 날수만큼 나눠서 줘요. 이 계산은 달 단위로만 했어요.',
     '육아휴직은 한 사람당 1년이고, 부모가 각각 3개월 이상 쓰거나 한부모면 6개월 더 쓸 수 있어요. 3번까지 나눠 쓸 수 있어요.',
     '신청은 휴직 시작 1개월 뒤부터 해요. 법에는 휴직이 끝나고 12개월 안이라고 되어 있지만, 시행규칙은 매달 다음 달 말일까지 신청하라고 해요. 매달 챙기는 게 안전해요.',
-    '<b>공무원·교직원·군인</b>은 고용보험이 아니라 따로 정한 육아휴직수당을 받아요. 공식 자료로 확인한 뒤 추가할게요.'
+    '<b>공무원·교사·군인</b>은 고용보험 대신 공무원수당 규정의 육아휴직수당을 받아요. <b>월봉급액(호봉 봉급)</b>이 기준이고, 부모가 모두 휴직하면 <b>두 번째로 휴직한 사람</b>이 처음 6개월 상한이 올라가요 (아이 나이 조건 없음). 휴직은 3년까지 되지만 수당은 12개월(부모가 각각 3개월 이상 쓰거나 한부모면 18개월)만 나와요.',
+    '부부 중 한 명은 회사원, 한 명은 공무원·교사여도 서로의 휴직을 인정해요. 회사원 쪽 6+6은 고용노동부 상담 답변 기준이에요 (배우자 휴직 증빙 제출).',
+    '<b>자영업·프리랜서</b>는 육아휴직 급여가 없어요. 고용보험에 가입하지 않은 엄마는 <a href="https://www.gov.kr/portal/service/serviceInfo/149200000153" target="_blank" rel="noopener">출산급여 150만 원</a>(월 50만 원 × 3개월)을 받을 수 있어요.'
   ];
 
   // 할 일: when = 'pregnant'(태어나기 전만) | 'early'(태어나기 전 ~ 생후 90일) | 'under3'(3살 전) | 'birthYear'(태어난 해까지) | 'leave'(휴직 계획이 있을 때) | 'always'

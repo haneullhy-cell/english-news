@@ -161,7 +161,8 @@ test('6+6: 둘 다 6개월, 월급이 높으면 각각 250·250·300·350·400·
 
 test('6+6은 공통 개월만: 4개월 + 5개월이면 4개월까지 특례, 5개월째는 일반(상한 200만)', () => {
   const r = M.leave({ parents: [ei(500, 4), ei(500, 5, 6)] });
-  assert.equal(r.common, 4);
+  assert.equal(r.parents[0].boost, 4);
+  assert.equal(r.parents[1].boost, 4);
   assert.deepEqual(r.parents[0].monthly.map(v => v / MAN), [250, 250, 300, 350]);
   assert.deepEqual(r.parents[1].monthly.map(v => v / MAN), [250, 250, 300, 350, 200]);
 });
@@ -175,7 +176,7 @@ test('통상임금이 상한보다 낮으면 월급만큼, 70만 원보다 낮�
 test('아이 18개월이 지나 시작하면 6+6 없음', () => {
   const r = M.leave({ parents: [ei(500, 6), ei(500, 6, 18)] });
   assert.equal(r.together, false);
-  assert.equal(r.inWindow, false);
+  assert.equal(r.windowMiss, true);
   assert.equal(r.total / MAN, 2 * (250 * 3 + 200 * 3));
 });
 
@@ -206,6 +207,54 @@ test('나누는 방법 비교: 엄마 300만·아빠 500만, 합쳐 12개월이�
   assert.equal(sp[0].total / MAN, 1700 + 2000);
   const alone = sp.find(x => x.a === 12);
   assert.equal(alone.total / MAN, 2310);
+});
+
+// ---------- 공무원 등 (공무원수당 등에 관한 규정 제11조의3) ----------
+const gov = (wage, months, startK = 3, job = 'gov') => ({ job, wage: wage * MAN, months, startK });
+
+test('공무원 혼자 12개월: 회사원과 같은 상한 250·200·160 (월봉급액 기준)', () => {
+  assert.equal(leaveTotal({ parents: [gov(300, 12), gov(300, 0)] }), 2310);
+});
+
+test('공무원 부부: 두 번째로 휴직한 사람만 처음 6개월 특례, 첫 번째는 일반', () => {
+  const r = M.leave({ parents: [gov(600, 12, 3), gov(600, 6, 15)] });
+  assert.equal(r.parents[0].boost, 0);
+  assert.deepEqual(r.parents[0].monthly.slice(0, 6).map(v => v / MAN), [250, 250, 250, 200, 200, 200]);
+  assert.equal(r.parents[1].boost, 6);
+  assert.deepEqual(r.parents[1].monthly.map(v => v / MAN), [250, 250, 300, 350, 400, 450]);
+  assert.equal(r.maxMonths, 18);                             // 둘 다 3개월 이상
+});
+
+test('공무원 특례는 아이 나이 조건이 없고, 두 번째 사람 기간만큼(최대 6개월)', () => {
+  const r = M.leave({ parents: [gov(600, 2, 3), gov(600, 3, 30)] });
+  assert.equal(r.parents[1].boost, 3);                       // 첫 번째가 2개월만 써도 됨, 30개월에 시작해도 됨
+  assert.deepEqual(r.parents[1].monthly.map(v => v / MAN), [250, 250, 300]);
+});
+
+test('공무원 부부가 같은 달에 시작하면 특례 없이 표시만', () => {
+  const r = M.leave({ parents: [gov(600, 6, 3), gov(600, 6, 3)] });
+  assert.equal(r.together, false);
+  assert.equal(r.parents[0].sameStart, true);
+});
+
+test('회사원 엄마 + 공무원 아빠(두 번째): 둘 다 특례 → 각각 2,000만', () => {
+  const r = M.leave({ parents: [ei(600, 6, 3), gov(600, 6, 9)] });
+  assert.equal(r.parents[0].boost, 6);                       // 회사원 6+6 (18개월 안, 같이 쓴 6개월)
+  assert.equal(r.parents[1].boost, 6);                       // 공무원 두 번째
+  assert.equal(r.total / MAN, 4000);
+});
+
+test('공무원 엄마(첫 번째) + 회사원 아빠: 엄마는 일반, 아빠만 6+6', () => {
+  const r = M.leave({ parents: [gov(600, 6, 3), ei(600, 6, 9)] });
+  assert.equal(r.parents[0].total / MAN, 250 * 3 + 200 * 3);
+  assert.equal(r.parents[1].total / MAN, 2000);
+});
+
+test('교사·군인·사립 사무직원은 공무원과 같은 계산, 한부모 공무원은 1~3개월 300만', () => {
+  for (const job of ['teacher', 'military', 'privStaff']) {
+    assert.equal(leaveTotal({ parents: [gov(600, 6, 3), gov(600, 6, 9, job)] }), 1350 + 2000);
+  }
+  assert.equal(leaveTotal({ single: true, parents: [gov(400, 12), gov(0, 0)] }), 2460);
 });
 
 test('총액에 넣으면 앞으로 받을 돈에 더해짐 (지난달 휴직분은 빼고)', () => {

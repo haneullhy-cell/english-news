@@ -221,17 +221,29 @@
     var longer = plan.single || (two && ps[0].want >= L.extendNeedEach && ps[1].want >= L.extendNeedEach);
     var maxMonths = L.baseMonths + (longer ? L.extendMonths : 0);
     ps.forEach(function (q) { q.months = Math.min(q.want, maxMonths); q.over = q.want > maxMonths; });
-    // 부모 함께 쓰는 특례(6+6): 둘 다 휴직, 둘 다 아이 18개월 전에 시작, 둘 다 특례가 있는 직업
+    // 부모가 모두 쉴 때 상한이 올라가는 특례. 직업마다 방식이 다릅니다.
+    //  common(회사원 6+6): 둘 다 아이 18개월 전에 시작, 둘이 같이 쓴 개월(최대 6)만
+    //  second(공무원 등): 두 번째로 휴직한 사람이 처음 6개월 (기간 조건 없음, 첫 번째 사람은 일반)
     var both = two && ps[0].months > 0 && ps[1].months > 0;
-    var inWindow = both && ps[0].startK < L.sixsix.windowMonths && ps[1].startK < L.sixsix.windowMonths;
-    var together = both && inWindow && ps[0].rule.sixsix && ps[1].rule.sixsix && ps[0].rule.countsSpouse && ps[1].rule.countsSpouse;
-    var common = together ? Math.min(ps[0].months, ps[1].months, L.sixsix.maxMonths) : 0;
+    var windowMiss = false;
+    ps.forEach(function (q, j) {
+      var o = two ? ps[1 - j] : null, sx = q.rule.sixsix;
+      q.boost = 0; q.sameStart = false;
+      if (!sx || !both) return;
+      if (sx.mode === 'common') {
+        if (q.startK < sx.windowMonths && o.startK < sx.windowMonths) q.boost = Math.min(q.months, o.months, sx.maxMonths);
+        else windowMiss = true;
+      } else if (sx.mode === 'second') {
+        if (q.startK > o.startK) q.boost = Math.min(q.months, sx.maxMonths);
+        else if (q.startK === o.startK) q.sameStart = true;
+      }
+    });
     var total = 0;
     ps.forEach(function (q) {
       var r = q.rule, monthly = [];
       for (var m = 1; m <= q.months; m++) {
         var v;
-        if (common && m <= common) v = bandPay([{ upTo: m, rate: r.sixsix.rate, cap: r.sixsix.caps[m - 1] }], r.floor, q.wage, m);
+        if (m <= q.boost) v = bandPay([{ upTo: m, rate: r.sixsix.rate, cap: r.sixsix.caps[m - 1] }], r.floor, q.wage, m);
         else v = bandPay(plan.single && r.singleBands ? r.singleBands : r.bands, r.floor, q.wage, m);
         monthly.push(v);
       }
@@ -239,7 +251,8 @@
       q.total = monthly.reduce(function (a, b) { return a + b; }, 0);
       total += q.total;
     });
-    return { parents: ps, total: total, together: together, common: common, both: both, inWindow: inWindow, maxMonths: maxMonths };
+    var together = ps.some(function (q) { return q.boost > 0; });
+    return { parents: ps, total: total, together: together, both: both, windowMiss: windowMiss, maxMonths: maxMonths };
   }
   // 부부가 합쳐 n개월 쉴 때 나누는 방법별 금액 (많은 순)
   function leaveSplits(plan, n) {

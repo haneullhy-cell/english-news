@@ -132,7 +132,7 @@ details.ex dd{margin:1px 0 0}
 .pblk{border:1px solid var(--line-soft);border-radius:var(--radius-s);padding:12px;margin-top:12px;background:var(--surface-2)}
 .pname{font-weight:800;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
 .pname span{font-weight:500;font-size:12.5px;color:var(--ink-3)}
-.pblk .row2+.row2{margin-top:8px}
+.pblk>.field,.pblk>.row2{margin-top:8px}.pblk>.pname+.field{margin-top:0}
 .pblk .field{font-size:15px;padding:10px}
 .unit{position:relative}.unit .field{padding-right:46px}.unit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:14px;pointer-events:none}
 .unit input::-webkit-outer-spin-button,.unit input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.unit input{-moz-appearance:textfield}
@@ -504,13 +504,13 @@ function buildLeaveForm(){
   var L = D.leave, h = '';
   var jobOpts = L.jobOrder.map(function(j){ return '<option value="' + j + '">' + esc(L.jobs[j].label) + '</option>'; }).join('');
   var mOpts = '<option value="0">안 쉬어요</option>'; for (var m = 1; m <= L.baseMonths + L.extendMonths; m++) mOpts += '<option value="' + m + '">' + m + '개월 쉼</option>';
-  var kOpts = '<option value="0">태어나자마자</option>'; for (var k = 1; k <= 36; k++) kOpts += '<option value="' + k + '">아이 ' + k + '개월 때</option>';
+  var kOpts = '<option value="0">태어나자마자 시작</option>'; for (var k = 1; k <= 36; k++) kOpts += '<option value="' + k + '">아이 ' + k + '개월 때 시작</option>';
   [0, 1].forEach(function(j){
     h += '<div class="pblk" id="pb' + j + '"><div class="pname"><b id="pn' + j + '"></b><span id="pd' + j + '"></span></div>' +
-      '<div class="row2"><select class="field" id="lvJob' + j + '" aria-label="직업">' + jobOpts + '</select>' +
-      '<div class="unit"><input class="field" id="lvWage' + j + '" type="number" inputmode="numeric" min="0" step="1" placeholder="월급" aria-label="월 통상임금 (만 원)"><span>만 원</span></div></div>' +
-      '<div class="row2"><select class="field" id="lvMonths' + j + '" aria-label="쉬는 기간">' + mOpts + '</select>' +
-      '<select class="field" id="lvStart' + j + '" aria-label="언제 시작">' + kOpts + '</select></div></div>';
+      '<select class="field" id="lvJob' + j + '" aria-label="직업">' + jobOpts + '</select>' +
+      '<div class="row2"><div class="unit"><input class="field" id="lvWage' + j + '" type="number" inputmode="numeric" min="0" step="1" placeholder="월급" aria-label="월급 (만 원)"><span>만 원</span></div>' +
+      '<select class="field" id="lvMonths' + j + '" aria-label="쉬는 기간">' + mOpts + '</select></div>' +
+      '<select class="field" id="lvStart' + j + '" aria-label="언제 시작">' + kOpts + '</select></div>';
   });
   $('lvParents').innerHTML = h;
   [0, 1].forEach(function(j){ ['lvJob','lvWage','lvMonths','lvStart'].forEach(function(id){ $(id + j).addEventListener(id === 'lvWage' ? 'input' : 'change', readLeaveForm); }); });
@@ -573,9 +573,16 @@ function renderLeave(){
       (b ? '<div class="muted">' + esc(dateAtK(q.startK).slice(0, 7)) + '부터 ' + esc(dateAtK(q.startK + q.months - 1).slice(0, 7)) + '까지</div>' : '') + '</div>';
   });
   r.parents.forEach(function(q, j){ if (q.over) h += '<span class="badge warn">' + esc(names[j]) + '는 최대 ' + r.maxMonths + '개월까지만 계산했어요. 부모가 각각 3개월 이상 쓰거나 한부모면 1년 6개월까지 쓸 수 있어요.</span>'; });
-  if (r.together) h += '<span class="badge good">✓ 부모가 함께 쓰는 특례(6+6)를 받아요. 둘이 같이 쓴 처음 ' + r.common + '개월은 상한이 월 250만 원에서 450만 원까지 올라가요.</span>';
-  else if (r.both && !r.inWindow) h += '<span class="badge warn">아이가 18개월이 되기 전에 두 사람 모두 휴직을 시작해야 특례(6+6)를 받아요' + (b ? ' (' + esc(dateAtK(18, -1)) + '까지 시작)' : '') + '.</span>';
-  else if (!lv.single && r.parents.length === 2 && r.parents.every(function(q){ return q.rule.canLeave; }) && !r.both) h += '<span class="badge warn">두 사람이 모두 쉬면(아이 18개월 전에 시작) 처음 6개월 급여가 크게 올라가요. 아래 비교를 보세요.</span>';
+  r.parents.forEach(function(q, j){
+    var sx = q.rule.sixsix;
+    if (q.rule.warn) h += '<span class="badge warn">' + esc(q.rule.warn) + '</span>';
+    if (q.boost && sx.mode === 'common') h += '<span class="badge good">✓ ' + esc(names[j]) + ': 부모가 함께 쓰는 특례(6+6). 둘이 같이 쓴 처음 ' + q.boost + '개월은 상한이 월 250만 원에서 450만 원까지 올라가요.</span>';
+    if (q.boost && sx.mode === 'second') h += '<span class="badge good">✓ ' + esc(names[j]) + ': 두 번째로 휴직해서 처음 ' + q.boost + '개월 상한이 월 250만 원에서 450만 원까지 올라가요.</span>';
+    if (r.both && !q.boost && sx && sx.mode === 'second' && q.sameStart) h += '<span class="badge warn">' + esc(names[j]) + ': 같은 달에 시작하면 누가 "두 번째"인지 정해야 해요. 공무원 부부라면 한 사람만 특례를 받아요.</span>';
+    else if (r.both && !q.boost && sx && sx.mode === 'second') h += '<span class="badge warn">' + esc(names[j]) + ': 공무원·교사·군인은 <b>두 번째로</b> 휴직하는 사람이 처음 6개월을 더 받아요. 순서를 바꾸면 달라질 수 있어요.</span>';
+  });
+  if (r.windowMiss) h += '<span class="badge warn">회사원 6+6은 아이가 18개월이 되기 전에 두 사람 모두 휴직을 시작해야 받아요' + (b ? ' (' + esc(dateAtK(18, -1)) + '까지 시작)' : '') + '.</span>';
+  if (!lv.single && r.parents.length === 2 && r.parents.every(function(q){ return q.rule.canLeave; }) && !r.both) h += '<span class="badge warn">두 사람이 모두 쉬면 처음 6개월 급여가 크게 올라가요. 아래 비교를 보세요.</span>';
   if (r.both && r.maxMonths > L.baseMonths) h += '<span class="badge good">부모가 각각 3개월 이상 써서 한 사람당 최대 1년 6개월까지 쓸 수 있어요.</span>';
   $('lvResult').innerHTML = h;
 
@@ -590,7 +597,7 @@ function renderLeave(){
     best.innerHTML = '<h3>부부가 합쳐 ' + n + '개월 쉰다면</h3>' + list.map(function(x){
       var isCur = here && x === here, diff = x.total - cur;
       return '<div class="split' + (isCur ? ' cur' : '') + '"><span>엄마 ' + x.a + '개월 + 아빠 ' + x.b + '개월' + (isCur ? ' (지금 계획)' : '') + '</span><span class="d">' + esc(M.man(x.total)) + ' 원' + (diff > 0 ? '<span class="plus">+' + esc(M.man(diff)) + '</span>' : '') + '</span></div>';
-    }).join('') + '<p class="muted" style="margin:8px 0 0">두 사람 다 아이 18개월 전에 시작한다고 보고 나라에서 받는 급여만 비교했어요. 쉬는 동안 줄어드는 월급은 따로 생각해야 해요.</p>';
+    }).join('') + '<p class="muted" style="margin:8px 0 0">지금 넣은 시작 시기 그대로 두고 나라에서 받는 급여만 비교했어요. 쉬는 동안 줄어드는 월급은 따로 생각해야 해요.</p>';
     best.hidden = false;
   } else best.hidden = true;
 
