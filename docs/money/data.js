@@ -39,7 +39,6 @@
     jgPress:       { label: '대전 중구 보도자료(2023.8.20)', url: 'https://www.djjunggu.go.kr/prog/bbsArticle/BBSMSTR_000000000137/view.do?nttId=B000000202571Ih6eL4' },
     sgPage:        { label: '대전 서구 출산지원금 안내', url: 'https://www.seogu.go.kr/kor/sub06_04_02_01.do' },
     sgOrd:         { label: '대전 서구 조례', url: 'https://www.law.go.kr/LSW/ordinInfoP.do?ordinSeq=2171533' },
-    ysPage:        { label: '대전 유성구 출산장려금 안내', url: 'https://www.yuseong.go.kr/kor/sub07_02_02_02.do' },
     ysOrd:         { label: '대전 유성구 조례', url: 'https://www.law.go.kr/LSW/ordinInfoP.do?ordinSeq=2171589' },
     ddOrd:         { label: '대전 대덕구 조례', url: 'https://www.law.go.kr/LSW/ordinInfoP.do?ordinSeq=1991557' },
     ddMomPage:     { label: '대덕구보건소 산모회복비 안내', url: 'https://www.daedeok.go.kr/chc/goContents.do?link=%2Fchc%2Fchc02%2FCHC020408&menuId=CHC020408' },
@@ -170,7 +169,7 @@
           what: '2023년 1월 1일 이후 태어난 아이는 첫째부터 30만 원을 한 번 줘요.',
           who: '출생신고일부터 신청일까지 부 또는 모가 유성구에 주민등록을 두고 아이와 함께 살아야 해요 (2026년 9월 조례 개정 기준).',
           how: '동 행정복지센터에 방문해 신청해요. 태어나고 1년 안에 해야 해요.',
-          src: ['ysGov24', 'ysPage', 'ysOrd'],
+          src: ['ysGov24', 'ysOrd'],
           todo: { title: '유성구 출산장려금 신청 (태어나고 1년 안)', dueMonths: 12, body: '동 행정복지센터에서 신청해요. 30만 원을 한 번 받아요.' }
         }],
         '대덕구': [{
