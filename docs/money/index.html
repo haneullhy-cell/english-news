@@ -15,7 +15,7 @@
   --hero-a:#237a66; --hero-b:#175b4c; --hero-ink:#fff;
   --gold:#b87a0c; --gold-soft:#fbefd3;
   --warn:#b5670a; --warn-soft:#fdeed3; --bad:#c9463a; --bad-soft:#fbe3df;
-  --c-parentPay:#3b7ddd; --c-childAllow:#27a274; --c-homeCare:#e97c2a; --c-firstMeet:#c24f8f; --c-pregVoucher:#8a63d2; --c-leave:#0f8b8d;
+  --c-parentPay:#3b7ddd; --c-childAllow:#27a274; --c-homeCare:#e97c2a; --c-firstMeet:#c24f8f; --c-pregVoucher:#8a63d2; --c-leave:#0f8b8d; --c-local:#c98a12;
   --shadow:0 1px 2px rgba(74,58,32,.05),0 12px 26px -16px rgba(74,58,32,.28);
   --shadow-nav:0 -2px 6px rgba(74,58,32,.04),0 14px 34px -12px rgba(74,58,32,.4);
   --radius:20px; --radius-s:14px;
@@ -29,7 +29,7 @@
   --hero-a:#1d5f50; --hero-b:#123f35; --hero-ink:#fff;
   --gold:#e8b44a; --gold-soft:#3a2f18;
   --warn:#eaa54a; --warn-soft:#3a2c15; --bad:#f07a6e; --bad-soft:#3d201c;
-  --c-parentPay:#6fa2ee; --c-childAllow:#4cc497; --c-homeCare:#f29a55; --c-firstMeet:#e07ab2; --c-pregVoucher:#a88ae6; --c-leave:#3cc0c2;
+  --c-parentPay:#6fa2ee; --c-childAllow:#4cc497; --c-homeCare:#f29a55; --c-firstMeet:#e07ab2; --c-pregVoucher:#a88ae6; --c-leave:#3cc0c2; --c-local:#e8b44a;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 26px -16px rgba(0,0,0,.6);
   --shadow-nav:0 14px 34px -12px rgba(0,0,0,.7);
 }}
@@ -86,6 +86,7 @@ button{font:inherit;color:inherit}
 .bar{height:6px;border-radius:99px;background:var(--surface-2);margin-left:18px;overflow:hidden}
 .bar b{display:block;height:100%;border-radius:99px}
 .done{opacity:.55}
+.brk li.lochead{padding:14px 0 4px;border-top:2px solid var(--line)}
 .nowbox{display:flex;align-items:center;gap:14px}
 .nowbox .big{font-family:var(--display);font-size:26px;color:var(--accent-deep);white-space:nowrap}
 .miss{margin:0;padding-left:18px}
@@ -294,7 +295,8 @@ function hasBatchim(s){ var c = s.charCodeAt(s.length - 1); return c >= 0xAC00 &
 function subj(name){ if (!name) return '우리 아이가'; return name + (hasBatchim(name) ? '이가' : '가'); }
 function ym(i){ return M.idxYear(i) + '.' + M.idxMonth(i); }
 function won(v){ return M.man(v) + ' 원'; }
-function info(id){ return D.info[id] || { name: id }; }
+function info(id){ return D.info[id] || D.localIndex[id] || { name: id }; }
+function col(id){ return D.localIndex[id] ? 'var(--c-local)' : 'var(--c-' + id + ')'; }
 function srcLink(key){ var s = D.src[key]; return s ? '<a class="src" href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.label) + '</a>' : ''; }
 
 /* ---------- 시작 질문 ---------- */
@@ -403,21 +405,33 @@ function render(){
 
   // 항목별
   var ids = ['pregVoucher', 'firstMeet', 'parentPay', 'homeCare', 'childAllow', 'leave'];
-  var max = 0; ids.forEach(function(id){ max = Math.max(max, r.totals[id] || 0); });
+  var locs = r.local || [], localIds = locs.map(function(x){ return x.item.id; });
+  var max = 0; ids.concat(localIds).forEach(function(id){ max = Math.max(max, r.totals[id] || 0); });
   var h = '';
   ids.forEach(function(id){
     var amt = r.totals[id] || 0, inf = info(id);
     var once = r.once.filter(function(o){ return o.id === id; })[0];
     if (!amt && !once) return;
     var sub = inf.short || '';
-    if (once && !once.upcoming) { h += '<li class="done"><div class="l1"><i class="dot" style="background:var(--c-' + id + ')"></i><span class="nm">' + esc(inf.name) + '</span><span class="amt">' + esc(won(once.amount)) + '</span></div><div class="sub">출생 때 한 번 · 이미 받았을 거예요 (합계에서 뺐어요)</div></li>'; return; }
+    if (once && !once.upcoming) { h += '<li class="done"><div class="l1"><i class="dot" style="background:' + col(id) + '"></i><span class="nm">' + esc(inf.name) + '</span><span class="amt">' + esc(won(once.amount)) + '</span></div><div class="sub">출생 때 한 번 · 이미 받았을 거예요 (합계에서 뺐어요)</div></li>'; return; }
     if (id === 'leave' && r.leave) sub = r.leave.parents.map(function(q, j){ return q.months ? (S.leave.single ? '나' : PNAMES[j]) + ' ' + q.months + '개월' : ''; }).filter(Boolean).join(' + ') + (r.leave.together ? ' · 부모 함께 쓰는 특례' : '') + ' · 휴직 탭에서 바꿔요';
     if (id === 'childAllow') sub = '월 ' + won(r.allowMonthly) + ' · ' + ym(lastMonth(r, 'childAllow')) + '까지';
     if (id === 'homeCare' && p.careAt !== null) sub += ' · ' + p.careAt + '개월에 기관에 가면 멈춰요';
     if (id === 'parentPay' && p.careAt !== null && p.careAt < 24) sub += ' · 어린이집 다니는 달은 일부가 보육료로 나가요';
-    h += '<li><div class="l1"><i class="dot" style="background:var(--c-' + id + ')"></i><span class="nm">' + esc(inf.name) + '</span><span class="amt">' + esc(won(amt)) + '</span></div>' +
-      '<div class="sub">' + esc(sub) + '</div><div class="bar"><b style="width:' + (max ? Math.max(3, amt / max * 100) : 0) + '%;background:var(--c-' + id + ')"></b></div></li>';
+    h += '<li><div class="l1"><i class="dot" style="background:' + col(id) + '"></i><span class="nm">' + esc(inf.name) + '</span><span class="amt">' + esc(won(amt)) + '</span></div>' +
+      '<div class="sub">' + esc(sub) + '</div><div class="bar"><b style="width:' + (max ? Math.max(3, amt / max * 100) : 0) + '%;background:' + col(id) + '"></b></div></li>';
   });
+  if (locs.length) {
+    h += '<li class="lochead"><b>우리 동네</b> <span class="muted">' + esc(p.sido + (p.sgg ? ' ' + p.sgg : '')) + '</span></li>';
+    locs.forEach(function(x){
+      var it = x.item, amt = r.totals[it.id] || 0;
+      var dot = '<i class="dot" style="background:var(--c-local)"></i><span class="nm">' + esc(it.name) + '</span>';
+      if (x.unconfirmed) { h += '<li class="done"><div class="l1">' + dot + '<span class="amt">확인 중</span></div><div class="sub">' + esc(it.short) + '</div></li>'; return; }
+      if (!x.upcoming) { h += '<li class="done"><div class="l1">' + dot + '<span class="amt">' + esc(won(x.total)) + '</span></div><div class="sub">' + (it.type === 'monthly' ? '받는 기간이 지났어요' : '신청 기한이 지났거나 이미 받았을 거예요') + ' (합계에서 뺐어요)</div></li>'; return; }
+      h += '<li><div class="l1">' + dot + '<span class="amt">' + (it.max ? '최대 ' : '') + esc(won(amt)) + '</span></div>' +
+        '<div class="sub">' + esc(it.short) + '</div><div class="bar"><b style="width:' + (max ? Math.max(3, amt / max * 100) : 0) + '%;background:var(--c-local)"></b></div></li>';
+    });
+  }
   $('brk').innerHTML = h;
 
   // 다음 할 일
@@ -428,13 +442,16 @@ function render(){
   bindTodo($('nextTodo'));
 
   // 빠진 돈
-  $('missList').innerHTML = D.notIncluded.map(function(m){ return '<li>' + m + '</li>'; }).join('');
+  var miss = D.notIncluded.slice();
+  if (M.hasLocal(p.sido)) miss[0] = '<b>' + esc(p.sido) + ' 지원금은 넣었어요.</b> ' + esc(D.local[p.sido].extra || '');
+  $('missList').innerHTML = miss.map(function(m){ return '<li>' + m + '</li>'; }).join('');
 
   // 타임라인
   var tl = '';
   if (!r.born) tl += group('임신 중', '지금', [{ id: 'pregVoucher', text: '진료비 ' + M.man(D.pregVoucher.single) }], D.pregVoucher.single);
-  var fm = r.once.filter(function(o){ return o.id === 'firstMeet'; })[0];
-  if (fm && fm.upcoming) tl += group('태어나면', ym(r.birthIdx), [{ id: 'firstMeet', text: '첫만남이용권 ' + M.man(fm.amount) }], fm.amount);
+  var atBirth = r.once.filter(function(o){ return o.upcoming && o.id !== 'pregVoucher'; }).sort(function(a, c){ return (a.local ? 1 : 0) - (c.local ? 1 : 0); });
+  if (atBirth.length) tl += group('태어나면', ym(r.birthIdx) + ' · 한 번 받는 돈', atBirth.map(function(o){ return { id: o.id, text: info(o.id).name + ' ' + (info(o.id).max ? '최대 ' : '') + M.man(o.amount) }; }),
+    atBirth.reduce(function(a, o){ return a + o.amount; }, 0));
   r.byAge.forEach(function(g){
     var chips = Object.keys(g.items).map(function(id){ return { id: id, text: info(id).name + ' ' + M.man(g.items[id]) }; });
     tl += group('만 ' + g.age + '세', ym(g.from) + ' ~ ' + ym(g.to), chips, g.sum);
@@ -442,10 +459,10 @@ function render(){
   $('tl').innerHTML = tl;
 
   // 제도 설명
-  $('exList').innerHTML = ids.map(function(id){
+  $('exList').innerHTML = ids.concat(localIds).map(function(id){
     var inf = info(id);
     if (!inf.what) return '';
-    return '<details class="ex"><summary><i class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--c-' + id + ')"></i>' + esc(inf.name) + '</summary><dl>' +
+    return '<details class="ex"><summary><i class="dot" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:' + col(id) + '"></i>' + esc(inf.name) + '</summary><dl>' +
       '<dt>무엇</dt><dd>' + inf.what + '</dd>' +
       (inf.who ? '<dt>누가</dt><dd>' + inf.who + '</dd>' : '') +
       (inf.how ? '<dt>신청</dt><dd>' + inf.how + '</dd>' : '') +
@@ -467,7 +484,7 @@ function lastMonth(r, id){
 }
 function group(title, when, chips, sum){
   return '<div class="tl-g"><div class="tl-h"><b>' + esc(title) + '</b><span>' + esc(M.man(sum)) + '</span></div><div class="tl-d">' + esc(when) + '</div>' +
-    chips.map(function(c){ return '<span class="chip"><i style="background:var(--c-' + c.id + ')"></i>' + esc(c.text) + '</span>'; }).join('') + '</div>';
+    chips.map(function(c){ return '<span class="chip"><i style="background:' + col(c.id) + '"></i>' + esc(c.text) + '</span>'; }).join('') + '</div>';
 }
 function sortTodo(a, b){
   var ca = S.checks[a.id] ? 1 : 0, cb = S.checks[b.id] ? 1 : 0;
@@ -496,7 +513,7 @@ function bindTodo(root){
 var PNAMES = ['엄마', '아빠'];
 function defaultLeave(){
   return { single: false, include: true, parents: [
-    { job: 'ei', wage: '', months: 12, startK: 3 },
+    { job: 'ei', wage: '', months: 0, startK: 3 },
     { job: 'ei', wage: '', months: 0, startK: 3 } ] };
 }
 function full(){ var o = {}; for (var k in S.p) o[k] = S.p[k]; o.leave = planWon(S.leave); return o; }

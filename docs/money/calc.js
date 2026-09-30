@@ -52,6 +52,14 @@
     return s.metro ? 'metro' : 'nonmetro';
   }
 
+  /* ---------- 지자체 지원금 ---------- */
+  function localItems(sido, sgg) {
+    var L = DATA.local && DATA.local[sido];
+    if (!L) return [];
+    return (L.city || []).concat((L.sgg && L.sgg[sgg]) || []);
+  }
+  function hasLocal(sido) { return !!(DATA.local && DATA.local[sido]); }
+
   /* ---------- 아동수당 ---------- */
   // 아동수당법 부칙 제2조①: 2026년 9세, 2027년 10세 … 2030년부터 제4조① 13세
   function allowAgeLimit(year) {
@@ -119,6 +127,28 @@
       if (k < 12 * allowAgeLimit(y) || allowSpecialYear(b.y, y)) add(i, k, 'childAllow', allowAmount(cls, !!p.local));
     }
 
+    // 지자체(시·도, 시·군·구) 지원금: DATA.local 에 공식 확인된 곳만 있습니다
+    var once = [];
+    var local = localItems(p.sido, p.sgg), localOut = [];
+    local.forEach(function (it) {
+      if (it.bornFrom && born && fmtDate(b) < it.bornFrom) return;
+      if (it.type === 'monthly') {
+        var sum = 0;
+        it.bands.forEach(function (bd) {
+          for (var kk = bd.from; kk < bd.to; kk++) {
+            var ii = birthI + kk;
+            if (ii >= startI && !it.unconfirmed) { add(ii, kk, it.id, bd.amount); sum += bd.amount; }
+          }
+        });
+        localOut.push({ item: it, total: sum, upcoming: sum > 0 });
+      } else {
+        // 한 번 받는 돈: 신청 기한(태어난 날부터 N개월) 안이면 앞으로 받을 돈으로 셉니다
+        var up = !born || daysBetween(t, addDays(addMonthsDate(b, it.applyMonths), -1)) >= 0;
+        once.push({ id: it.id, amount: it.amount, upcoming: up && !it.unconfirmed, local: true });
+        localOut.push({ item: it, total: it.amount, upcoming: up, unconfirmed: !!it.unconfirmed });
+      }
+    });
+
     // 육아휴직 급여 (계획을 넣고 '총액에 넣기'를 켠 경우)
     var lv = null;
     if (p.leave && p.leave.include) {
@@ -133,7 +163,6 @@
     var months = Object.keys(rows).map(function (x) { return rows[x]; }).sort(function (a, c) { return a.i - c.i; });
 
     // 한 번에 받는 돈
-    var once = [];
     var fmAmt = (p.order || 1) >= 2 ? FM.second : FM.first;
     var fmUpcoming = !born || within60;
     // 지금 금액(200만/300만)은 2024.1.1 이후 출생아에게만 맞습니다. 그 전에 태어났으면 보여 주지 않습니다.
@@ -163,7 +192,7 @@
     return {
       born: born, within60: within60, cls: cls, allowMonthly: allowAmount(cls, !!p.local),
       birthIdx: birthI, startIdx: startI, nowIdx: nowI,
-      total: total, totals: totals, once: once, leave: lv,
+      total: total, totals: totals, once: once, leave: lv, local: localOut,
       months: months, byAge: byAge.filter(Boolean),
       thisMonth: monthSum(Math.max(nowI, startI))
     };
@@ -192,6 +221,15 @@
         due: due ? fmtDate(due) : null,
         dLeft: due ? daysBetween(t, due) : null
       });
+    });
+    // 지자체 지원금 신청 기한
+    localItems(p.sido, p.sgg).forEach(function (it) {
+      if (!it.todo || (it.bornFrom && born && fmtDate(b) < it.bornFrom)) return;
+      var due = it.todo.dueDays !== undefined ? addDays(b, it.todo.dueDays) : addDays(addMonthsDate(b, it.todo.dueMonths), -1);
+      var left = daysBetween(t, due);
+      if (born && left < -30) return;                     // 기한이 한참 지난 건 안 보여 줌
+      list.push({ id: 'local-' + it.id, title: it.todo.title, body: it.todo.body, src: it.src, when: 'local',
+        first: false, due: fmtDate(due), dLeft: left });
     });
     return list;
   }
@@ -241,9 +279,11 @@
     var total = 0;
     ps.forEach(function (q) {
       var r = q.rule, monthly = [];
+      q.noWage = r.canLeave && q.months > 0 && !q.wage;   // 월급을 안 넣었으면 하한(70만)으로 채우지 않고 0으로 둠
       for (var m = 1; m <= q.months; m++) {
         var v;
-        if (m <= q.boost) v = bandPay([{ upTo: m, rate: r.sixsix.rate, cap: r.sixsix.caps[m - 1] }], r.floor, q.wage, m);
+        if (q.noWage) v = 0;
+        else if (m <= q.boost) v = bandPay([{ upTo: m, rate: r.sixsix.rate, cap: r.sixsix.caps[m - 1] }], r.floor, q.wage, m);
         else v = bandPay(plan.single && r.singleBands ? r.singleBands : r.bands, r.floor, q.wage, m);
         monthly.push(v);
       }
@@ -279,7 +319,7 @@
   }
 
   var Money = {
-    DATA: DATA, calc: calc, todos: todos, regionClass: regionClass, leave: leave, leaveSplits: leaveSplits,
+    DATA: DATA, calc: calc, todos: todos, regionClass: regionClass, localItems: localItems, hasLocal: hasLocal, leave: leave, leaveSplits: leaveSplits,
     allowAgeLimit: allowAgeLimit, man: man,
     parseDate: parseDate, monthIdx: monthIdx, idxYear: idxYear, idxMonth: idxMonth,
     fmtDate: fmtDate, addDays: addDays, daysBetween: daysBetween

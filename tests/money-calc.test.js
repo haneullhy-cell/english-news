@@ -265,3 +265,57 @@ test('총액에 넣으면 앞으로 받을 돈에 더해짐 (지난달 휴직분
   const off = M.calc({ ...base, date: '2026-09-15', leave: { ...leave, include: false } }, '2026-09-30');
   assert.equal(off.totals.leave, undefined);
 });
+
+// ---------- 지자체: 대전 (정부24·조례 확인, 2026-09-30) ----------
+const dj = (sgg, extra = {}) => ({ ...base, sido: '대전광역시', sgg, date: '2026-09-15', ...extra });
+const NATIONAL_DJ = 1800 + 120 + 1638 + 200;                  // 비수도권 아동수당 10.5만 × 156
+
+test('대전 유성구 신생아: 양육기본수당 15만×24 + 30만×12 = 720만, 유성구 30만', () => {
+  const r = M.calc(dj('유성구'), '2026-09-30');
+  assert.equal(r.totals.djParent, 720 * MAN);
+  assert.equal(r.totals.ysBirth, 30 * MAN);
+  assert.equal(r.total, (NATIONAL_DJ + 720 + 30) * MAN);
+});
+
+test('대전 대덕구: 출생축하금 50만 + 산모회복비 최대 50만', () => {
+  const r = M.calc(dj('대덕구'), '2026-09-30');
+  assert.equal(r.total, (NATIONAL_DJ + 720 + 50 + 50) * MAN);
+});
+
+test('대전 중구: 2026년 금액 미확인이라 보여 주되 합계에서 뺌', () => {
+  const r = M.calc(dj('중구'), '2026-09-30');
+  assert.equal(r.totals.jgBirth, undefined);
+  assert.equal(r.local.find(x => x.item.id === 'jgBirth').unconfirmed, true);
+  assert.equal(r.total, (NATIONAL_DJ + 720) * MAN);
+});
+
+test('대전 동구 18개월 아이: 양육기본수당은 남은 달만, 1년 지난 출생축하금은 뺌', () => {
+  const r = M.calc(dj('동구', { date: '2025-03-10' }), '2026-09-30');
+  assert.equal(r.totals.djParent, (5 * 15 + 12 * 30) * MAN);   // 2026.10(19개월)~, 24개월부터 30만
+  assert.equal(r.totals.dgBirth, undefined);
+  assert.equal(r.local.find(x => x.item.id === 'dgBirth').upcoming, false);
+});
+
+test('유성구 출산장려금은 2023년 이후 출생아만, 대덕구 산모회복비는 2025년 이후만', () => {
+  assert.ok(!M.calc(dj('유성구', { date: '2022-12-01' }), '2026-09-30').local.some(x => x.item.id === 'ysBirth'));
+  assert.ok(!M.calc(dj('대덕구', { date: '2024-12-31' }), '2026-09-30').local.some(x => x.item.id === 'ddMom'));
+});
+
+test('대전 할 일: 양육기본수당 60일, 구 지원금 1년, 산모회복비 6개월', () => {
+  const t = Object.fromEntries(M.todos(dj('대덕구'), '2026-09-30').map(x => [x.id, x]));
+  assert.equal(t['local-djParent'].due, '2026-11-13');
+  assert.equal(t['local-ddBirth'].due, '2027-09-14');
+  assert.equal(t['local-ddMom'].due, '2027-03-14');
+});
+
+test('대전이 아니면 지자체 지원금 없음', () => {
+  const r = M.calc({ ...base, date: '2026-09-15' }, '2026-09-30');
+  assert.equal(r.local.length, 0);
+  assert.equal(M.hasLocal('서울특별시'), false);
+});
+
+test('월급을 안 넣은 휴직은 70만 하한으로 채우지 않고 0', () => {
+  const r = M.leave({ parents: [{ job: 'ei', wage: 0, months: 12, startK: 3 }, ei(300, 0)] });
+  assert.equal(r.total, 0);
+  assert.equal(r.parents[0].noWage, true);
+});
