@@ -50,9 +50,11 @@ jobs:
           GH_PAT:              ${{ secrets.GH_PAT }}
         run: python send_threads.py
 
+      # 카톡 발송이 실패해도 만들어 둔 글감은 저장합니다 (always)
       - name: 만든 글감 저장하기
-        if: steps.check.outputs.skip != 'true'
+        if: always() && steps.check.outputs.skip != 'true'
         run: |
+          [ -d docs/threads ] || exit 0   # 글감을 만들기 전에 실패했으면 저장할 것 없음
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/threads/

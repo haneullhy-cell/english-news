@@ -531,9 +531,15 @@ def send_kakao(access_token, plan, page_url):
 # ─────────────────────────────────────────────────────────────
 
 def main():
-    access_token, new_refresh = refresh_kakao_token()
-    if new_refresh:
-        update_github_secret("KAKAO_REFRESH_TOKEN", new_refresh)
+    # 카카오 로그인이 안 돼도 글감은 만들어 저장한다 (카톡만 못 보냄)
+    access_token, kakao_error = None, None
+    try:
+        access_token, new_refresh = refresh_kakao_token()
+        if new_refresh:
+            update_github_secret("KAKAO_REFRESH_TOKEN", new_refresh)
+    except Exception as e:
+        kakao_error = e
+        log(f"카카오 로그인 실패 — 글감은 그대로 만들어 저장합니다.\n{e}")
 
     history = load_history()
     events = upcoming_events(MONDAY)
@@ -563,6 +569,9 @@ def main():
 
     # PAGES_URL은 GitHub Actions에서 자동으로 채워집니다
     page_url = f"{PAGES_URL}/threads/{filename}" if PAGES_URL else "https://www.threads.com"
+    if kakao_error:
+        # 실패로 끝내야 GitHub이 알림 메일을 보낸다. 글감은 워크플로가 저장한다.
+        raise RuntimeError(f"글감은 저장했지만 카톡은 못 보냈어요 → {page_url}\n{kakao_error}")
     send_kakao(access_token, plan, page_url)
 
     log("전부 완료!")
