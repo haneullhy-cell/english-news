@@ -639,10 +639,14 @@ function share(){
   var r = M.calc(full(), todayStr());
   var text = (r.born ? '우리 아이가 앞으로 받을 돈 ' : '우리 아이가 태어나면 받을 돈 ') + '약 ' + M.man(r.total) + ' 원! 우리 아이는 얼마 받을까?';
   var url = location.href.split('#')[0].split('?')[0];
-  if (navigator.share) { navigator.share({ title: '받을돈', text: text, url: url }).catch(function(){}); return; }
   var all = text + ' ' + url;
-  if (navigator.clipboard) navigator.clipboard.writeText(all).then(function(){ toast('복사했어요. 붙여 넣어 공유하세요'); }, function(){ toast(all); });
-  else toast(all);
+  function copy(){
+    if (navigator.clipboard) navigator.clipboard.writeText(all).then(function(){ toast('복사했어요. 붙여 넣어 공유하세요'); }, function(){ toast(all); });
+    else toast(all);
+  }
+  // 공유 창을 못 쓰는 곳(거부·미지원)에서는 복사로 대신해요. 사용자가 공유 창을 닫은 경우만 조용히 끝내요.
+  if (navigator.share) { navigator.share({ title: '받을돈', text: text, url: url }).catch(function(e){ if (!e || e.name !== 'AbortError') copy(); }); return; }
+  copy();
 }
 
 /* ---------- 시작 ---------- */
