@@ -289,8 +289,12 @@ function shrink(file,cb){
  img.onload=function(){
   var MAX=720, w=img.naturalWidth, h=img.naturalHeight, k=Math.min(1, MAX/Math.max(w,h));
   var cv=document.createElement('canvas'); cv.width=Math.round(w*k); cv.height=Math.round(h*k);
-  cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); URL.revokeObjectURL(url);
-  cb(cv.toDataURL('image/jpeg',.82));
+  var ctx=cv.getContext('2d'); ctx.drawImage(img,0,0,cv.width,cv.height); URL.revokeObjectURL(url);
+  /* 투명 배경(누끼) 사진은 투명을 살려 PNG로, 아니면 JPEG로 (JPEG는 투명이 검게 되므로 흰 바탕을 먼저 깔아 둠) */
+  var alpha=false; try{ var dd=ctx.getImageData(0,0,cv.width,cv.height).data; for(var i=3;i<dd.length;i+=4*7){ if(dd[i]<250){ alpha=true; break; } } }catch(e){}
+  if(alpha){ cb(cv.toDataURL('image/png')); return; }
+  var cv2=document.createElement('canvas'); cv2.width=cv.width; cv2.height=cv.height; var c2=cv2.getContext('2d'); c2.fillStyle='#fff'; c2.fillRect(0,0,cv2.width,cv2.height); c2.drawImage(cv,0,0);
+  cb(cv2.toDataURL('image/jpeg',.82));
  };
  img.onerror=function(){ alert('사진을 읽지 못했어요. 다른 사진으로 해 보세요.'); };
  img.src=url;
