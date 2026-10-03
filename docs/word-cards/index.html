@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>낱말 그림 카드 · 앞은 글자, 뒤는 그림</title>
+<meta name="description" content="받침 없는 낱말 카드. 앞면은 낱말, 뒷면은 그림(이모지 또는 내 사진). A4 양면 인쇄, 긴 쪽 넘김. 낱말을 직접 추가하고 사진을 넣을 수 있어요.">
+<meta property="og:title" content="낱말 그림 카드 · 앞은 글자, 뒤는 그림">
+<meta property="og:description" content="받침 없는 낱말 카드. 이모지나 내 사진으로 뒷면 그림. A4 양면 인쇄.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:'Ssurround';src:url('fonts/Cafe24Ssurround.woff') format('woff');font-display:swap}
+:root{--paper:#FFFDF6;--ink:#111318;--red:#E8322D;--blue:#1E5BE6;--green:#16A34A;--dim:#5B6472;--line:#C7CED6;--hl:#FFE24A;--lime:#B6F24A;--sky:#CFE0FF;--rose:#FFD9D6}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+body{margin:0;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#EFF1F4;color:var(--ink)}
+button,input,textarea,select{font:inherit;color:inherit}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:0 0 48px}
+.tb{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 16px;background:#fff;border-bottom:2px solid var(--ink);font-size:14px;line-height:1.4}
+.tb b{font-weight:900;font-size:16px}
+.btn{display:inline-block;text-decoration:none;color:var(--ink);font-weight:900;padding:7px 14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--lime);cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);line-height:1.3}
+.btn.ghost{background:#fff}
+.btn:active{transform:translate(1px,1px);box-shadow:none}
+.btn:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.tb .hint{font-size:12px;color:var(--dim);flex-basis:100%}
+.panel{width:100%;max-width:860px;margin-inline:16px;background:#fff;border:1.5px solid var(--ink);border-radius:14px;box-shadow:3px 3px 0 var(--ink);padding:18px 20px;font-size:14px;line-height:1.6}
+.panel h2{margin:0 0 10px;font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel h2 small{font-size:12px;font-weight:700;color:var(--dim)}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.how div{border:1.5px solid var(--line);border-radius:10px;padding:12px 14px}
+.how b{display:block;font-weight:900;margin-bottom:4px}
+.how p{margin:0;font-size:13px;color:#33383f}
+.mini{font-size:12px;font-weight:700;padding:4px 10px;border:1.5px solid var(--ink);border-radius:99px;background:#fff;cursor:pointer;box-shadow:1px 1px 0 var(--ink)}
+.mini:active{transform:translate(1px,1px);box-shadow:none}
+.mini.warnb{background:var(--rose)}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.cnt{font-size:12px;color:var(--dim);font-weight:700}
+label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;cursor:pointer}
+
+/* 편집 목록 */
+.list{display:grid;gap:8px;margin-top:10px}
+.it{display:grid;grid-template-columns:28px 1fr 64px auto auto 32px;gap:6px;align-items:center;border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;background:var(--paper)}
+.it.bad{border-color:var(--red);background:#FFF1F0}
+.it .n{font-size:12px;color:var(--dim);font-weight:700;text-align:center}
+.it input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;font-size:16px;font-family:'Ssurround','Noto Sans KR',sans-serif}
+.it input.e{text-align:center;font-size:22px;padding:2px 4px;font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.it .ph{width:44px;height:44px;border-radius:8px;border:1.5px dashed var(--line);background:#fff center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--dim);cursor:pointer;overflow:hidden;position:relative}
+.it .ph.has{border-style:solid;border-color:var(--ink)}
+.it .ph input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.it .x{width:32px;height:32px;border:1.5px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-weight:900;color:var(--dim)}
+.it .err{grid-column:1/-1;font-size:12px;color:var(--red);font-weight:700}
+.it .rm{font-size:11px;padding:3px 8px;border:1.5px solid var(--line);border-radius:99px;background:#fff;cursor:pointer;color:var(--dim)}
+.pal{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.pal button{font-size:20px;width:36px;height:36px;border:1.5px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.pal button:hover{border-color:var(--ink)}
+.ok{font-size:12.5px;color:var(--dim);margin-top:6px}
+
+/* 시트 */
+.sheets{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
+.sheetbox{position:relative}
+.sheet{position:relative;width:210mm;height:297mm;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.10);transform-origin:top left;overflow:hidden;font-family:'Ssurround','Noto Sans KR',sans-serif}
+.sheet .lab{position:absolute;left:0;right:0;top:1mm;text-align:center;font-family:'Noto Sans KR',sans-serif;font-size:2.6mm;color:var(--dim);font-weight:700}
+.sheet .lab.b{color:#A3AAB5}
+.grid{position:absolute;left:5mm;top:5mm;width:200mm;height:287mm;display:grid;grid-template-columns:repeat(2,100mm);grid-template-rows:repeat(4,71.75mm)}
+.cd{position:relative;border:.2mm solid #C7CED6;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#fff}
+.cd .w{font-size:28mm;line-height:1.1;letter-spacing:.5mm;color:var(--ink);text-align:center;white-space:nowrap}
+.cd .w.l3{font-size:23mm}.cd .w.l4{font-size:18mm;letter-spacing:.2mm}.cd .w.l5{font-size:14mm;letter-spacing:0}
+.cd .jm{margin-top:2.5mm;display:flex;gap:3.5mm;font-size:6mm;line-height:1}
+.cd .jm .c{color:var(--blue)}.cd .jm .v{color:var(--red)}.cd .jm .t{color:var(--green)}
+.cd .no{position:absolute;right:2mm;bottom:1.2mm;font-family:'Noto Sans KR',sans-serif;font-size:2.4mm;color:#B6BDC7;font-weight:700}
+.cd .no.l{right:auto;left:2mm}
+.cd .em{font-size:38mm;line-height:1;font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.cd .im{position:absolute;inset:4mm;border-radius:4mm;background:center/cover no-repeat}
+.cd.blank{background:repeating-linear-gradient(45deg,#F4F6F9 0 2mm,#fff 2mm 4mm)}
+.empty{font-size:14px;color:var(--dim);padding:24px;text-align:center}
+@media (max-width:700px){
+ .panel{padding:16px 14px}
+ .how{grid-template-columns:1fr}
+ .it{grid-template-columns:22px 1fr 56px auto 28px;gap:5px}
+ .it .rm{display:none}
+}
+@media print{
+ @page{size:A4 portrait;margin:0}
+ body{background:#fff}
+ .wrap{gap:0;padding:0}
+ .tb,.panel,.empty{display:none!important}
+ .sheets{gap:0}
+ .sheetbox{width:210mm!important;height:297mm!important;page-break-after:always;break-after:page}
+ .sheetbox:last-child{page-break-after:auto;break-after:auto}
+ .sheet{transform:none!important;box-shadow:none}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="tb">
+  <b>🃏 낱말 그림 카드</b>
+  <button class="btn" id="print">🖨 인쇄 · PDF 저장</button>
+  <a class="btn ghost" href="words.pdf" download="낱말 그림 카드.pdf">📥 기본 세트 PDF</a>
+  <a class="btn ghost" href="https://mathfolder-hangul.netlify.app" target="_blank" rel="noopener">🔤 접기 카드</a>
+  <span class="hint">앞면(글자)·뒷면(그림)이 번갈아 나와요. 인쇄 설정은 <b>A4 · 세로 · 양면 · 긴 쪽 넘김 · 실제 크기 100%</b>. 한 장에 8장, 코팅 후 자르면 좋아요.</span>
+</div>
+
+<section class="panel">
+  <h2>앞은 글자, 뒤는 그림 <small>받침 없는 낱말만</small></h2>
+  <div class="how">
+    <div><b>1. 낱말 고치기·더하기</b><p>아래 목록에서 낱말을 바꾸거나 ➕ 줄을 더해요. 받침이 있는 글자가 들어가면 빨간 줄로 알려주고 카드에서 빠져요.</p></div>
+    <div><b>2. 그림은 이모지 또는 내 사진</b><p>이모지 칸을 누르면 키보드 이모지를 넣을 수 있고, 네모 칸을 누르면 사진을 골라요. 사진이 있으면 사진이 먼저 쓰여요.</p></div>
+    <div><b>3. 양면으로 인쇄</b><p>앞면 시트 다음에 뒷면 시트가 좌우 뒤집혀 나와요. 양면·긴 쪽 넘김으로 뽑으면 앞뒤가 맞아요. 먼저 한 장만 시험 인쇄해 보세요.</p></div>
+  </div>
+  <div class="row">
+    <label class="tg"><input type="checkbox" id="jamo" checked> 앞면에 자음·모음 작게 보이기</label>
+    <label class="tg"><input type="checkbox" id="num" checked> 카드 번호 표시 (앞뒤 맞추기용)</label>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>📝 낱말 목록 <small id="cnt"></small></h2>
+  <div class="row"><button class="mini" data-act="add">➕ 낱말 더하기</button><button class="mini" data-act="defaults">기본 낱말 56개 불러오기</button><button class="mini warnb" data-act="clear">모두 비우기</button></div>
+  <div class="pal" id="pal"></div>
+  <div class="ok">이모지 모음을 누르면 마지막으로 만진 낱말의 그림에 들어가요. 사진은 기기 안에만 저장돼요(이 브라우저에서만 보여요).</div>
+  <div class="list" id="list"></div>
+</section>
+
+<div class="sheets" id="sheets"></div>
+<div class="empty" id="empty" hidden>낱말이 없어요. 위에서 낱말을 더하거나 기본 낱말을 불러오세요.</div>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+var CI='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', VI='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ', TI='ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+var MM=96/25.4, SW=210, SH=297, PER=8, COLS=2;
+var DEFAULTS=[
+ ['거미','🕷️'],['나비','🦋'],['사자','🦁'],['하마','🦛'],['여우','🦊'],['오리','🦆'],['토끼','🐰'],['돼지','🐷'],
+ ['소','🐮'],['새','🐦'],['개','🐶'],['게','🦀'],['쥐','🐭'],['새우','🦐'],['우주','🪐'],['코끼리','🐘'],
+ ['너구리','🦝'],['노루','🦌'],['모기','🦟'],['치타','🐆'],['나무','🌳'],['바다','🌊'],['해','☀️'],['비','🌧️'],
+ ['모래','🏖️'],['지구','🌍'],['사과','🍎'],['바나나','🍌'],['포도','🍇'],['배','🍐'],['오이','🥒'],['가지','🍆'],
+ ['고추','🌶️'],['우유','🥛'],['피자','🍕'],['치즈','🧀'],['주스','🧃'],['두부','🧈'],['아기','👶'],['아빠','👨'],
+ ['코','👃'],['귀','👂'],['이','🦷'],['머리','💇'],['모자','🎩'],['구두','👞'],['바지','👖'],['치마','👗'],
+ ['기차','🚂'],['버스','🚌'],['의자','🪑'],['시계','⌚'],['가위','✂️'],['비누','🧼'],['소라','🐚'],['다리','🌉']
+];
+var PAL=['🐶','🐱','🐭','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦆','🦉','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐢','🐍','🐙','🐬','🐳','🐟','🐘','🦒','🦓','🍎','🍌','🍇','🍓','🍉','🍑','🍐','🥕','🌽','🍞','🧀','🍕','🍰','🍪','🥛','🌳','🌸','🌻','☀️','🌙','⭐','☁️','🌈','❄️','🌊','🚗','🚌','🚂','✈️','🚀','⚽','🎈','🎁','📚','✏️','🧸','👶','👨','👩','🏠'];
+
+var state={items:[], jamo:true, num:true};
+try{ var s=JSON.parse(localStorage.getItem('wc1')||'null'); if(s&&Array.isArray(s.items)) state=s; else state.items=DEFAULTS.map(function(d){return {w:d[0],e:d[1],img:null}}); }catch(e){ state.items=DEFAULTS.map(function(d){return {w:d[0],e:d[1],img:null}}); }
+if(state.items.length===0 && !localStorage.getItem('wc1')) state.items=DEFAULTS.map(function(d){return {w:d[0],e:d[1],img:null}});
+function save(){ try{ localStorage.setItem('wc1',JSON.stringify(state)); return true; }catch(e){ alert('저장 공간이 꽉 찼어요. 사진을 몇 장 지우거나 더 작은 사진을 넣어 주세요.'); return false; } }
+
+function decomp(ch){ var code=ch.charCodeAt(0)-0xAC00; if(code<0||code>11171) return null; var t=code%28; return {c:CI[Math.floor(code/588)], v:VI[Math.floor(code%588/28)], t:t?TI[t-1]:''}; }
+function check(w){
+ w=(w||'').trim(); if(!w) return {err:'낱말을 적어 주세요'};
+ var chars=Array.from(w), syl=[];
+ for(var i=0;i<chars.length;i++){ var d=decomp(chars[i]); if(!d) return {err:'"'+chars[i]+'"은(는) 한글 글자가 아니에요'}; if(d.t) return {err:'"'+chars[i]+'"에 받침이 있어요 (받침 없는 낱말만)'}; syl.push(d); }
+ return {w:w, syl:syl};
+}
+
+/* ── 편집 목록 ── */
+var lastIdx=-1;
+function renderList(){
+ var box=document.getElementById('list'); box.innerHTML='';
+ state.items.forEach(function(it,i){
+  var r=check(it.w); var row=document.createElement('div'); row.className='it'+(r.err?' bad':'');
+  row.innerHTML='<span class="n">'+(i+1)+'</span>'
+   +'<input type="text" class="w" value="" placeholder="낱말" maxlength="6">'
+   +'<input type="text" class="e" value="" placeholder="😀" maxlength="8" title="이모지">'
+   +'<div class="ph'+(it.img?' has':'')+'" title="사진 넣기">'+(it.img?'':'📷 사진')+'<input type="file" accept="image/*"></div>'
+   +'<button class="rm"'+(it.img?'':' hidden')+'>사진 지우기</button>'
+   +'<button class="x" title="지우기">✕</button>'
+   +(r.err?'<div class="err">'+r.err+'</div>':'');
+  var wi=row.querySelector('.w'), ei=row.querySelector('.e'), ph=row.querySelector('.ph'), fi=row.querySelector('input[type=file]');
+  wi.value=it.w; ei.value=it.e||''; if(it.img) ph.style.backgroundImage='url('+it.img+')';
+  wi.addEventListener('input',function(){ it.w=wi.value; lastIdx=i; schedule(); });
+  wi.addEventListener('focus',function(){ lastIdx=i; });
+  ei.addEventListener('input',function(){ it.e=ei.value; lastIdx=i; schedule(); });
+  ei.addEventListener('focus',function(){ lastIdx=i; });
+  fi.addEventListener('change',function(){ var f=fi.files&&fi.files[0]; if(!f) return; shrink(f,function(url){ it.img=url; if(save()){ renderList(); build(); } }); });
+  row.querySelector('.rm').onclick=function(){ it.img=null; save(); renderList(); build(); };
+  row.querySelector('.x').onclick=function(){ state.items.splice(i,1); save(); renderList(); build(); };
+  box.appendChild(row);
+ });
+ var ok=state.items.filter(function(it){return !check(it.w).err}).length;
+ document.getElementById('cnt').textContent=ok+'장 · 시트 '+Math.ceil(ok/PER)+'쌍(앞+뒤)';
+}
+function shrink(file,cb){
+ var img=new Image(), url=URL.createObjectURL(file);
+ img.onload=function(){
+  var MAX=720, w=img.naturalWidth, h=img.naturalHeight, k=Math.min(1, MAX/Math.max(w,h));
+  var cv=document.createElement('canvas'); cv.width=Math.round(w*k); cv.height=Math.round(h*k);
+  cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height); URL.revokeObjectURL(url);
+  cb(cv.toDataURL('image/jpeg',.82));
+ };
+ img.onerror=function(){ alert('사진을 읽지 못했어요. 다른 사진으로 해 보세요.'); };
+ img.src=url;
+}
+var tmr; function schedule(){ clearTimeout(tmr); tmr=setTimeout(function(){ save(); build(); refreshErr(); },350); }
+function refreshErr(){ // 입력 중 포커스를 잃지 않도록 오류 표시만 갱신
+ var rows=document.querySelectorAll('#list .it');
+ state.items.forEach(function(it,i){ var row=rows[i]; if(!row) return; var r=check(it.w); row.classList.toggle('bad',!!r.err); var e=row.querySelector('.err'); if(r.err){ if(!e){ e=document.createElement('div'); e.className='err'; row.appendChild(e);} e.textContent=r.err; } else if(e) e.remove(); });
+ var ok=state.items.filter(function(it){return !check(it.w).err}).length;
+ document.getElementById('cnt').textContent=ok+'장 · 시트 '+Math.ceil(ok/PER)+'쌍(앞+뒤)';
+}
+
+/* ── 시트 ── */
+function cardFront(it,r,n){
+ var d=document.createElement('div'); d.className='cd';
+ var L=r.syl.length, cls=L>=5?' l5':L===4?' l4':L===3?' l3':'';
+ var h='<div class="w'+cls+'">'+r.w+'</div>';
+ if(state.jamo){ h+='<div class="jm">'+r.syl.map(function(s){return '<span><span class="c">'+s.c+'</span><span class="v">'+s.v+'</span></span>'}).join('')+'</div>'; }
+ if(state.num) h+='<span class="no">'+n+'</span>';
+ d.innerHTML=h; return d;
+}
+function cardBack(it,n){
+ var d=document.createElement('div'); d.className='cd';
+ if(it.img){ var im=document.createElement('div'); im.className='im'; im.style.backgroundImage='url('+it.img+')'; d.appendChild(im); }
+ else { d.innerHTML='<div class="em">'+(it.e||'❓')+'</div>'; }
+ if(state.num){ var s=document.createElement('span'); s.className='no l'; s.textContent=n; d.appendChild(s); }
+ return d;
+}
+function build(){
+ var ok=[]; state.items.forEach(function(it){ var r=check(it.w); if(!r.err) ok.push({it:it,r:r}); });
+ var box=document.getElementById('sheets'); box.innerHTML='';
+ document.getElementById('empty').hidden=ok.length>0;
+ if(!ok.length) return;
+ var nS=Math.ceil(ok.length/PER);
+ for(var s=0;s<nS;s++){
+  var chunk=ok.slice(s*PER,(s+1)*PER);
+  // 앞면
+  var f=sheet('앞면 '+(s+1)+'/'+nS+' · 낱말 그림 카드', false);
+  for(var k=0;k<PER;k++){ var c=chunk[k]; f.grid.appendChild(c?cardFront(c.it,c.r,s*PER+k+1):blank()); }
+  // 뒷면: 열 좌우 반전 (긴 쪽 넘김)
+  var b=sheet('뒷면 '+(s+1)+'/'+nS+' · 좌우 뒤집어 배치됨', true);
+  var back=new Array(PER);
+  for(var k2=0;k2<PER;k2++){ var r=Math.floor(k2/COLS), cc=k2%COLS; back[r*COLS+(COLS-1-cc)]=chunk[k2]?{c:chunk[k2],n:s*PER+k2+1}:null; }
+  for(var k3=0;k3<PER;k3++){ var bb=back[k3]; b.grid.appendChild(bb?cardBack(bb.c.it,bb.n):blank()); }
+  box.appendChild(f.box); box.appendChild(b.box);
+ }
+ fit();
+}
+function sheet(label,isBack){
+ var sb=document.createElement('div'); sb.className='sheetbox';
+ var sh=document.createElement('div'); sh.className='sheet';
+ var lab=document.createElement('div'); lab.className='lab'+(isBack?' b':''); lab.textContent=label; sh.appendChild(lab);
+ var g=document.createElement('div'); g.className='grid'; sh.appendChild(g); sb.appendChild(sh);
+ return {box:sb,grid:g};
+}
+function blank(){ var d=document.createElement('div'); d.className='cd blank'; return d; }
+function fit(){
+ var vw=Math.min(document.documentElement.clientWidth, window.innerWidth)-32;
+ var sc=Math.min(1, vw/(SW*MM));
+ document.querySelectorAll('#sheets .sheetbox').forEach(function(sb){ sb.style.width=(SW*MM*sc)+'px'; sb.style.height=(SH*MM*sc)+'px'; sb.firstChild.style.transform='scale('+sc+')'; });
+}
+
+/* ── 이모지 모음 ── */
+(function(){ var p=document.getElementById('pal'); PAL.forEach(function(e){ var b=document.createElement('button'); b.type='button'; b.textContent=e; b.title='마지막으로 만진 낱말에 넣기';
+ b.onclick=function(){ var i=lastIdx>=0?lastIdx:state.items.length-1; if(i<0) return; state.items[i].e=e; save(); renderList(); build(); }; p.appendChild(b); }); })();
+
+document.addEventListener('click',function(e){
+ var a=e.target.closest('[data-act]'); if(!a) return; var act=a.dataset.act;
+ if(act==='add'){ state.items.push({w:'',e:'',img:null}); lastIdx=state.items.length-1; save(); renderList(); build(); var last=document.querySelector('#list .it:last-child .w'); if(last) last.focus(); }
+ if(act==='defaults'){ var have=state.items.map(function(it){return it.w.trim()}); DEFAULTS.forEach(function(d){ if(have.indexOf(d[0])<0) state.items.push({w:d[0],e:d[1],img:null}); }); save(); renderList(); build(); }
+ if(act==='clear'){ if(confirm('낱말과 사진을 모두 지울까요?')){ state.items=[]; save(); renderList(); build(); } }
+});
+document.getElementById('jamo').checked=state.jamo; document.getElementById('num').checked=state.num;
+document.getElementById('jamo').onchange=function(){ state.jamo=this.checked; save(); build(); };
+document.getElementById('num').onchange=function(){ state.num=this.checked; save(); build(); };
+document.getElementById('print').onclick=function(){ window.print(); };
+window.addEventListener('resize',fit);
+renderList(); build();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+window.WC={build:build,state:state,setItems:function(items){state.items=items;renderList();build();}};
+})();
+</script>
+</body>
+</html>
