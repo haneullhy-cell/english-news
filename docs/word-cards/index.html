@@ -70,13 +70,8 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
 .cd .w.l3{font-size:22mm}.cd .w.l4{font-size:17mm;letter-spacing:.3mm}.cd .w.l5{font-size:13.5mm;letter-spacing:0}
 /* 자음·모음 조각 조립 */
 .s{position:relative;display:inline-block;width:1em;height:1em;flex:none}
-.s i{position:absolute;font-style:normal;line-height:1;display:flex;align-items:center;justify-content:center;font-size:.7em}
+.s i{position:absolute;font-style:normal;line-height:1;display:block;width:1em;height:1em;white-space:pre}
 .s .c{color:var(--blue)}.s .v{color:var(--red)}
-.s.h .c{left:0;top:0;width:50%;height:100%}.s.h .v{right:0;top:0;width:50%;height:100%}
-.s.h .c span{transform:translateX(3%)}.s.h .v span{transform:translateX(-3%)}
-.s.vv .c{left:0;top:0;width:100%;height:50%}.s.vv .v{left:0;bottom:0;width:100%;height:50%}
-.s.vv .c span{transform:translateY(8%)}.s.vv .v span{transform:translateY(-8%)}
-.s i span{display:block}
 .cd .no{position:absolute;right:2mm;bottom:1.2mm;font-family:'Noto Sans KR',sans-serif;font-size:2.4mm;color:#B6BDC7;font-weight:700}
 .cd .no.l{right:auto;left:2mm}
 .cd .em{font-size:30mm;line-height:1;font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif}
@@ -145,6 +140,21 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
 var CI='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', VI='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ', TI='ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
 var MM=96/25.4, SW=210, SH=297, PER=10, COLS=2;
 var VV='ㅗㅛㅜㅠㅡ';
+/* 글꼴에서 잰 자모 잉크 범위 [x0,x1,y0,y1] (em 기준) */
+var BB={"ㄱ":[0.17,0.79,0.24,0.725],"ㄲ":[0.135,0.84,0.24,0.725],"ㄴ":[0.2,0.815,0.245,0.715],"ㄷ":[0.185,0.785,0.24,0.715],"ㄸ":[0.15,0.885,0.24,0.715],"ㄹ":[0.205,0.81,0.24,0.715],"ㅁ":[0.2,0.79,0.24,0.71],"ㅂ":[0.205,0.795,0.245,0.715],"ㅃ":[0.155,0.855,0.24,0.72],"ㅅ":[0.145,0.835,0.225,0.725],"ㅆ":[0.09,0.915,0.22,0.73],"ㅇ":[0.22,0.785,0.235,0.73],"ㅈ":[0.135,0.865,0.24,0.72],"ㅉ":[0.09,0.91,0.24,0.725],"ㅊ":[0.135,0.87,0.185,0.725],"ㅋ":[0.175,0.79,0.24,0.71],"ㅌ":[0.2,0.805,0.24,0.715],"ㅍ":[0.16,0.83,0.24,0.715],"ㅎ":[0.165,0.835,0.19,0.77],"ㅏ":[0.445,0.675,0.06,0.905],"ㅐ":[0.37,0.635,0.06,0.91],"ㅑ":[0.445,0.67,0.065,0.91],"ㅒ":[0.37,0.635,0.06,0.91],"ㅓ":[0.33,0.58,0.065,0.91],"ㅔ":[0.31,0.685,0.055,0.895],"ㅕ":[0.33,0.58,0.065,0.91],"ㅖ":[0.31,0.685,0.045,0.895],"ㅗ":[0.11,0.895,0.565,0.815],"ㅘ":[0.075,0.93,0.055,0.905],"ㅙ":[0.1,0.88,0.04,0.9],"ㅚ":[0.12,0.86,0.06,0.915],"ㅛ":[0.11,0.895,0.565,0.815],"ㅜ":[0.11,0.895,0.505,0.905],"ㅝ":[0.09,0.85,0.055,0.905],"ㅞ":[0.09,0.86,0.04,0.9],"ㅟ":[0.07,0.83,0.055,0.905],"ㅠ":[0.11,0.895,0.505,0.905],"ㅡ":[0.11,0.895,0.715,0.78],"ㅢ":[0.12,0.86,0.06,0.915],"ㅣ":[0.46,0.53,0.065,0.91],"ㄳ":[0.115,0.875,0.29,0.68],"ㄵ":[0.16,0.87,0.29,0.69],"ㄶ":[0.19,0.835,0.28,0.7],"ㄺ":[0.15,0.85,0.285,0.68],"ㄻ":[0.15,0.855,0.285,0.68],"ㄼ":[0.15,0.845,0.29,0.68],"ㄽ":[0.12,0.88,0.285,0.685],"ㄾ":[0.155,0.845,0.285,0.68],"ㄿ":[0.15,0.855,0.285,0.68],"ㅀ":[0.155,0.835,0.28,0.7],"ㅄ":[0.12,0.885,0.285,0.685]};
+/* 자음 잉크와 모음 잉크를 일정 간격으로 붙여 한 글자(1em 상자)로 조립 */
+function compose(c,v){
+ var bc=BB[c], bv=BB[v]; if(!bc||!bv) return '<span class="s"><i class="c" style="font-size:.7em;left:0;top:15%">'+c+'</i><i class="v" style="font-size:.7em;left:40%;top:15%">'+v+'</i></span>';
+ var vert=VV.indexOf(v)>=0, F=0.85, GAP=0.07, MAXW=0.98;
+ var cw=(bc[1]-bc[0]), ch=(bc[3]-bc[2]), vw=(bv[1]-bv[0]), vh=(bv[3]-bv[2]);
+ var total=(vert?ch+vh:cw+vw)*F+GAP; if(total>MAXW){ F=F*(MAXW-GAP)/(total-GAP); total=MAXW; }
+ var side=(vert?Math.max(cw,vw):Math.max(ch,vh))*F; if(side>MAXW){ F=F*MAXW/side; total=(vert?ch+vh:cw+vw)*F+GAP; }
+ var Xc,Yc,Xv,Yv;
+ if(vert){ Yc=(1-total)/2; Yv=Yc+ch*F+GAP; Xc=0.5-cw*F/2; Xv=0.5-vw*F/2; }
+ else { Xc=(1-total)/2; Xv=Xc+cw*F+GAP; Yc=0.5-ch*F/2; Yv=0.5-vh*F/2; }
+ function st(b,X,Y){ return 'font-size:'+F.toFixed(3)+'em;left:'+((X-b[0]*F)*100).toFixed(1)+'%;top:'+((Y-b[2]*F)*100).toFixed(1)+'%'; }
+ return '<span class="s"><i class="c" style="'+st(bc,Xc,Yc)+'">'+c+'</i><i class="v" style="'+st(bv,Xv,Yv)+'">'+v+'</i></span>';
+}
 var DEFAULTS=[
  ['거미','🕷️'],['나비','🦋'],['사자','🦁'],['하마','🦛'],['여우','🦊'],['오리','🦆'],['토끼','🐰'],['돼지','🐷'],
  ['소','🐮'],['새','🐦'],['개','🐶'],['게','🦀'],['쥐','🐭'],['새우','🦐'],['우주','🪐'],['코끼리','🐘'],
@@ -220,7 +230,7 @@ function cardFront(it,r,n){
  var d=document.createElement('div'); d.className='cd';
  var L=r.syl.length, cls=L>=5?' l5':L===4?' l4':L===3?' l3':'';
  var h;
- if(state.jamo){ h='<div class="w'+cls+'">'+r.syl.map(function(s){ var o=VV.indexOf(s.v)>=0?'vv':'h'; return '<span class="s '+o+'"><i class="c"><span>'+s.c+'</span></i><i class="v"><span>'+s.v+'</span></i></span>'; }).join('')+'</div>'; }
+ if(state.jamo){ h='<div class="w'+cls+'">'+r.syl.map(function(s){ return compose(s.c,s.v); }).join('')+'</div>'; }
  else { h='<div class="w'+cls+'">'+r.w+'</div>'; }
  if(state.num) h+='<span class="no">'+n+'</span>';
  d.innerHTML=h; return d;
