@@ -168,43 +168,49 @@ function colorSyllable(ch,c,v){
  var gw=Math.max(1,gx1-gx0), gh=Math.max(1,gy1-gy0), kind=HV2.indexOf(v)>=0?'h':(VV2.indexOf(v)>=0?'v':'c');
  var isV=comps.map(function(cp){ var cx=(cp.sx/cp.n-gx0)/gw, cy=(cp.sy/cp.n-gy0)/gh;
   if(kind==='h') return cx>0.5; if(kind==='v') return cy>0.5; return cx>0.5||cy>0.5; });
- /* 픽셀별 모음 표시. 자음과 모음이 붙어 한 덩어리가 된 경우(노·너·와…)는 획 두께를 재서 자름 */
  var grp=new Uint8Array(N), LEFTTICK='ㅓㅔㅕㅖㅝㅞ'.indexOf(v)>=0, DBL='ㅐㅒㅔㅖㅙㅞ'.indexOf(v)>=0;
- comps.forEach(function(cp,ci){
-  var id=ci+1, chh=cp.y1-cp.y0+1;
-  var spanX=(cp.x0-gx0)<0.3*gw && (cp.x1-gx0)>0.85*gw, spanY=(cp.y0-gy0)<0.3*gh && (cp.y1-gy0)>0.85*gh;
-  var merged=(kind==='h')?spanX:(kind==='v')?spanY:(spanX||(spanY&&(cp.x0-gx0)<0.3*gw));
-  if(!merged){ if(isV[ci]) for(var y=cp.y0;y<=cp.y1;y++) for(var x=cp.x0;x<=cp.x1;x++) if(lab[y*W+x]===id) grp[y*W+x]=1; return; }
-  var cutCol=-1, ws=0, cutRow=cp.y0;
-  if(kind!=='v'){
-   var tall=[]; for(var x1=cp.x0;x1<=cp.x1;x1++){ var best=0,run=0; for(var y1=cp.y0;y1<=cp.y1;y1++){ if(lab[y1*W+x1]===id){ run++; if(run>best) best=run; } else run=0; } tall.push(best>=0.85*chh); }
-   var groups=[]; for(var i1=0;i1<tall.length;i1++){ if(tall[i1]){ if(groups.length&&groups[groups.length-1][1]===i1-1) groups[groups.length-1][1]=i1; else groups.push([i1,i1]); } }
-   groups=groups.filter(function(q){return q[1]-q[0]+1>=0.07*gw}); /* 획이 살짝 겹쳐 생긴 가느다란 줄은 무시 */
-   if(groups.length){ var g=groups[groups.length-1]; ws=g[1]-g[0]+1;
-    if(DBL&&groups.length>1){ var g2=groups[groups.length-2]; if(g[0]-g2[1]<0.35*gw) g=g2; }
-    cutCol=cp.x0+g[0]; }
-  }
-  if(kind!=='h'){
-   var xa=cp.x0, xb=(kind==='c'&&cutCol>=0)?cutCol-1:cp.x1, rangeW=xb-xa+1;
-   function rowRuns(y){ var runs=[],run=0; for(var x=xa;x<=xb+1;x++){ var on=(x<=xb&&lab[y*W+x]===id); if(on) run++; else if(run){ runs.push(run); run=0; } } return runs; }
-   var rw={}; for(var y2=cp.y0;y2<=cp.y1;y2++){ var r=rowRuns(y2); rw[y2]={runs:r,max:r.length?Math.max.apply(null,r):0}; }
-   var barTop=-1,barBot=-1; for(var y3=cp.y1;y3>=cp.y0;y3--){ if(rw[y3].max>=0.5*rangeW){ if(barBot<0) barBot=y3; barTop=y3; } else if(barTop>=0) break; }
-   if(barTop>=0){ var ws2=barBot-barTop+1; if(!ws) ws=ws2; cutRow=cp.y0;
-    for(var y4=barTop-1;y4>=cp.y0;y4--){ var ok=rw[y4].runs.every(function(q){return q<=1.35*ws2}); if(!ok){ cutRow=y4+1; break; } } }
-   else cutRow=cp.y1+1;
-  }
-  for(var y5=cp.y0;y5<=cp.y1;y5++) for(var x5=cp.x0;x5<=cp.x1;x5++){ var k5=y5*W+x5; if(lab[k5]!==id) continue;
-   var vv=false; if(kind==='v') vv=y5>=cutRow; else if(kind==='h') vv=(cutCol>=0)?x5>=cutCol:isV[ci]; else vv=(cutCol>=0&&x5>=cutCol)||y5>=cutRow;
-   if(vv) grp[k5]=1; }
-  /* ㅓ·ㅔ·ㅕ·ㅖ의 왼쪽 가지: 세로획 왼쪽에 붙은 얇은 가로획을 모음으로 */
-  if(LEFTTICK&&cutCol>cp.x0&&ws){ var xc=cutCol-1, yy=cp.y0;
-   while(yy<=cp.y1){ if(lab[yy*W+xc]===id){ var s0=yy; while(yy<=cp.y1&&lab[yy*W+xc]===id) yy++; var h=yy-s0, cy=(s0+yy-1)/2;
-     if(h<=1.6*ws && cy>=cp.y0+0.2*chh && cy<=cp.y0+0.8*chh){ var yc=Math.round(cy);
-      for(var xx=xc; xx>=Math.max(cp.x0,Math.round(cutCol-0.35*gw)); xx--){ if(lab[yc*W+xx]!==id) break;
-       var a=yc; while(a>cp.y0&&lab[(a-1)*W+xx]===id) a--; var b2=yc; while(b2<cp.y1&&lab[(b2+1)*W+xx]===id) b2++;
-       if(b2-a+1>1.6*ws) break; for(var y6=a;y6<=b2;y6++) grp[y6*W+xx]=1; } } }
-    else yy++; } }
- });
+ /* 1) 글자 전체에서 모음 세로획(끊기지 않은 긴 세로 줄기) 위치 xs 찾기 — ㅏㅓㅣ류·겹모음 */
+ var xs=-1, ws=0;
+ if(kind!=='v'){
+  var tall=[]; for(var x1=gx0;x1<=gx1;x1++){ var best=0,run=0; for(var y1=gy0;y1<=gy1;y1++){ if(lab[y1*W+x1]){ run++; if(run>best) best=run; } else run=0; } tall.push(best>=0.85*gh); }
+  var groups=[]; for(var i1=0;i1<tall.length;i1++){ if(tall[i1]){ if(groups.length&&groups[groups.length-1][1]===i1-1) groups[groups.length-1][1]=i1; else groups.push([i1,i1]); } }
+  groups=groups.filter(function(q){return q[1]-q[0]+1>=0.07*gw}); /* 획이 살짝 겹쳐 생긴 가느다란 줄은 무시 */
+  if(groups.length){ var g=groups[groups.length-1];
+   if(DBL&&groups.length>1){ var g2=groups[groups.length-2]; if(g[0]-g2[1]<0.35*gw) g=g2; }
+   xs=gx0+g[0]; ws=g[1]-g[0]+1; }
+ }
+ /* 2) ㅓ·ㅔ·ㅕ·ㅖ의 왼쪽 가지: 세로획 왼쪽에 붙은 얇은 가로획을 모음으로 */
+ function recoverTicks(){ if(!LEFTTICK||xs<=gx0||!ws) return; var xc=xs-1, yy=gy0;
+  while(yy<=gy1){ if(lab[yy*W+xc]){ var s0=yy; while(yy<=gy1&&lab[yy*W+xc]) yy++; var h=yy-s0, cy=(s0+yy-1)/2;
+    if(h<=1.6*ws && cy>=gy0+0.2*gh && cy<=gy0+0.8*gh){ var yc=Math.round(cy);
+     for(var xx=xc; xx>=Math.max(gx0,Math.round(xs-0.35*gw)); xx--){ if(!lab[yc*W+xx]) break;
+      var a=yc; while(a>gy0&&lab[(a-1)*W+xx]) a--; var b2=yc; while(b2<gy1&&lab[(b2+1)*W+xx]) b2++;
+      if(b2-a+1>1.6*ws) break; for(var y6=a;y6<=b2;y6++) grp[y6*W+xx]=1; } } }
+   else yy++; } }
+ if(kind==='h'&&xs>=0){
+  /* 세로획 왼쪽 가장자리 오른쪽은 전부 모음 (자음이 세로획에 닿아 있어도 됨) */
+  for(var k1=0;k1<N;k1++){ if(lab[k1]&&(k1%W)>=xs) grp[k1]=1; }
+  recoverTicks();
+ } else {
+  comps.forEach(function(cp,ci){
+   var id=ci+1, bottom=(cp.y1-gy0)>0.85*gh, spanX=(cp.x0-gx0)<0.3*gw && (cp.x1-gx0)>0.85*gw;
+   var needCut=(kind==='v')?bottom:(kind==='c')?((bottom&&(cp.x0-gx0)<0.5*gw)||spanX):false;
+   if(!needCut){ if(isV[ci]) for(var y=cp.y0;y<=cp.y1;y++) for(var x=cp.x0;x<=cp.x1;x++) if(lab[y*W+x]===id) grp[y*W+x]=1; return; }
+   /* 바닥(ㅗ·ㅜ·ㅡ 가로획)에 닿은 덩어리: 가로획 두께를 재고, 그 위의 가는 줄기(ㅗ 세로 줄기)를 지나 넓어지는 곳이 자음 바닥 */
+   var xa=cp.x0, xb=(kind==='c'&&xs>cp.x0)?Math.min(cp.x1,xs-1):cp.x1, rangeW=xb-xa+1, cutRow=cp.y1+1;
+   if(rangeW>0){
+    function rowRuns(y){ var runs=[],run=0; for(var x=xa;x<=xb+1;x++){ var on=(x<=xb&&lab[y*W+x]===id); if(on) run++; else if(run){ runs.push(run); run=0; } } return runs; }
+    var rw={}; for(var y2=cp.y0;y2<=cp.y1;y2++){ var r=rowRuns(y2); rw[y2]={runs:r,max:r.length?Math.max.apply(null,r):0}; }
+    var barTop=-1,barBot=-1; for(var y3=cp.y1;y3>=cp.y0;y3--){ if(rw[y3].max>=0.5*rangeW){ if(barBot<0) barBot=y3; barTop=y3; } else if(barTop>=0) break; }
+    if(barTop>=0){ var ws2=barBot-barTop+1; cutRow=cp.y0;
+     for(var y4=barTop-1;y4>=cp.y0;y4--){ var ok=rw[y4].runs.every(function(q){return q<=1.35*ws2}); if(!ok){ cutRow=y4+1; break; } } }
+   }
+   for(var y5=cp.y0;y5<=cp.y1;y5++) for(var x5=cp.x0;x5<=cp.x1;x5++){ var k5=y5*W+x5; if(lab[k5]!==id) continue;
+    var vv=(kind==='v')?(y5>=cutRow):((xs>=0&&x5>=xs)||y5>=cutRow); if(vv) grp[k5]=1; }
+  });
+  if(kind==='c') recoverTicks();
+ }
+ if(kind==='h'&&xs<0){ comps.forEach(function(cp,ci){ if(!isV[ci]) return; var id=ci+1; for(var y=cp.y0;y<=cp.y1;y++) for(var x=cp.x0;x<=cp.x1;x++) if(lab[y*W+x]===id) grp[y*W+x]=1; }); }
  var out=ctx.createImageData(W,H), o=out.data;
  for(var k=0;k<N;k++){ var a=d[k*4+3]; if(!a) continue; var id2=lab[k];
   var gk=grp[k];
