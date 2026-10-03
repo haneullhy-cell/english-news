@@ -66,12 +66,10 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
 .sheet .lab.b{color:#A3AAB5}
 .grid{position:absolute;left:15mm;top:23.5mm;width:180mm;height:250mm;display:grid;grid-template-columns:repeat(2,90mm);grid-template-rows:repeat(5,50mm)}
 .cd{position:relative;border:.2mm solid #C7CED6;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#fff}
-.cd .w{font-size:27mm;line-height:1;letter-spacing:.8mm;color:var(--ink);text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:.06em}
+.cd .w{font-size:27mm;line-height:1;letter-spacing:.8mm;color:var(--ink);text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:.04em}
 .cd .w.l3{font-size:22mm}.cd .w.l4{font-size:17mm;letter-spacing:.3mm}.cd .w.l5{font-size:13.5mm;letter-spacing:0}
 /* 자음·모음 조각 조립 */
-.s{position:relative;display:inline-block;width:1em;height:1em;flex:none}
-.s i{position:absolute;font-style:normal;line-height:1;display:block;width:1em;height:1em;white-space:pre}
-.s .c{color:var(--blue)}.s .v{color:var(--red)}
+.cd .w .g{display:block;width:auto;flex:none}
 .cd .no{position:absolute;right:2mm;bottom:1.2mm;font-family:'Noto Sans KR',sans-serif;font-size:2.4mm;color:#B6BDC7;font-weight:700}
 .cd .no.l{right:auto;left:2mm}
 .cd .em{font-size:30mm;line-height:1;font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif}
@@ -140,21 +138,83 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
 var CI='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', VI='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ', TI='ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
 var MM=96/25.4, SW=210, SH=297, PER=10, COLS=2;
 var VV='ㅗㅛㅜㅠㅡ';
-/* 글꼴에서 잰 자모 잉크 범위 [x0,x1,y0,y1] (em 기준) */
-var BB={"ㄱ":[0.17,0.79,0.24,0.725],"ㄲ":[0.135,0.84,0.24,0.725],"ㄴ":[0.2,0.815,0.245,0.715],"ㄷ":[0.185,0.785,0.24,0.715],"ㄸ":[0.15,0.885,0.24,0.715],"ㄹ":[0.205,0.81,0.24,0.715],"ㅁ":[0.2,0.79,0.24,0.71],"ㅂ":[0.205,0.795,0.245,0.715],"ㅃ":[0.155,0.855,0.24,0.72],"ㅅ":[0.145,0.835,0.225,0.725],"ㅆ":[0.09,0.915,0.22,0.73],"ㅇ":[0.22,0.785,0.235,0.73],"ㅈ":[0.135,0.865,0.24,0.72],"ㅉ":[0.09,0.91,0.24,0.725],"ㅊ":[0.135,0.87,0.185,0.725],"ㅋ":[0.175,0.79,0.24,0.71],"ㅌ":[0.2,0.805,0.24,0.715],"ㅍ":[0.16,0.83,0.24,0.715],"ㅎ":[0.165,0.835,0.19,0.77],"ㅏ":[0.445,0.675,0.06,0.905],"ㅐ":[0.37,0.635,0.06,0.91],"ㅑ":[0.445,0.67,0.065,0.91],"ㅒ":[0.37,0.635,0.06,0.91],"ㅓ":[0.33,0.58,0.065,0.91],"ㅔ":[0.31,0.685,0.055,0.895],"ㅕ":[0.33,0.58,0.065,0.91],"ㅖ":[0.31,0.685,0.045,0.895],"ㅗ":[0.11,0.895,0.565,0.815],"ㅘ":[0.075,0.93,0.055,0.905],"ㅙ":[0.1,0.88,0.04,0.9],"ㅚ":[0.12,0.86,0.06,0.915],"ㅛ":[0.11,0.895,0.565,0.815],"ㅜ":[0.11,0.895,0.505,0.905],"ㅝ":[0.09,0.85,0.055,0.905],"ㅞ":[0.09,0.86,0.04,0.9],"ㅟ":[0.07,0.83,0.055,0.905],"ㅠ":[0.11,0.895,0.505,0.905],"ㅡ":[0.11,0.895,0.715,0.78],"ㅢ":[0.12,0.86,0.06,0.915],"ㅣ":[0.46,0.53,0.065,0.91],"ㄳ":[0.115,0.875,0.29,0.68],"ㄵ":[0.16,0.87,0.29,0.69],"ㄶ":[0.19,0.835,0.28,0.7],"ㄺ":[0.15,0.85,0.285,0.68],"ㄻ":[0.15,0.855,0.285,0.68],"ㄼ":[0.15,0.845,0.29,0.68],"ㄽ":[0.12,0.88,0.285,0.685],"ㄾ":[0.155,0.845,0.285,0.68],"ㄿ":[0.15,0.855,0.285,0.68],"ㅀ":[0.155,0.835,0.28,0.7],"ㅄ":[0.12,0.885,0.285,0.685]};
-/* 자음 잉크와 모음 잉크를 일정 간격으로 붙여 한 글자(1em 상자)로 조립 */
-function compose(c,v){
- var bc=BB[c], bv=BB[v]; if(!bc||!bv) return '<span class="s"><i class="c" style="font-size:.7em;left:0;top:15%">'+c+'</i><i class="v" style="font-size:.7em;left:40%;top:15%">'+v+'</i></span>';
- var vert=VV.indexOf(v)>=0, F=0.85, GAP=0.07, MAXW=0.98;
- var cw=(bc[1]-bc[0]), ch=(bc[3]-bc[2]), vw=(bv[1]-bv[0]), vh=(bv[3]-bv[2]);
- var total=(vert?ch+vh:cw+vw)*F+GAP; if(total>MAXW){ F=F*(MAXW-GAP)/(total-GAP); total=MAXW; }
- var side=(vert?Math.max(cw,vw):Math.max(ch,vh))*F; if(side>MAXW){ F=F*MAXW/side; total=(vert?ch+vh:cw+vw)*F+GAP; }
- var Xc,Yc,Xv,Yv;
- if(vert){ Yc=(1-total)/2; Yv=Yc+ch*F+GAP; Xc=0.5-cw*F/2; Xv=0.5-vw*F/2; }
- else { Xc=(1-total)/2; Xv=Xc+cw*F+GAP; Yc=0.5-ch*F/2; Yv=0.5-vh*F/2; }
- function st(b,X,Y){ return 'font-size:'+F.toFixed(3)+'em;left:'+((X-b[0]*F)*100).toFixed(1)+'%;top:'+((Y-b[2]*F)*100).toFixed(1)+'%'; }
- return '<span class="s"><i class="c" style="'+st(bc,Xc,Yc)+'">'+c+'</i><i class="v" style="'+st(bv,Xv,Yv)+'">'+v+'</i></span>';
+/* ── 글자 색칠: 글꼴의 진짜 글자를 캔버스에 그린 뒤, 서로 떨어진 잉크 덩어리를 자음/모음으로 나눠 색을 입힘 ── */
+var RS=400, FRAME=null, CACHE={};
+var HV2='ㅏㅐㅑㅒㅓㅔㅕㅖㅣ', VV2='ㅗㅛㅜㅠㅡ'; // 그 밖(ㅘㅙㅚㅝㅞㅟㅢ)은 겹모음
+var BLUE=[30,91,230], RED=[232,50,45];
+function bigCanvas(){ var cv=document.createElement('canvas'); cv.width=Math.round(RS*1.5); cv.height=Math.round(RS*1.6); return cv; }
+function drawGlyph(ctx,ch){ ctx.font=RS+'px Ssurround, "Noto Sans KR", sans-serif'; ctx.textBaseline='alphabetic'; ctx.textAlign='left'; ctx.fillStyle='#000'; ctx.fillText(ch, Math.round(RS*0.25), Math.round(RS*1.1)); }
+function inkBox(d,w,h,th){ var x0=w,y0=h,x1=-1,y1=-1; for(var y=0;y<h;y++)for(var x=0;x<w;x++){ if(d[(y*w+x)*4+3]>th){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; } } return x1<0?null:{x0:x0,y0:y0,x1:x1+1,y1:y1+1}; }
+function ensureFrame(){
+ if(FRAME) return FRAME;
+ var cv=bigCanvas(), ctx=cv.getContext('2d');
+ '뷰배훼뛰쀼뺴'.split('').forEach(function(ch){ drawGlyph(ctx,ch); });
+ var b=inkBox(ctx.getImageData(0,0,cv.width,cv.height).data,cv.width,cv.height,30) || {x0:0,y0:0,x1:cv.width,y1:cv.height};
+ var pad=Math.round(RS*0.03);
+ FRAME={x0:b.x0-pad,y0:b.y0-pad,w:b.x1-b.x0+2*pad,h:b.y1-b.y0+2*pad}; return FRAME;
 }
+function colorSyllable(ch,c,v){
+ if(CACHE[ch]) return CACHE[ch];
+ var F=ensureFrame(), cv=bigCanvas(), ctx=cv.getContext('2d'); drawGlyph(ctx,ch);
+ var W=F.w,H=F.h, d=ctx.getImageData(F.x0,F.y0,W,H).data, N=W*H, TH=110;
+ var lab=new Int32Array(N), comps=[], stack=[];
+ for(var i=0;i<N;i++){
+  if(lab[i]||d[i*4+3]<TH) continue;
+  var id=comps.length+1, cp={n:0,x0:W,y0:H,x1:0,y1:0,sx:0,sy:0}; comps.push(cp); lab[i]=id; stack.push(i);
+  while(stack.length){ var p=stack.pop(), x=p%W, y=(p-x)/W; cp.n++; cp.sx+=x; cp.sy+=y; if(x<cp.x0)cp.x0=x; if(x>cp.x1)cp.x1=x; if(y<cp.y0)cp.y0=y; if(y>cp.y1)cp.y1=y;
+   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){ var nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=W||ny>=H) continue; var q=ny*W+nx; if(!lab[q]&&d[q*4+3]>=TH){ lab[q]=id; stack.push(q); } } }
+ }
+ var gx0=W,gy0=H,gx1=0,gy1=0; comps.forEach(function(cp){ if(cp.x0<gx0)gx0=cp.x0; if(cp.y0<gy0)gy0=cp.y0; if(cp.x1>gx1)gx1=cp.x1; if(cp.y1>gy1)gy1=cp.y1; });
+ var gw=Math.max(1,gx1-gx0), gh=Math.max(1,gy1-gy0), kind=HV2.indexOf(v)>=0?'h':(VV2.indexOf(v)>=0?'v':'c');
+ var isV=comps.map(function(cp){ var cx=(cp.sx/cp.n-gx0)/gw, cy=(cp.sy/cp.n-gy0)/gh;
+  if(kind==='h') return cx>0.5; if(kind==='v') return cy>0.5; return cx>0.5||cy>0.5; });
+ /* 픽셀별 모음 표시. 자음과 모음이 붙어 한 덩어리가 된 경우(노·너·와…)는 획 두께를 재서 자름 */
+ var grp=new Uint8Array(N), LEFTTICK='ㅓㅔㅕㅖㅝㅞ'.indexOf(v)>=0, DBL='ㅐㅒㅔㅖㅙㅞ'.indexOf(v)>=0;
+ comps.forEach(function(cp,ci){
+  var id=ci+1, chh=cp.y1-cp.y0+1;
+  var spanX=(cp.x0-gx0)<0.3*gw && (cp.x1-gx0)>0.85*gw, spanY=(cp.y0-gy0)<0.3*gh && (cp.y1-gy0)>0.85*gh;
+  var merged=(kind==='h')?spanX:(kind==='v')?spanY:(spanX||(spanY&&(cp.x0-gx0)<0.3*gw));
+  if(!merged){ if(isV[ci]) for(var y=cp.y0;y<=cp.y1;y++) for(var x=cp.x0;x<=cp.x1;x++) if(lab[y*W+x]===id) grp[y*W+x]=1; return; }
+  var cutCol=-1, ws=0, cutRow=cp.y0;
+  if(kind!=='v'){
+   var tall=[]; for(var x1=cp.x0;x1<=cp.x1;x1++){ var best=0,run=0; for(var y1=cp.y0;y1<=cp.y1;y1++){ if(lab[y1*W+x1]===id){ run++; if(run>best) best=run; } else run=0; } tall.push(best>=0.85*chh); }
+   var groups=[]; for(var i1=0;i1<tall.length;i1++){ if(tall[i1]){ if(groups.length&&groups[groups.length-1][1]===i1-1) groups[groups.length-1][1]=i1; else groups.push([i1,i1]); } }
+   groups=groups.filter(function(q){return q[1]-q[0]+1>=0.07*gw}); /* 획이 살짝 겹쳐 생긴 가느다란 줄은 무시 */
+   if(groups.length){ var g=groups[groups.length-1]; ws=g[1]-g[0]+1;
+    if(DBL&&groups.length>1){ var g2=groups[groups.length-2]; if(g[0]-g2[1]<0.35*gw) g=g2; }
+    cutCol=cp.x0+g[0]; }
+  }
+  if(kind!=='h'){
+   var xa=cp.x0, xb=(kind==='c'&&cutCol>=0)?cutCol-1:cp.x1, rangeW=xb-xa+1;
+   function rowRuns(y){ var runs=[],run=0; for(var x=xa;x<=xb+1;x++){ var on=(x<=xb&&lab[y*W+x]===id); if(on) run++; else if(run){ runs.push(run); run=0; } } return runs; }
+   var rw={}; for(var y2=cp.y0;y2<=cp.y1;y2++){ var r=rowRuns(y2); rw[y2]={runs:r,max:r.length?Math.max.apply(null,r):0}; }
+   var barTop=-1,barBot=-1; for(var y3=cp.y1;y3>=cp.y0;y3--){ if(rw[y3].max>=0.5*rangeW){ if(barBot<0) barBot=y3; barTop=y3; } else if(barTop>=0) break; }
+   if(barTop>=0){ var ws2=barBot-barTop+1; if(!ws) ws=ws2; cutRow=cp.y0;
+    for(var y4=barTop-1;y4>=cp.y0;y4--){ var ok=rw[y4].runs.every(function(q){return q<=1.35*ws2}); if(!ok){ cutRow=y4+1; break; } } }
+   else cutRow=cp.y1+1;
+  }
+  for(var y5=cp.y0;y5<=cp.y1;y5++) for(var x5=cp.x0;x5<=cp.x1;x5++){ var k5=y5*W+x5; if(lab[k5]!==id) continue;
+   var vv=false; if(kind==='v') vv=y5>=cutRow; else if(kind==='h') vv=(cutCol>=0)?x5>=cutCol:isV[ci]; else vv=(cutCol>=0&&x5>=cutCol)||y5>=cutRow;
+   if(vv) grp[k5]=1; }
+  /* ㅓ·ㅔ·ㅕ·ㅖ의 왼쪽 가지: 세로획 왼쪽에 붙은 얇은 가로획을 모음으로 */
+  if(LEFTTICK&&cutCol>cp.x0&&ws){ var xc=cutCol-1, yy=cp.y0;
+   while(yy<=cp.y1){ if(lab[yy*W+xc]===id){ var s0=yy; while(yy<=cp.y1&&lab[yy*W+xc]===id) yy++; var h=yy-s0, cy=(s0+yy-1)/2;
+     if(h<=1.6*ws && cy>=cp.y0+0.2*chh && cy<=cp.y0+0.8*chh){ var yc=Math.round(cy);
+      for(var xx=xc; xx>=Math.max(cp.x0,Math.round(cutCol-0.35*gw)); xx--){ if(lab[yc*W+xx]!==id) break;
+       var a=yc; while(a>cp.y0&&lab[(a-1)*W+xx]===id) a--; var b2=yc; while(b2<cp.y1&&lab[(b2+1)*W+xx]===id) b2++;
+       if(b2-a+1>1.6*ws) break; for(var y6=a;y6<=b2;y6++) grp[y6*W+xx]=1; } } }
+    else yy++; } }
+ });
+ var out=ctx.createImageData(W,H), o=out.data;
+ for(var k=0;k<N;k++){ var a=d[k*4+3]; if(!a) continue; var id2=lab[k];
+  var gk=grp[k];
+  if(!id2){ var x2=k%W, y2=(k-x2)/W, found=false; for(var r=1;r<=3&&!found;r++){ for(var dy2=-r;dy2<=r&&!found;dy2++)for(var dx2=-r;dx2<=r&&!found;dx2++){ var nx2=x2+dx2, ny2=y2+dy2; if(nx2<0||ny2<0||nx2>=W||ny2>=H) continue; var q2=ny2*W+nx2; if(lab[q2]){ found=true; gk=grp[q2]; } } } }
+  var col=gk?RED:BLUE; o[k*4]=col[0]; o[k*4+1]=col[1]; o[k*4+2]=col[2]; o[k*4+3]=a; }
+ var oc=document.createElement('canvas'); oc.width=W; oc.height=H; oc.getContext('2d').putImageData(out,0,0);
+ return CACHE[ch]=oc.toDataURL('image/png');
+}
+function glyphImg(ch,c,v){ var F=ensureFrame(); return '<img class="g" alt="'+ch+'" src="'+colorSyllable(ch,c,v)+'" style="height:'+(F.h/RS).toFixed(3)+'em">'; }
+
 var DEFAULTS=[
  ['거미','🕷️'],['나비','🦋'],['사자','🦁'],['하마','🦛'],['여우','🦊'],['오리','🦆'],['토끼','🐰'],['돼지','🐷'],
  ['소','🐮'],['새','🐦'],['개','🐶'],['게','🦀'],['쥐','🐭'],['새우','🦐'],['우주','🪐'],['코끼리','🐘'],
@@ -175,7 +235,7 @@ function decomp(ch){ var code=ch.charCodeAt(0)-0xAC00; if(code<0||code>11171) re
 function check(w){
  w=(w||'').trim(); if(!w) return {err:'낱말을 적어 주세요'};
  var chars=Array.from(w), syl=[];
- for(var i=0;i<chars.length;i++){ var d=decomp(chars[i]); if(!d) return {err:'"'+chars[i]+'"은(는) 한글 글자가 아니에요'}; if(d.t) return {err:'"'+chars[i]+'"에 받침이 있어요 (받침 없는 낱말만)'}; syl.push(d); }
+ for(var i=0;i<chars.length;i++){ var d=decomp(chars[i]); if(!d) return {err:'"'+chars[i]+'"은(는) 한글 글자가 아니에요'}; if(d.t) return {err:'"'+chars[i]+'"에 받침이 있어요 (받침 없는 낱말만)'}; d.ch=chars[i]; syl.push(d); }
  return {w:w, syl:syl};
 }
 
@@ -230,7 +290,7 @@ function cardFront(it,r,n){
  var d=document.createElement('div'); d.className='cd';
  var L=r.syl.length, cls=L>=5?' l5':L===4?' l4':L===3?' l3':'';
  var h;
- if(state.jamo){ h='<div class="w'+cls+'">'+r.syl.map(function(s){ return compose(s.c,s.v); }).join('')+'</div>'; }
+ if(state.jamo){ h='<div class="w'+cls+'">'+r.syl.map(function(s){ return glyphImg(s.ch,s.c,s.v); }).join('')+'</div>'; }
  else { h='<div class="w'+cls+'">'+r.w+'</div>'; }
  if(state.num) h+='<span class="no">'+n+'</span>';
  d.innerHTML=h; return d;
@@ -291,9 +351,10 @@ document.getElementById('jamo').onchange=function(){ state.jamo=this.checked; sa
 document.getElementById('num').onchange=function(){ state.num=this.checked; save(); build(); };
 document.getElementById('print').onclick=function(){ window.print(); };
 window.addEventListener('resize',fit);
-renderList(); build();
-if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
-window.WC={build:build,state:state,setItems:function(items){state.items=items;renderList();build();}};
+var READY=(document.fonts&&document.fonts.load)?document.fonts.load('400 '+RS+'px Ssurround').catch(function(){}):Promise.resolve();
+renderList();
+READY.then(function(){ build(); fit(); });
+window.WC={build:build,state:state,ready:READY,syl:colorSyllable,cache:CACHE,setItems:function(items){state.items=items;renderList();build();}};
 })();
 </script>
 </body>
