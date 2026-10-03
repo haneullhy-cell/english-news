@@ -64,16 +64,23 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
 .sheet{position:relative;width:210mm;height:297mm;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.10);transform-origin:top left;overflow:hidden;font-family:'Ssurround','Noto Sans KR',sans-serif}
 .sheet .lab{position:absolute;left:0;right:0;top:1mm;text-align:center;font-family:'Noto Sans KR',sans-serif;font-size:2.6mm;color:var(--dim);font-weight:700}
 .sheet .lab.b{color:#A3AAB5}
-.grid{position:absolute;left:5mm;top:5mm;width:200mm;height:287mm;display:grid;grid-template-columns:repeat(2,100mm);grid-template-rows:repeat(4,71.75mm)}
+.grid{position:absolute;left:15mm;top:23.5mm;width:180mm;height:250mm;display:grid;grid-template-columns:repeat(2,90mm);grid-template-rows:repeat(5,50mm)}
 .cd{position:relative;border:.2mm solid #C7CED6;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#fff}
-.cd .w{font-size:28mm;line-height:1.1;letter-spacing:.5mm;color:var(--ink);text-align:center;white-space:nowrap}
-.cd .w.l3{font-size:23mm}.cd .w.l4{font-size:18mm;letter-spacing:.2mm}.cd .w.l5{font-size:14mm;letter-spacing:0}
-.cd .jm{margin-top:2.5mm;display:flex;gap:3.5mm;font-size:6mm;line-height:1}
-.cd .jm .c{color:var(--blue)}.cd .jm .v{color:var(--red)}.cd .jm .t{color:var(--green)}
+.cd .w{font-size:27mm;line-height:1;letter-spacing:.8mm;color:var(--ink);text-align:center;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:.06em}
+.cd .w.l3{font-size:22mm}.cd .w.l4{font-size:17mm;letter-spacing:.3mm}.cd .w.l5{font-size:13.5mm;letter-spacing:0}
+/* 자음·모음 조각 조립 */
+.s{position:relative;display:inline-block;width:1em;height:1em;flex:none}
+.s i{position:absolute;font-style:normal;line-height:1;display:flex;align-items:center;justify-content:center;font-size:.7em}
+.s .c{color:var(--blue)}.s .v{color:var(--red)}
+.s.h .c{left:0;top:0;width:50%;height:100%}.s.h .v{right:0;top:0;width:50%;height:100%}
+.s.h .c span{transform:translateX(3%)}.s.h .v span{transform:translateX(-3%)}
+.s.vv .c{left:0;top:0;width:100%;height:50%}.s.vv .v{left:0;bottom:0;width:100%;height:50%}
+.s.vv .c span{transform:translateY(8%)}.s.vv .v span{transform:translateY(-8%)}
+.s i span{display:block}
 .cd .no{position:absolute;right:2mm;bottom:1.2mm;font-family:'Noto Sans KR',sans-serif;font-size:2.4mm;color:#B6BDC7;font-weight:700}
 .cd .no.l{right:auto;left:2mm}
-.cd .em{font-size:38mm;line-height:1;font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif}
-.cd .im{position:absolute;inset:4mm;border-radius:4mm;background:center/cover no-repeat}
+.cd .em{font-size:30mm;line-height:1;font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.cd .im{position:absolute;inset:3mm;border-radius:3mm;background:center/cover no-repeat}
 .cd.blank{background:repeating-linear-gradient(45deg,#F4F6F9 0 2mm,#fff 2mm 4mm)}
 .empty{font-size:14px;color:var(--dim);padding:24px;text-align:center}
 @media (max-width:700px){
@@ -103,7 +110,7 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
   <button class="btn" id="print">🖨 인쇄 · PDF 저장</button>
   <a class="btn ghost" href="words.pdf" download="낱말 그림 카드.pdf">📥 기본 세트 PDF</a>
   <a class="btn ghost" href="https://mathfolder-hangul.netlify.app" target="_blank" rel="noopener">🔤 접기 카드</a>
-  <span class="hint">앞면(글자)·뒷면(그림)이 번갈아 나와요. 인쇄 설정은 <b>A4 · 세로 · 양면 · 긴 쪽 넘김 · 실제 크기 100%</b>. 한 장에 8장, 코팅 후 자르면 좋아요.</span>
+  <span class="hint">앞면(글자)·뒷면(그림)이 번갈아 나와요. 인쇄 설정은 <b>A4 · 세로 · 양면 · 긴 쪽 넘김 · 실제 크기 100%</b>. 명함 크기(90×50mm) 한 장에 10장, 코팅 후 자르면 좋아요.</span>
 </div>
 
 <section class="panel">
@@ -114,7 +121,7 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
     <div><b>3. 양면으로 인쇄</b><p>앞면 시트 다음에 뒷면 시트가 좌우 뒤집혀 나와요. 양면·긴 쪽 넘김으로 뽑으면 앞뒤가 맞아요. 먼저 한 장만 시험 인쇄해 보세요.</p></div>
   </div>
   <div class="row">
-    <label class="tg"><input type="checkbox" id="jamo" checked> 앞면에 자음·모음 작게 보이기</label>
+    <label class="tg"><input type="checkbox" id="jamo" checked> 자음 파랑 · 모음 빨강 조각으로 보이기 (끄면 검정 글자)</label>
     <label class="tg"><input type="checkbox" id="num" checked> 카드 번호 표시 (앞뒤 맞추기용)</label>
   </div>
 </section>
@@ -136,7 +143,8 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
 (function(){
 'use strict';
 var CI='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', VI='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ', TI='ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
-var MM=96/25.4, SW=210, SH=297, PER=8, COLS=2;
+var MM=96/25.4, SW=210, SH=297, PER=10, COLS=2;
+var VV='ㅗㅛㅜㅠㅡ';
 var DEFAULTS=[
  ['거미','🕷️'],['나비','🦋'],['사자','🦁'],['하마','🦛'],['여우','🦊'],['오리','🦆'],['토끼','🐰'],['돼지','🐷'],
  ['소','🐮'],['새','🐦'],['개','🐶'],['게','🦀'],['쥐','🐭'],['새우','🦐'],['우주','🪐'],['코끼리','🐘'],
@@ -211,8 +219,9 @@ function refreshErr(){ // 입력 중 포커스를 잃지 않도록 오류 표시
 function cardFront(it,r,n){
  var d=document.createElement('div'); d.className='cd';
  var L=r.syl.length, cls=L>=5?' l5':L===4?' l4':L===3?' l3':'';
- var h='<div class="w'+cls+'">'+r.w+'</div>';
- if(state.jamo){ h+='<div class="jm">'+r.syl.map(function(s){return '<span><span class="c">'+s.c+'</span><span class="v">'+s.v+'</span></span>'}).join('')+'</div>'; }
+ var h;
+ if(state.jamo){ h='<div class="w'+cls+'">'+r.syl.map(function(s){ var o=VV.indexOf(s.v)>=0?'vv':'h'; return '<span class="s '+o+'"><i class="c"><span>'+s.c+'</span></i><i class="v"><span>'+s.v+'</span></i></span>'; }).join('')+'</div>'; }
+ else { h='<div class="w'+cls+'">'+r.w+'</div>'; }
  if(state.num) h+='<span class="no">'+n+'</span>';
  d.innerHTML=h; return d;
 }
