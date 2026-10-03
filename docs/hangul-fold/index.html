@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>접으면 글자 · 자음+모음 접기 카드</title>
+<meta name="description" content="파란 자음과 빨간 모음이 떨어져 있다가, 가운데 ➕ 칸을 뒤로 접으면 붙어서 글자가 되는 한글 떼기 카드. 원하는 자음·모음·낱말을 골라 A4로 인쇄하세요.">
+<meta property="og:title" content="접으면 글자 · 자음+모음 접기 카드">
+<meta property="og:description" content="파란 자음 + 빨간 모음, 접으면 한 글자. 가나다·낱말 카드 A4 인쇄.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+@font-face{font-family:'Ssurround';src:url('fonts/Cafe24Ssurround.woff') format('woff');font-display:swap}
+:root{--paper:#FFFDF6;--ink:#111318;--red:#E8322D;--blue:#1E5BE6;--dim:#5B6472;--line:#C7CED6;--hl:#FFE24A;--lime:#B6F24A;--sky:#CFE0FF;--rose:#FFD9D6;
+ --u:34mm;--g:22mm;--pic:34mm;--gut:5mm}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+body{margin:0;font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#EFF1F4;color:var(--ink)}
+button,input,textarea{font:inherit;color:inherit}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:0 0 48px}
+
+/* ── 상단 도구 ── */
+.tb{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;padding:10px 16px;background:#fff;border-bottom:2px solid var(--ink);font-size:14px;line-height:1.4}
+.tb b{font-weight:900;font-size:16px}
+.tb b .c{color:var(--blue)}.tb b .v{color:var(--red)}
+.btn{display:inline-block;text-decoration:none;color:var(--ink);font-weight:900;padding:7px 14px;border:1.5px solid var(--ink);border-radius:8px;background:var(--lime);cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);line-height:1.3}
+.btn.ghost{background:#fff}
+.btn:active{transform:translate(1px,1px);box-shadow:none}
+.btn:focus-visible,button:focus-visible,.chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.tb .hint{font-size:12px;color:var(--dim);flex-basis:100%}
+
+/* ── 설명 ── */
+.panel{width:100%;max-width:860px;margin-inline:16px;background:#fff;border:1.5px solid var(--ink);border-radius:14px;box-shadow:3px 3px 0 var(--ink);padding:18px 20px;font-size:14px;line-height:1.6}
+.panel h2{margin:0 0 10px;font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel h2 small{font-size:12px;font-weight:700;color:var(--dim)}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.how div{border:1.5px solid var(--line);border-radius:10px;padding:12px 14px}
+.how b{display:block;font-weight:900;margin-bottom:4px}
+.how p{margin:0;font-size:13px;color:#33383f}
+.demo{display:flex;justify-content:center;padding:14px 0 4px}
+.demo .sheetbox{--u:72px;--g:50px;--pic:0px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-top:10px;color:#33383f}
+.legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend .lc::before{background:var(--blue)}.legend .lv::before{background:var(--red)}
+.legend .lf::before{border:1.5px dashed var(--ink);width:14px;height:0;vertical-align:3px}
+
+/* ── 고르기 ── */
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.chip{font-family:'Ssurround','Noto Sans KR',sans-serif;font-size:20px;line-height:1;width:44px;height:44px;border:1.5px solid var(--ink);border-radius:10px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--dim);box-shadow:1.5px 1.5px 0 var(--ink)}
+.chip.c.on{background:var(--sky);color:var(--blue)}
+.chip.v.on{background:var(--rose);color:var(--red)}
+.chip:active{transform:translate(1px,1px);box-shadow:none}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.row .k{font-weight:900;font-size:13px}
+.row .k.c{color:var(--blue)}.row .k.v{color:var(--red)}
+.mini{font-size:12px;font-weight:700;padding:4px 10px;border:1.5px solid var(--ink);border-radius:99px;background:#fff;cursor:pointer;box-shadow:1px 1px 0 var(--ink)}
+.mini:active{transform:translate(1px,1px);box-shadow:none}
+.cnt{font-size:12px;color:var(--dim);font-weight:700}
+textarea{width:100%;min-height:120px;border:1.5px solid var(--ink);border-radius:10px;padding:10px 12px;font-size:15px;line-height:1.6;resize:vertical;background:var(--paper)}
+.warn{font-size:12.5px;color:var(--red);font-weight:700;margin-top:6px;white-space:pre-line}
+.ok{font-size:12.5px;color:var(--dim);margin-top:6px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+
+/* ── 시트 (화면·인쇄 공용) ── */
+.sheets{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%}
+.sheetbox{position:relative}
+.sheet{position:relative;width:297mm;height:210mm;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.10);transform-origin:top left;overflow:hidden}
+.sheet .pn{position:absolute;right:6mm;bottom:2.2mm;font-size:2.8mm;color:var(--dim);font-weight:600}
+.card{position:absolute;display:grid;background:#fff;border:.45mm solid var(--ink);transition:none;cursor:pointer;font-family:'Ssurround','Noto Sans KR',sans-serif}
+.card.h{grid-template-columns:var(--u) var(--g) var(--u) var(--pic);grid-auto-rows:var(--u)}
+.card.v{grid-template-rows:var(--u) var(--g) var(--u) var(--pic);grid-auto-flow:column;grid-auto-columns:var(--u)}
+.cell{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cell.j{font-size:calc(var(--u) * 1.05);line-height:1}
+.cell.j span{display:block;transform:translate(var(--dx,0),var(--dy,0))}
+.cell.c{color:var(--blue)}.cell.vw{color:var(--red)}
+.card.h .cell.c{--dx:9%}.card.h .cell.vw{--dx:-9%}
+.card.v .cell.c{--dy:8%}.card.v .cell.vw{--dy:-8%}
+.cell.g{background:var(--paper);min-width:0;min-height:0}
+.card.h .cell.g{border-left:.3mm dashed var(--ink);border-right:.3mm dashed var(--ink)}
+.card.v .cell.g{border-top:.3mm dashed var(--ink);border-bottom:.3mm dashed var(--ink)}
+.cell.g::before{content:"";position:absolute;background:repeating-linear-gradient(var(--dir,180deg),var(--ink) 0 .9mm,transparent .9mm 2.2mm);opacity:.55}
+.card.h .cell.g::before{--dir:180deg;left:50%;top:0;bottom:0;width:.25mm;margin-left:-.125mm}
+.card.v .cell.g::before{--dir:90deg;top:50%;left:0;right:0;height:.25mm;margin-top:-.125mm}
+.cell.g .plus{position:relative;z-index:1;font-size:calc(var(--u) * .34);line-height:1;color:var(--ink);background:var(--paper);padding:.5mm 1.2mm;border-radius:99mm;font-weight:900;font-family:'Noto Sans KR',sans-serif}
+.cell.p{font-size:calc(var(--u) * .56);line-height:1;font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif}
+.card.h .cell.p{border-left:.45mm solid var(--ink)}
+.card.v .cell.p{border-top:.45mm solid var(--ink)}
+.card.h .cell.sep{border-top:.25mm solid var(--line)}
+.card.v .cell.sep{border-left:.25mm solid var(--line)}
+.card .tag{position:absolute;font-family:'Noto Sans KR',sans-serif;font-size:2.4mm;color:#A3AAB5;font-weight:700;letter-spacing:.02em;pointer-events:none}
+.card.h .tag{left:1.4mm;top:1mm}.card.v .tag{left:1.4mm;top:1mm}
+/* 화면에서 눌러 접기 */
+.card.anim{transition:none}
+.card.anim .cell.g{transition:width .45s cubic-bezier(.4,0,.2,1),height .45s cubic-bezier(.4,0,.2,1)}
+.card.h.fold{grid-template-columns:var(--u) 0 var(--u) var(--pic)}
+.card.v.fold{grid-template-rows:var(--u) 0 var(--u) var(--pic)}
+.card.fold .cell.g{border-width:0}
+.card.fold .cell.g .plus{display:none}
+.card.fold{box-shadow:2mm 2mm 0 rgba(0,0,0,.08)}
+.empty{font-size:14px;color:var(--dim);padding:24px;text-align:center}
+
+@media (max-width:700px){
+ .wrap{gap:14px}
+ .panel{padding:16px 14px}
+ .how{grid-template-columns:1fr}
+ .chip{width:40px;height:40px;font-size:18px}
+}
+@media print{
+ @page{size:A4 landscape;margin:0}
+ body{background:#fff}
+ .wrap{gap:0;padding:0}
+ .tb,.panel,.empty{display:none!important}
+ .sheets{gap:0}
+ .sheetbox{width:297mm!important;height:210mm!important;page-break-after:always;break-after:page}
+ .sheetbox:last-child{page-break-after:auto;break-after:auto}
+ .sheet{transform:none!important;box-shadow:none}
+ .card{cursor:auto}
+ .card.fold{grid-template-columns:var(--u) var(--g) var(--u) var(--pic)}
+ .card.v.fold{grid-template-rows:var(--u) var(--g) var(--u) var(--pic)}
+ .card.fold .cell.g{border-width:.3mm}.card.fold .cell.g .plus{display:block}.card.fold{box-shadow:none}
+ .card.h.fold .cell.g{border-top-width:0;border-bottom-width:0}.card.v.fold .cell.g{border-left-width:0;border-right-width:0}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="tb">
+  <b><span class="c">자음</span> + <span class="v">모음</span> 접기 카드</b>
+  <button class="btn" id="print">🖨 인쇄 · PDF 저장</button>
+  <a class="btn ghost" href="hangul-fold.pdf" download="접으면 글자 카드.pdf">📥 기본 세트 PDF</a>
+  <span class="hint">아래에서 고른 카드가 A4 가로 시트에 담겨요. 인쇄 설정은 <b>A4 · 가로 · 실제 크기 100%</b>. 아이폰은 열린 PDF에서 공유 → '파일에 저장'.</span>
+</div>
+
+<section class="panel" id="howto">
+  <h2>➕ 칸을 뒤로 접으면, 글자가 돼요 <small>카드를 눌러 보세요</small></h2>
+  <div class="demo"><div class="sheetbox" id="demo"></div></div>
+  <div class="how">
+    <div><b>1. 실선 따라 자르기</b><p>카드 바깥 굵은 실선만 가위로 잘라요. 안쪽 점선은 자르지 않아요.</p></div>
+    <div><b>2. ➕ 칸 가운데를 잡고 뒤로 반 접기</b><p>➕ 칸이 뒤로 숨으면 파란 자음과 빨간 모음이 딱 붙어요. 양쪽 점선이 저절로 접혀요.</p></div>
+    <div><b>3. 펼쳤다 접었다, 소리 내 읽기</b><p>펼치면 "그… 아…", 접으면 "가!" 자음 소리와 모음 소리가 합쳐지는 걸 눈으로 봐요.</p></div>
+  </div>
+  <div class="legend"><span class="lc">파랑 = 자음(첫소리)</span><span class="lv">빨강 = 모음</span><span class="lf">점선 = 접는 선</span></div>
+</section>
+
+<section class="panel">
+  <h2>🔤 낱자 카드 고르기 <small>고른 자음 × 고른 모음, 모든 짝이 카드가 돼요</small></h2>
+  <div class="row"><span class="k c">자음</span><button class="mini" data-act="c-all">모두</button><button class="mini" data-act="c-none">지우기</button><span class="cnt" id="cCnt"></span></div>
+  <div class="chips" id="cChips"></div>
+  <div class="row"><span class="k v">모음</span><button class="mini" data-act="v-all">모두</button><button class="mini" data-act="v-none">지우기</button><button class="mini" data-act="v-h">ㅏㅓㅣ 쪽만</button><button class="mini" data-act="v-v">ㅗㅜㅡ 쪽만</button><span class="cnt" id="vCnt"></span></div>
+  <div class="chips" id="vChips"></div>
+  <div class="presets"><span class="cnt">빠른 선택:</span><button class="mini" data-act="p-ganada">가나다라 (자음 14 × ㅏ)</button><button class="mini" data-act="p-ayaeo">아야어여 (ㅇ × 모음 10)</button></div>
+</section>
+
+<section class="panel">
+  <h2>🕷️ 낱말 카드 <small>한 줄에 한 낱말 · 뒤에 그림(이모지)을 붙이면 그림 칸이 생겨요</small></h2>
+  <textarea id="words" spellcheck="false" placeholder="거미 🕷️&#10;고추 🌶️&#10;나비 🦋"></textarea>
+  <div class="warn" id="warn" hidden></div>
+  <div class="ok">받침 없는 낱말만 돼요. 한 낱말 안에서는 ㅏㅓㅣ 쪽 모음끼리, 또는 ㅗㅜㅡ 쪽 모음끼리만 (접는 선이 같아야 해서요).</div>
+  <div class="presets"><span class="cnt">낱말 넣기:</span><button class="mini" data-act="w-basic">기본 낱말 12</button><button class="mini" data-act="w-animal">동물</button><button class="mini" data-act="w-food">먹을 것</button><button class="mini" data-act="w-clear">비우기</button></div>
+</section>
+
+<div class="sheets" id="sheets"></div>
+<div class="empty" id="empty" hidden>고른 카드가 없어요. 위에서 자음·모음을 고르거나 낱말을 적어 주세요.</div>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+var CI='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', VI='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
+var C14='ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ'.split(''), V10='ㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ'.split(''), VX=['ㅐ','ㅔ'];
+var VALL=V10.concat(VX);
+var HV='ㅏㅐㅑㅒㅓㅔㅕㅖㅣ', VV='ㅗㅛㅜㅠㅡ';
+var MM=96/25.4, U=34, G=22, PIC=34, GUT=5, MARG=6, SW=297, SH=210;
+
+var PRESET={
+ basic:['거미 🕷️','나비 🦋','바다 🌊','사자 🦁','아기 👶','기차 🚂','고추 🌶️','포도 🍇','우유 🥛','구두 👞','소 🐮','코 👃'],
+ animal:['거미 🕷️','나비 🦋','사자 🦁','하마 🦛','매미 🪲','새 🐦','개 🐶','게 🦀','소 🐮','노루 🦌','모기 🦟','치타 🐆'],
+ food:['피자 🍕','가지 🍆','배 🍐','파 🧅','고추 🌶️','포도 🍇','우유 🥛','두부 🧈','호두 🌰','수프 🍲','주스 🧃','차 🍵']
+};
+
+var state={c:C14.slice(), v:['ㅏ'], words:PRESET.basic.slice(0,4).join('\n')};
+try{var s=JSON.parse(localStorage.getItem('hf1')||'null'); if(s&&s.c&&s.v&&typeof s.words==='string') state=s;}catch(e){}
+function save(){try{localStorage.setItem('hf1',JSON.stringify(state))}catch(e){}}
+
+function decomp(ch){
+ var code=ch.charCodeAt(0)-0xAC00; if(code<0||code>11171) return null;
+ return {c:CI[Math.floor(code/588)], v:VI[Math.floor(code%588/28)], t:code%28};
+}
+function orient(v){ return HV.indexOf(v)>=0?'h':(VV.indexOf(v)>=0?'v':null); }
+
+/* 낱말 줄 → 카드 정보 또는 오류 */
+function parseWord(line){
+ line=line.trim(); if(!line) return null;
+ var syl=[], pic='';
+ for(var ch of Array.from(line)){
+  var d=decomp(ch);
+  if(d){ syl.push({ch:ch,c:d.c,v:d.v,t:d.t}); }
+  else if(ch===' '||ch==='\t'){ }
+  else pic+=ch;
+ }
+ if(!syl.length) return {err:'"'+line+'" — 한글 글자가 없어요'};
+ var bad=syl.filter(function(s){return s.t!==0});
+ if(bad.length) return {err:'"'+line+'" — 받침 있는 글자("'+bad[0].ch+'")는 아직 안 돼요'};
+ var os=syl.map(function(s){return orient(s.v)});
+ if(os.indexOf(null)>=0) return {err:'"'+line+'" — ㅘ·ㅟ 같은 겹모음은 아직 안 돼요'};
+ if(os.some(function(o){return o!==os[0]})) return {err:'"'+line+'" — ㅏㅓㅣ 쪽 모음과 ㅗㅜㅡ 쪽 모음이 섞여 있어요'};
+ return {word:syl.map(function(s){return s.ch}).join(''), syl:syl, o:os[0], pic:pic};
+}
+
+/* ── 카드 DOM ── */
+function cardEl(o, syls, pic, tag){
+ var el=document.createElement('div'); el.className='card '+o;
+ var hasPic=!!pic; el.style.setProperty('--pic', hasPic?PIC+'mm':'0mm');
+ var n=syls.length;
+ // grid 순서: h는 행 단위(자음,+,모음,[그림]), v는 열 단위
+ syls.forEach(function(s,i){
+  var cC=cell('j c'+(i?' sep':''), '<span>'+s.c+'</span>');
+  var cG=cell('g'+(i?' sep':''), '<span class="plus">+</span>');
+  var cV=cell('j vw'+(i?' sep':''), '<span>'+s.v+'</span>');
+  el.appendChild(cC); el.appendChild(cG); el.appendChild(cV);
+  if(hasPic){
+   if(i===0){ var p=cell('p', pic); if(o==='h'){p.style.gridColumn='4';p.style.gridRow='1 / span '+n;} else {p.style.gridRow='4';p.style.gridColumn='1 / span '+n;} el.appendChild(p); }
+  }
+ });
+ if(tag){ var t=document.createElement('span'); t.className='tag'; t.textContent=tag; el.appendChild(t); }
+ var w,h;
+ if(o==='h'){ w=U+G+U+(hasPic?PIC:0); h=U*n; }
+ else { w=U*n; h=U+G+U+(hasPic?PIC:0); }
+ el.dataset.w=w; el.dataset.h=h;
+ el.addEventListener('click',function(){ el.classList.add('anim'); el.classList.toggle('fold'); });
+ return el;
+}
+function cell(cls,html){ var d=document.createElement('div'); d.className='cell '+cls; d.innerHTML=html; return d; }
+
+/* ── 시트 채우기 (선반 배치) ── */
+function pack(cards){
+ var W=SW-2*MARG, H=SH-2*MARG, sheets=[];
+ cards=cards.map(function(c,i){return {c:c,i:i}}).sort(function(a,b){return (+b.c.dataset.h)-(+a.c.dataset.h)||a.i-b.i}).map(function(x){return x.c});
+ cards.forEach(function(c){
+  var w=+c.dataset.w, h=+c.dataset.h, done=false;
+  for(var si=0; si<sheets.length && !done; si++){
+   var sh=sheets[si];
+   for(var k=0;k<sh.shelves.length;k++){ var f=sh.shelves[k];
+    if(h<=f.h && f.x+w<=W){ sh.items.push({el:c,x:f.x,y:f.y}); f.x+=w+GUT; done=true; break; } }
+   if(!done && sh.bottom+h<=H){ sh.shelves.push({y:sh.bottom,h:h,x:w+GUT}); sh.items.push({el:c,x:0,y:sh.bottom}); sh.bottom+=h+GUT; done=true; }
+  }
+  if(!done){ sheets.push({items:[{el:c,x:0,y:0}],shelves:[{y:0,h:h,x:w+GUT}],bottom:h+GUT}); }
+ });
+ return sheets;
+}
+
+function build(){
+ var cards=[], warn=[];
+ state.c.forEach(function(c){ state.v.forEach(function(v){
+  cards.push(cardEl(orient(v), [{c:c,v:v}], '', ''));
+ });});
+ state.words.split('\n').forEach(function(line){
+  var r=parseWord(line); if(!r) return;
+  if(r.err){ warn.push(r.err); return; }
+  cards.push(cardEl(r.o, r.syl, r.pic, ''));
+ });
+ var wEl=document.getElementById('warn'); wEl.hidden=!warn.length; wEl.textContent=warn.join('\n');
+ var box=document.getElementById('sheets'); box.innerHTML='';
+ document.getElementById('empty').hidden=cards.length>0;
+ if(!cards.length) return;
+ var sheets=pack(cards);
+ sheets.forEach(function(s,i){
+  var sb=document.createElement('div'); sb.className='sheetbox';
+  var sh=document.createElement('div'); sh.className='sheet';
+  s.items.forEach(function(it){ it.el.style.left=(MARG+it.x)+'mm'; it.el.style.top=(MARG+it.y)+'mm'; sh.appendChild(it.el); });
+  var pn=document.createElement('div'); pn.className='pn'; pn.textContent='접으면 글자 · '+(i+1)+'/'+sheets.length+' · 실선 자르기 · 점선 접기'; sh.appendChild(pn);
+  sb.appendChild(sh); box.appendChild(sb);
+ });
+ fit();
+ document.getElementById('cCnt').textContent=state.c.length+'개'; document.getElementById('vCnt').textContent=state.v.length+'개';
+}
+
+function fit(){
+ var vw=Math.min(document.documentElement.clientWidth, window.innerWidth)-32;
+ var sc=Math.min(1, vw/(SW*MM));
+ document.querySelectorAll('#sheets .sheetbox').forEach(function(sb){
+  sb.style.width=(SW*MM*sc)+'px'; sb.style.height=(SH*MM*sc)+'px';
+  sb.firstChild.style.transform='scale('+sc+')';
+ });
+}
+
+/* ── 칩 ── */
+function chips(){
+ var cb=document.getElementById('cChips'), vb=document.getElementById('vChips'); cb.innerHTML=''; vb.innerHTML='';
+ C14.forEach(function(c){ var b=document.createElement('button'); b.className='chip c'+(state.c.indexOf(c)>=0?' on':''); b.textContent=c; b.setAttribute('aria-pressed',state.c.indexOf(c)>=0);
+  b.onclick=function(){ toggle(state.c,c,C14); update(); }; cb.appendChild(b); });
+ VALL.forEach(function(v){ var b=document.createElement('button'); b.className='chip v'+(state.v.indexOf(v)>=0?' on':''); b.textContent=v; b.setAttribute('aria-pressed',state.v.indexOf(v)>=0);
+  b.onclick=function(){ toggle(state.v,v,VALL); update(); }; vb.appendChild(b); });
+}
+function toggle(arr,x,order){ var i=arr.indexOf(x); if(i>=0) arr.splice(i,1); else arr.push(x); arr.sort(function(a,b){return order.indexOf(a)-order.indexOf(b)}); }
+function update(){ save(); chips(); build(); }
+
+document.addEventListener('click',function(e){
+ var a=e.target.closest('[data-act]'); if(!a) return;
+ var act=a.dataset.act, ta=document.getElementById('words');
+ if(act==='c-all') state.c=C14.slice(); if(act==='c-none') state.c=[];
+ if(act==='v-all') state.v=VALL.slice(); if(act==='v-none') state.v=[];
+ if(act==='v-h') state.v=VALL.filter(function(v){return orient(v)==='h'}); if(act==='v-v') state.v=VALL.filter(function(v){return orient(v)==='v'});
+ if(act==='p-ganada'){ state.c=C14.slice(); state.v=['ㅏ']; }
+ if(act==='p-ayaeo'){ state.c=['ㅇ']; state.v=V10.slice(); }
+ if(act==='w-clear'){ state.words=''; ta.value=''; }
+ if(act==='w-basic'||act==='w-animal'||act==='w-food'){
+  var add=PRESET[act.slice(2)], have=state.words.split('\n').map(function(l){return l.trim()}).filter(Boolean);
+  add.forEach(function(w){ if(have.indexOf(w)<0) have.push(w); }); state.words=have.join('\n'); ta.value=state.words;
+ }
+ update();
+});
+var ta=document.getElementById('words'); ta.value=state.words;
+var tmr; ta.addEventListener('input',function(){ state.words=ta.value; clearTimeout(tmr); tmr=setTimeout(update,350); });
+document.getElementById('print').onclick=function(){ window.print(); };
+window.addEventListener('resize',fit);
+
+/* 설명용 데모 카드 */
+(function(){
+ var d=document.getElementById('demo'); var el=cardEl('h',[{c:'ㄱ',v:'ㅏ'}],'',''); el.style.position='relative'; d.appendChild(el);
+ var t=0; var iv=setInterval(function(){ el.classList.add('anim'); el.classList.toggle('fold'); if(++t>=4) clearInterval(iv); },1600);
+ el.addEventListener('click',function(){ clearInterval(iv); });
+})();
+
+chips(); build();
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+window.HF={build:build,state:state,setState:function(s){state.c=s.c;state.v=s.v;state.words=s.words;chips();build();}};
+})();
+</script>
+</body>
+</html>
