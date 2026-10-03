@@ -73,7 +73,8 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
 .cd .no{position:absolute;right:2mm;bottom:1.2mm;font-family:'Noto Sans KR',sans-serif;font-size:2.4mm;color:#B6BDC7;font-weight:700}
 .cd .no.l{right:auto;left:2mm}
 .cd .em{font-size:30mm;line-height:1;font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif}
-.cd .im{position:absolute;inset:3mm;border-radius:3mm;background:center/cover no-repeat}
+.cd .im{position:absolute;inset:2.5mm;border-radius:3mm;background:center/contain no-repeat}
+.cd .im.fill{background-size:cover}
 .cd.blank{background:repeating-linear-gradient(45deg,#F4F6F9 0 2mm,#fff 2mm 4mm)}
 .empty{font-size:14px;color:var(--dim);padding:24px;text-align:center}
 @media (max-width:700px){
@@ -110,12 +111,13 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
   <h2>앞은 글자, 뒤는 그림 <small>자음 파랑 · 모음 빨강 · 받침 파랑</small></h2>
   <div class="how">
     <div><b>1. 낱말 고치기·더하기</b><p>아래 목록에서 낱말을 바꾸거나 ➕ 줄을 더해요. 기본 낱말은 받침이 없고, 직접 더하는 낱말은 받침이 있어도 돼요(받침은 파란색). 겹받침(ㄳ·ㄺ…)만 아직 안 돼요.</p></div>
-    <div><b>2. 그림은 이모지 또는 내 사진</b><p>이모지 칸을 누르면 키보드 이모지를 넣을 수 있고, 네모 칸을 누르면 사진을 골라요. 사진이 있으면 사진이 먼저 쓰여요.</p></div>
+    <div><b>2. 그림은 이모지 또는 내 사진</b><p>이모지 칸을 누르면 키보드 이모지를 넣을 수 있고, 네모 칸을 누르면 사진을 골라요. 사진이 있으면 사진이 먼저 쓰이고, 기본은 사진 전체가 보이게 들어가요.</p></div>
     <div><b>3. 양면으로 인쇄</b><p>앞면 시트 다음에 뒷면 시트가 좌우 뒤집혀 나와요. 양면·긴 쪽 넘김으로 뽑으면 앞뒤가 맞아요. 먼저 한 장만 시험 인쇄해 보세요.</p></div>
   </div>
   <div class="row">
     <label class="tg"><input type="checkbox" id="jamo" checked> 자음 파랑 · 모음 빨강 조각으로 보이기 (끄면 검정 글자)</label>
     <label class="tg"><input type="checkbox" id="num" checked> 카드 번호 표시 (앞뒤 맞추기용)</label>
+    <label class="tg"><input type="checkbox" id="fill"> 사진을 카드에 꽉 채우기 (위아래가 잘릴 수 있어요)</label>
   </div>
 </section>
 
@@ -242,7 +244,7 @@ var DEFAULTS=[
 ];
 var PAL=['🐶','🐱','🐭','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🐔','🐧','🐦','🦆','🦉','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐢','🐍','🐙','🐬','🐳','🐟','🐘','🦒','🦓','🍎','🍌','🍇','🍓','🍉','🍑','🍐','🥕','🌽','🍞','🧀','🍕','🍰','🍪','🥛','🌳','🌸','🌻','☀️','🌙','⭐','☁️','🌈','❄️','🌊','🚗','🚌','🚂','✈️','🚀','⚽','🎈','🎁','📚','✏️','🧸','👶','👨','👩','🏠'];
 
-var state={items:[], jamo:true, num:true};
+var state={items:[], jamo:true, num:true, fill:false};
 try{ var s=JSON.parse(localStorage.getItem('wc1')||'null'); if(s&&Array.isArray(s.items)) state=s; else state.items=DEFAULTS.map(function(d){return {w:d[0],e:d[1],img:null}}); }catch(e){ state.items=DEFAULTS.map(function(d){return {w:d[0],e:d[1],img:null}}); }
 if(state.items.length===0 && !localStorage.getItem('wc1')) state.items=DEFAULTS.map(function(d){return {w:d[0],e:d[1],img:null}});
 function save(){ try{ localStorage.setItem('wc1',JSON.stringify(state)); return true; }catch(e){ alert('저장 공간이 꽉 찼어요. 사진을 몇 장 지우거나 더 작은 사진을 넣어 주세요.'); return false; } }
@@ -313,7 +315,7 @@ function cardFront(it,r,n){
 }
 function cardBack(it,n){
  var d=document.createElement('div'); d.className='cd';
- if(it.img){ var im=document.createElement('div'); im.className='im'; im.style.backgroundImage='url('+it.img+')'; d.appendChild(im); }
+ if(it.img){ var im=document.createElement('div'); im.className='im'+(state.fill?' fill':''); im.style.backgroundImage='url('+it.img+')'; d.appendChild(im); }
  else { d.innerHTML='<div class="em">'+(it.e||'❓')+'</div>'; }
  if(state.num){ var s=document.createElement('span'); s.className='no l'; s.textContent=n; d.appendChild(s); }
  return d;
@@ -365,6 +367,8 @@ document.addEventListener('click',function(e){
 document.getElementById('jamo').checked=state.jamo; document.getElementById('num').checked=state.num;
 document.getElementById('jamo').onchange=function(){ state.jamo=this.checked; save(); build(); };
 document.getElementById('num').onchange=function(){ state.num=this.checked; save(); build(); };
+document.getElementById('fill').checked=!!state.fill;
+document.getElementById('fill').onchange=function(){ state.fill=this.checked; save(); build(); };
 document.getElementById('print').onclick=function(){ window.print(); };
 window.addEventListener('resize',fit);
 var READY=(document.fonts&&document.fonts.load)?document.fonts.load('400 '+RS+'px Ssurround').catch(function(){}):Promise.resolve();
