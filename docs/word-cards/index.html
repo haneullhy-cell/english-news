@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>낱말 그림 카드 · 앞은 글자, 뒤는 그림</title>
-<meta name="description" content="받침 없는 낱말 카드. 앞면은 낱말, 뒷면은 그림(이모지 또는 내 사진). A4 양면 인쇄, 긴 쪽 넘김. 낱말을 직접 추가하고 사진을 넣을 수 있어요.">
+<meta name="description" content="낱말 카드. 앞면은 자음 파랑·모음 빨강으로 색칠한 낱말, 뒷면은 그림(이모지 또는 내 사진). A4 양면 인쇄, 긴 쪽 넘김. 낱말을 직접 추가하고 사진을 넣을 수 있어요.">
 <meta property="og:title" content="낱말 그림 카드 · 앞은 글자, 뒤는 그림">
 <meta property="og:description" content="받침 없는 낱말 카드. 이모지나 내 사진으로 뒷면 그림. A4 양면 인쇄.">
 <meta property="og:type" content="website">
@@ -107,9 +107,9 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
 </div>
 
 <section class="panel">
-  <h2>앞은 글자, 뒤는 그림 <small>받침 없는 낱말만</small></h2>
+  <h2>앞은 글자, 뒤는 그림 <small>자음 파랑 · 모음 빨강 · 받침 파랑</small></h2>
   <div class="how">
-    <div><b>1. 낱말 고치기·더하기</b><p>아래 목록에서 낱말을 바꾸거나 ➕ 줄을 더해요. 받침이 있는 글자가 들어가면 빨간 줄로 알려주고 카드에서 빠져요.</p></div>
+    <div><b>1. 낱말 고치기·더하기</b><p>아래 목록에서 낱말을 바꾸거나 ➕ 줄을 더해요. 기본 낱말은 받침이 없고, 직접 더하는 낱말은 받침이 있어도 돼요(받침은 파란색). 겹받침(ㄳ·ㄺ…)만 아직 안 돼요.</p></div>
     <div><b>2. 그림은 이모지 또는 내 사진</b><p>이모지 칸을 누르면 키보드 이모지를 넣을 수 있고, 네모 칸을 누르면 사진을 골라요. 사진이 있으면 사진이 먼저 쓰여요.</p></div>
     <div><b>3. 양면으로 인쇄</b><p>앞면 시트 다음에 뒷면 시트가 좌우 뒤집혀 나와요. 양면·긴 쪽 넘김으로 뽑으면 앞뒤가 맞아요. 먼저 한 장만 시험 인쇄해 보세요.</p></div>
   </div>
@@ -135,7 +135,7 @@ label.tg{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weig
 <script>
 (function(){
 'use strict';
-var CI='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', VI='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ', TI='ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+var CI='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', VI='ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ', TI='ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ', TOK='ㄱㄲㄴㄷㄹㅁㅂㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
 var MM=96/25.4, SW=210, SH=297, PER=10, COLS=2;
 var VV='ㅗㅛㅜㅠㅡ';
 /* ── 글자 색칠: 글꼴의 진짜 글자를 캔버스에 그린 뒤, 서로 떨어진 잉크 덩어리를 자음/모음으로 나눠 색을 입힘 ── */
@@ -148,21 +148,29 @@ function inkBox(d,w,h,th){ var x0=w,y0=h,x1=-1,y1=-1; for(var y=0;y<h;y++)for(va
 function ensureFrame(){
  if(FRAME) return FRAME;
  var cv=bigCanvas(), ctx=cv.getContext('2d');
- '뷰배훼뛰쀼뺴'.split('').forEach(function(ch){ drawGlyph(ctx,ch); });
+ '뷰배훼뛰쀼뺴뿔흙'.split('').forEach(function(ch){ drawGlyph(ctx,ch); });
  var b=inkBox(ctx.getImageData(0,0,cv.width,cv.height).data,cv.width,cv.height,30) || {x0:0,y0:0,x1:cv.width,y1:cv.height};
  var pad=Math.round(RS*0.03);
  FRAME={x0:b.x0-pad,y0:b.y0-pad,w:b.x1-b.x0+2*pad,h:b.y1-b.y0+2*pad}; return FRAME;
 }
-function colorSyllable(ch,c,v){
+function colorSyllable(ch,c,v,t){
  if(CACHE[ch]) return CACHE[ch];
  var F=ensureFrame(), cv=bigCanvas(), ctx=cv.getContext('2d'); drawGlyph(ctx,ch);
  var W=F.w,H=F.h, d=ctx.getImageData(F.x0,F.y0,W,H).data, N=W*H, TH=110;
+ /* 받침: 글자 아래쪽에서 빈 줄(잉크 없는 행)로 떨어진 덩어리를 받침으로 보고 먼저 떼어 둠 (자음과 같은 파랑) */
+ var yT=H; // 이 행부터 아래는 받침
+ if(t){ var rowInk=new Int32Array(H), top=H, bot=-1;
+  for(var yy0=0;yy0<H;yy0++){ var n0=0; for(var xx0=0;xx0<W;xx0++) if(d[(yy0*W+xx0)*4+3]>=TH) n0++; rowInk[yy0]=n0; if(n0){ if(yy0<top) top=yy0; bot=yy0; } }
+  var ghAll=bot-top+1, found=-1;
+  for(var yy1=bot;yy1>=top+Math.round(ghAll*0.35);yy1--){ if(!rowInk[yy1]){ /* 빈 줄: 그 아래 잉크가 있으면 받침 경계 */ var below=false; for(var yy2=yy1+1;yy2<=bot;yy2++) if(rowInk[yy2]){below=true;break;} if(below){ found=yy1; break; } } }
+  yT=found>=0?found+1:top+Math.round(ghAll*0.62);
+ }
  var lab=new Int32Array(N), comps=[], stack=[];
  for(var i=0;i<N;i++){
-  if(lab[i]||d[i*4+3]<TH) continue;
+  if(lab[i]||d[i*4+3]<TH||Math.floor(i/W)>=yT) continue;
   var id=comps.length+1, cp={n:0,x0:W,y0:H,x1:0,y1:0,sx:0,sy:0}; comps.push(cp); lab[i]=id; stack.push(i);
   while(stack.length){ var p=stack.pop(), x=p%W, y=(p-x)/W; cp.n++; cp.sx+=x; cp.sy+=y; if(x<cp.x0)cp.x0=x; if(x>cp.x1)cp.x1=x; if(y<cp.y0)cp.y0=y; if(y>cp.y1)cp.y1=y;
-   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){ var nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=W||ny>=H) continue; var q=ny*W+nx; if(!lab[q]&&d[q*4+3]>=TH){ lab[q]=id; stack.push(q); } } }
+   for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){ var nx=x+dx, ny=y+dy; if(nx<0||ny<0||nx>=W||ny>=yT) continue; var q=ny*W+nx; if(!lab[q]&&d[q*4+3]>=TH){ lab[q]=id; stack.push(q); } } }
  }
  var gx0=W,gy0=H,gx1=0,gy1=0; comps.forEach(function(cp){ if(cp.x0<gx0)gx0=cp.x0; if(cp.y0<gy0)gy0=cp.y0; if(cp.x1>gx1)gx1=cp.x1; if(cp.y1>gy1)gy1=cp.y1; });
  var gw=Math.max(1,gx1-gx0), gh=Math.max(1,gy1-gy0), kind=HV2.indexOf(v)>=0?'h':(VV2.indexOf(v)>=0?'v':'c');
@@ -181,6 +189,8 @@ function colorSyllable(ch,c,v){
  }
  /* 2) ㅓ·ㅔ·ㅕ·ㅖ의 왼쪽 가지: 세로획 왼쪽에 붙은 얇은 가로획을 모음으로 */
  function recoverTicks(){ if(!LEFTTICK||xs<=gx0||!ws) return; var xc=xs-1, yy=gy0;
+  /* 세로획 가장자리가 둥글어 xs가 획 안쪽일 수 있으니, 긴 줄기가 끝나는 열까지 왼쪽으로 이동 */
+  for(var tries=0;tries<ws&&xc>gx0;tries++){ var bestR=0,runR=0; for(var yq=gy0;yq<=gy1;yq++){ if(lab[yq*W+xc]){ runR++; if(runR>bestR) bestR=runR; } else runR=0; } if(bestR<0.5*gh) break; xc--; }
   while(yy<=gy1){ if(lab[yy*W+xc]){ var s0=yy; while(yy<=gy1&&lab[yy*W+xc]) yy++; var h=yy-s0, cy=(s0+yy-1)/2;
     if(h<=1.6*ws && cy>=gy0+0.2*gh && cy<=gy0+0.8*gh){ var yc=Math.round(cy);
      for(var xx=xc; xx>=Math.max(gx0,Math.round(xs-0.35*gw)); xx--){ if(!lab[yc*W+xx]) break;
@@ -219,7 +229,7 @@ function colorSyllable(ch,c,v){
  var oc=document.createElement('canvas'); oc.width=W; oc.height=H; oc.getContext('2d').putImageData(out,0,0);
  return CACHE[ch]=oc.toDataURL('image/png');
 }
-function glyphImg(ch,c,v){ var F=ensureFrame(); return '<img class="g" alt="'+ch+'" src="'+colorSyllable(ch,c,v)+'" style="height:'+(F.h/RS).toFixed(3)+'em">'; }
+function glyphImg(ch,c,v,t){ var F=ensureFrame(); return '<img class="g" alt="'+ch+'" src="'+colorSyllable(ch,c,v,t)+'" style="height:'+(F.h/RS).toFixed(3)+'em">'; }
 
 var DEFAULTS=[
  ['거미','🕷️'],['나비','🦋'],['사자','🦁'],['하마','🦛'],['여우','🦊'],['오리','🦆'],['토끼','🐰'],['돼지','🐷'],
@@ -241,7 +251,7 @@ function decomp(ch){ var code=ch.charCodeAt(0)-0xAC00; if(code<0||code>11171) re
 function check(w){
  w=(w||'').trim(); if(!w) return {err:'낱말을 적어 주세요'};
  var chars=Array.from(w), syl=[];
- for(var i=0;i<chars.length;i++){ var d=decomp(chars[i]); if(!d) return {err:'"'+chars[i]+'"은(는) 한글 글자가 아니에요'}; if(d.t) return {err:'"'+chars[i]+'"에 받침이 있어요 (받침 없는 낱말만)'}; d.ch=chars[i]; syl.push(d); }
+ for(var i=0;i<chars.length;i++){ var d=decomp(chars[i]); if(!d) return {err:'"'+chars[i]+'"은(는) 한글 글자가 아니에요'}; if(d.t&&TOK.indexOf(d.t)<0) return {err:'"'+chars[i]+'"의 겹받침은 아직 안 돼요'}; d.ch=chars[i]; syl.push(d); }
  return {w:w, syl:syl};
 }
 
@@ -296,7 +306,7 @@ function cardFront(it,r,n){
  var d=document.createElement('div'); d.className='cd';
  var L=r.syl.length, cls=L>=5?' l5':L===4?' l4':L===3?' l3':'';
  var h;
- if(state.jamo){ h='<div class="w'+cls+'">'+r.syl.map(function(s){ return glyphImg(s.ch,s.c,s.v); }).join('')+'</div>'; }
+ if(state.jamo){ h='<div class="w'+cls+'">'+r.syl.map(function(s){ return glyphImg(s.ch,s.c,s.v,s.t); }).join('')+'</div>'; }
  else { h='<div class="w'+cls+'">'+r.w+'</div>'; }
  if(state.num) h+='<span class="no">'+n+'</span>';
  d.innerHTML=h; return d;
