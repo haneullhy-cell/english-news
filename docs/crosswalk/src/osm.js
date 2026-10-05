@@ -93,6 +93,20 @@ const isCrossingWay = (w) => w.tags.footway === 'crossing' || w.tags.path === 'c
 const isSignalTags = (t) => t.crossing === 'traffic_signals' || t['crossing:signals'] === 'yes' || t.highway === 'traffic_signals' || t.crossing === 'pelican' || t.crossing === 'toucan';
 const isMarkedTags = (t) => ['marked', 'zebra', 'uncontrolled'].includes(t.crossing) || (t['crossing:markings'] && t['crossing:markings'] !== 'no');
 
+// 횡단보도 시설 정보(잔여시간 표시기, 음향신호기, 보행자 버튼 등). way 와 노드 태그를 모두 본다.
+export function crossingFeatures(wayTags, nodeTagsList) {
+  const all = [wayTags || {}, ...nodeTagsList];
+  const has = (k, ok) => all.some((t) => t[k] != null && ok(String(t[k])));
+  return {
+    countdown: has('traffic_signals:countdown', (v) => v !== 'no'),
+    sound: has('traffic_signals:sound', (v) => v !== 'no'),
+    vibration: has('traffic_signals:vibration', (v) => v !== 'no'),
+    button: has('button_operated', (v) => v === 'yes'),
+    island: has('crossing:island', (v) => v === 'yes'),
+    tactile: has('tactile_paving', (v) => v !== 'no'),
+  };
+}
+
 function crossingKind(wayTags, nodeTagsList) {
   if (isSignalTags(wayTags) || nodeTagsList.some(isSignalTags)) return 'signals';
   if (isMarkedTags(wayTags) || nodeTagsList.some(isMarkedTags)) return 'marked';
@@ -165,6 +179,7 @@ export function buildOsmWorld(net, ctxData, opts = {}) {
   for (const w of roadWays) {
     if (!isCrossingWay(w) || w.nodes.length < 2) continue;
     const kind = crossingKind(w.tags, w.nodes.map(tagsOf));
+    const features = crossingFeatures(w.tags, w.nodes.map(tagsOf));
     const ids = w.nodes.map((id) => addNode(id, '횡단보도')).filter(Boolean);
     const edges = []; let length = 0;
     for (let i = 0; i + 1 < ids.length; i++) {
@@ -176,14 +191,15 @@ export function buildOsmWorld(net, ctxData, opts = {}) {
     w.nodes.forEach((id) => crossingWayNodeIds.add(id));
     let across = null;
     for (const id of w.nodes) for (const r of nodeWays.get(id) || []) if (r !== w && !isCrossingWay(r) && r.tags.highway !== 'footway' && r.tags.highway !== 'path' && r.tags.highway !== 'steps') { if (!across || classRank(r.tags.highway) < classRank(across.tags.highway)) across = r; }
-    makeGroup(`c${w.id}`, ids, edges, length, kind, across);
+    makeGroup(`c${w.id}`, ids, edges, length, kind, across, features);
   }
 
-  function makeGroup(id, ids, edges, length, kind, across) {
+  function makeGroup(id, ids, edges, length, kind, across, features) {
     const pts = ids.map((k) => graph.nodes.get(k));
     const mid = chainMidpoint(pts);
-    const g = { id, nodes: ids, edges: edges.map((e) => e.id), length, mid, kind, across: across ? roadName(across.tags) : '길', acrossClass: across ? across.tags.highway : null, acrossWidth: across ? roadWidth(across.tags) : 8, intersection: null, leg: null, name: '' };
-    for (const e of edges) { e.group = id; e.crossTotal = length; e.delay = kind === 'signals' ? 0 : kind === 'marked' ? 4 : 2; e.signal = null; }
+    const g = { id, nodes: ids, edges: edges.map((e) => e.id), length, mid, kind, features: features || null, across: across ? roadName(across.tags) : '길', acrossClass: across ? across.tags.highway : null, acrossWidth: across ? roadWidth(across.tags) : 8, intersection: null, leg: null, name: '' };
+    const ends = [ids[0], ids[ids.length - 1]];
+    for (const e of edges) { e.group = id; e.crossTotal = length; e.groupEnds = ends; e.delay = kind === 'signals' ? 0 : kind === 'marked' ? 4 : 2; e.signal = null; }
     graph.crossings.set(id, g);
     return g;
   }
@@ -269,26 +285,40 @@ function synthesizeNodeCrossings(graph, nodesRaw, nodeWays, coord, crossingWayNo
     const edges = []; let length = 0;
     for (let i = 0; i + 1 < ids.length; i++) { const e = addEdge(ids[i], ids[i + 1], 'cross', { synthesized: true }); edges.push(e); length += e.length; }
     const kind = crossingKind({}, group.map((g) => g.tags));
-    makeGroup(`x${c.id}`, ids, edges, length, kind, c.road);
+    makeGroup(`x${c.id}`, ids, edges, length, kind, c.road, crossingFeatures({}, group.map((g) => g.tags)));
   }
 }
 
 function snapDeadEnds(graph, addEdge) {
-  const deg = new Map();
-  for (const e of graph.edges) { deg.set(e.a, (deg.get(e.a) || 0) + 1); deg.set(e.b, (deg.get(e.b) || 0) + 1); }
-  const ends = [...graph.nodes.values()].filter((n) => deg.get(n.id) === 1);
-  const walkEdges = () => graph.edges.filter((e) => e.kind === 'walk');
-  let edges = walkEdges();
+  const incident = new Map();
+  for (const e of graph.edges) { for (const k of [e.a, e.b]) { if (!incident.has(k)) incident.set(k, []); incident.get(k).push(e); } }
+  const ends = [...graph.nodes.values()].filter((n) => (incident.get(n.id) || []).length === 1);
+  // 보도 간선 격자 색인(25 m 칸)
+  const CELL = 25, grid = new Map();
+  const cellKey = (cx, cy) => `${cx},${cy}`;
+  const index = (e) => {
+    const A = graph.nodes.get(e.a), B = graph.nodes.get(e.b);
+    for (let cx = Math.floor(Math.min(A.x, B.x) / CELL); cx <= Math.floor(Math.max(A.x, B.x) / CELL); cx++) {
+      for (let cy = Math.floor(Math.min(A.y, B.y) / CELL); cy <= Math.floor(Math.max(A.y, B.y) / CELL); cy++) {
+        const k = cellKey(cx, cy); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(e);
+      }
+    }
+  };
+  for (const e of graph.edges) if (e.kind === 'walk') index(e);
   for (const n of ends) {
-    const own = graph.edges.find((e) => e.a === n.id || e.b === n.id);
+    const own = incident.get(n.id)[0];
     let best = null, bd = SNAP_DEAD_END_M, bq = null;
-    for (const e of edges) {
-      if (e === own || e.a === n.id || e.b === n.id) continue;
-      if (own && own.way != null && e.way === own.way) continue;
-      const A = graph.nodes.get(e.a), B = graph.nodes.get(e.b);
-      if (Math.min(A.x, B.x) - bd > n.x || Math.max(A.x, B.x) + bd < n.x || Math.min(A.y, B.y) - bd > n.y || Math.max(A.y, B.y) + bd < n.y) continue;
-      const r = pointToSegment(n, A, B);
-      if (r.d < bd) { bd = r.d; best = e; bq = r; }
+    const seen = new Set();
+    for (let cx = Math.floor((n.x - bd) / CELL); cx <= Math.floor((n.x + bd) / CELL); cx++) {
+      for (let cy = Math.floor((n.y - bd) / CELL); cy <= Math.floor((n.y + bd) / CELL); cy++) {
+        for (const e of grid.get(cellKey(cx, cy)) || []) {
+          if (seen.has(e)) continue; seen.add(e);
+          if (e === own || e.a === n.id || e.b === n.id) continue;
+          if (own && own.way != null && e.way === own.way) continue;
+          const r = pointToSegment(n, graph.nodes.get(e.a), graph.nodes.get(e.b));
+          if (r.d < bd) { bd = r.d; best = e; bq = r; }
+        }
+      }
     }
     if (!best) continue;
     // 가까운 길을 투영점에서 나누고 끊긴 끝을 잇는다
@@ -297,9 +327,9 @@ function snapDeadEnds(graph, addEdge) {
     const extra = { street: best.street, hw: best.hw, slow: best.slow, via: best.via, way: best.way };
     const bEnd = best.b;
     best.b = id; best.length = dist(graph.nodes.get(best.a), graph.nodes.get(id));
-    addEdge(id, bEnd, 'walk', extra);
-    addEdge(n.id, id, 'walk', { street: best.street, hw: best.hw, slow: 1, snapped: true });
-    edges = walkEdges();
+    const tail = addEdge(id, bEnd, 'walk', extra);
+    const link = addEdge(n.id, id, 'walk', { street: best.street, hw: best.hw, slow: 1, snapped: true });
+    index(tail); index(link);
   }
 }
 
@@ -318,8 +348,10 @@ function keepLargestComponent(graph) {
   for (const id of [...graph.nodes.keys()]) if (!keep.has(id)) graph.nodes.delete(id);
   graph.edges = graph.edges.filter((e) => keep.has(e.a) && keep.has(e.b));
   graph.edges.forEach((e, i) => { e.id = `e${i}`; });
+  const byGroup = new Map();
+  for (const e of graph.edges) if (e.group) { if (!byGroup.has(e.group)) byGroup.set(e.group, []); byGroup.get(e.group).push(e); }
   for (const [gid, g] of [...graph.crossings]) {
-    const edges = graph.edges.filter((e) => e.group === gid);
+    const edges = byGroup.get(gid) || [];
     if (!edges.length || !g.nodes.every((n) => keep.has(n))) { graph.crossings.delete(gid); edges.forEach((e) => { e.group = null; }); continue; }
     g.edges = edges.map((e) => e.id);
   }
@@ -365,10 +397,11 @@ function buildIntersections(graph, nodesRaw, coord) {
     graph.intersections.set(id, { id, name, x: cx, y: cy, kind: groups.length === 1 ? 'midblock' : 'osm', legs, plan, itstId: null });
     for (const g of groups) g.name = groups.length === 1 ? name : `${name} ${LEG_NAMES[g.leg]}`;
   }
+  const edgeById = new Map(graph.edges.map((e) => [e.id, e]));
   for (const g of graph.crossings.values()) {
     if (!g.name) g.name = `${g.across} ${g.kind === 'marked' ? '횡단보도' : '비신호 횡단'}`;
     if (!g.intersection) continue;
-    for (const eid of g.edges) { const e = graph.edges.find((x) => x.id === eid); if (e) e.signal = { intersection: g.intersection, leg: g.leg }; }
+    for (const eid of g.edges) { const e = edgeById.get(eid); if (e) e.signal = { intersection: g.intersection, leg: g.leg }; }
   }
 }
 

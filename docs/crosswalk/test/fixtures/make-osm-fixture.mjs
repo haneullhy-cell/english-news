@@ -37,7 +37,7 @@ export function makeFixture() {
   W([[-12, 30], [0, 30], [12, 30]], { highway: 'footway', footway: 'crossing', crossing: 'traffic_signals' });
   W([[-12, -30], [0, -30], [12, -30]], { highway: 'footway', footway: 'crossing', crossing: 'traffic_signals' });
   W([[30, 22], [30, 10], [30, -10], [30, -22]], { highway: 'footway', footway: 'crossing' });
-  N(30, 10, { highway: 'crossing', crossing: 'traffic_signals' });
+  N(30, 10, { highway: 'crossing', crossing: 'traffic_signals', 'traffic_signals:countdown': 'yes', 'traffic_signals:sound': 'walk', button_operated: 'yes' });
   N(30, -10, { highway: 'crossing', crossing: 'traffic_signals' });
   W([[-30, 22], [-30, 10], [-30, -10], [-30, -22]], { highway: 'footway', footway: 'crossing', crossing: 'traffic_signals', 'crossing:island': 'no' });
   // 노드로만 표시된 중간 횡단보도(두 차도에 하나씩)

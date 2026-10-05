@@ -31,10 +31,14 @@ export function adjacency(graph) {
   return adj;
 }
 
-// 간선 하나를 t초에 진입할 때의 통과 결과. ctx = {speed, margin, signal(iid, leg, t), nextGreen(iid, leg, t)}
-export function traverseEdge(e, t, ctx) {
+// 간선 하나를 t초에 from 노드에서 진입할 때의 통과 결과. ctx = {speed, margin, signal(iid, leg, t), nextGreen(iid, leg, t)}
+// 횡단보도 하나가 여러 간선(연석-차선-연석)으로 되어 있으면, 연석(groupEnds)에서 건너기 시작할 때만 신호를 보고
+// 그때 '횡단보도 전체 길이'를 다 건널 수 있는지 판단한다. 이미 차도 위에 있으면 멈추지 않고 이어 건넌다.
+export function traverseEdge(e, t, ctx, from) {
   const walkSec = (e.length / ctx.speed) * (e.slow || 1);
   if (e.kind !== 'cross') return { tExit: t + walkSec, wait: 0, walkSec };
+  const starting = !e.groupEnds || from === undefined || e.groupEnds.includes(from);
+  if (!starting) return { tExit: t + walkSec, wait: 0, walkSec, crossAt: t, committed: true };
   if (!e.signal) {
     // 신호 없는 횡단보도(마킹만 있거나 없는 곳): 차를 살피는 시간만큼 고정 지연
     const d = e.delay || 0;
@@ -42,8 +46,9 @@ export function traverseEdge(e, t, ctx) {
   }
   const { intersection, leg } = e.signal;
   const s = ctx.signal(intersection, leg, t);
-  // 보수적 규칙: 남은 녹색 시간 안에 여유(margin)를 두고 다 건널 수 있을 때만 바로 건넌다.
-  if (s.state !== 'red' && s.remain >= walkSec + ctx.margin) {
+  const need = (e.crossTotal || e.length) / ctx.speed;
+  // 보수적 규칙: 남은 녹색 시간 안에 여유(margin)를 두고 횡단보도 전체를 다 건널 수 있을 때만 바로 건넌다.
+  if (s.state !== 'red' && s.remain >= need + ctx.margin) {
     return { tExit: t + walkSec, wait: 0, walkSec, crossAt: t, signal: s };
   }
   const g = ctx.nextGreen(intersection, leg, t);
@@ -66,7 +71,7 @@ function dijkstra(graph, adj, from, to, t0, costFn, opts = {}) {
       if (done.has(m)) continue;
       if (opts.skipEdges && opts.skipEdges.has(e)) continue;
       if (opts.allowNode && !opts.allowNode(m)) continue;
-      const tx = costFn(e, t);
+      const tx = costFn(e, t, n);
       if (tx < (best.get(m) ?? Infinity)) { best.set(m, tx); prev.set(m, { n, e }); heap.push(tx, m); }
     }
   }
@@ -83,7 +88,7 @@ export function shortestDistance(graph, adj, from, to) {
 }
 
 export function shortestTime(graph, adj, from, to, t0, ctx, opts) {
-  return dijkstra(graph, adj, from, to, t0, (e, t) => traverseEdge(e, t, ctx).tExit, opts);
+  return dijkstra(graph, adj, from, to, t0, (e, t, n) => traverseEdge(e, t, ctx, n).tExit, opts);
 }
 
 // 경로(간선 순서)를 t0에 출발해 실제로 걸었을 때의 시간표
@@ -92,7 +97,7 @@ export function evaluate(graph, edgesPath, from, t0, ctx) {
   const steps = [];
   for (const e of edgesPath) {
     const next = e.a === cur ? e.b : e.a;
-    const r = traverseEdge(e, t, ctx);
+    const r = traverseEdge(e, t, ctx, cur);
     const step = { edge: e, from: cur, to: next, kind: e.kind, tArrive: t, tExit: r.tExit, wait: r.wait, length: e.length, walkSec: r.walkSec };
     if (e.kind === 'cross') {
       step.intersection = e.signal.intersection; step.leg = e.signal.leg; step.crossAt = r.crossAt; step.signalAtArrival = r.signal;

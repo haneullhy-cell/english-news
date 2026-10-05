@@ -136,7 +136,7 @@ export function buildDemo(area = DEMO_AREA) {
       intersections.set(id, it);
       for (const [leg, L] of Object.entries(legs)) {
         const gid = `${id}:${leg}`;
-        const e = addEdge(L.nodes[0], L.nodes[1], 'cross', { signal: { intersection: id, leg }, group: gid, delay: 0 });
+        const e = addEdge(L.nodes[0], L.nodes[1], 'cross', { signal: { intersection: id, leg }, group: gid, delay: 0, groupEnds: [L.nodes[0], L.nodes[1]] });
         e.crossTotal = e.length;
         L.edge = e.id; L.crossings = [gid];
         const A = nodes.get(L.nodes[0]), B = nodes.get(L.nodes[1]);
@@ -173,7 +173,7 @@ export function buildDemo(area = DEMO_AREA) {
         const leg = { name: LEG_NAMES.xw, across: ew.name, length: 2 * hv, nodes: [N, S], crossings: [`${mb.id}:xw`] };
         const it = { id: mb.id, name: mb.name, x: c.x, y: c.y, kind: 'midblock', ew: ew.id, legs: { xw: leg }, plan: midblockPlan(area, ew, leg, mb.a), itstId: null };
         intersections.set(mb.id, it);
-        const ce = addEdge(N, S, 'cross', { signal: { intersection: mb.id, leg: 'xw' }, group: `${mb.id}:xw`, delay: 0 });
+        const ce = addEdge(N, S, 'cross', { signal: { intersection: mb.id, leg: 'xw' }, group: `${mb.id}:xw`, delay: 0, groupEnds: [N, S] });
         ce.crossTotal = ce.length; leg.edge = ce.id;
         crossings.set(`${mb.id}:xw`, { id: `${mb.id}:xw`, nodes: [N, S], edges: [ce.id], length: ce.length, mid: { x: c.x, y: c.y }, kind: 'signals', across: ew.name, intersection: mb.id, leg: 'xw', name: mb.name });
         prevN = N; prevS = S;

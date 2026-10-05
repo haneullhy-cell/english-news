@@ -137,3 +137,39 @@ test('횡단 순서 안내: 여러 간선으로 된 횡단보도도 하나로 �
   }
   assert.ok(sawNote, '안내가 한 번도 나오지 않았습니다');
 });
+
+test('여러 간선으로 된 신호 횡단보도: 연석에서 전체 길이로 판단하고, 차도 한가운데서는 멈추지 않는다', async () => {
+  const { traverseEdge, evaluate } = await import('../src/routing.js');
+  const it = [...g.intersections.values()].find((i) => i.kind === 'osm');
+  const gr = g.crossings.get(it.legs.nt.crossings[0]);         // 세로길을 건너는 북쪽 횡단보도: 12m + 12m
+  assert.equal(gr.edges.length, 2);
+  const [e1, e2] = gr.edges.map((id) => g.edges.find((x) => x.id === id));
+  const curb = gr.nodes[0], middle = gr.nodes[1], other = gr.nodes[2];
+  assert.ok(e1.groupEnds.includes(curb) && !e1.groupEnds.includes(middle));
+  // 녹색이 13초 남았을 때: 첫 구간(12m=10초)은 되지만 전체(24m=20초+여유 2초)는 안 되므로 연석에서 기다려야 한다
+  const plan = it.plan;
+  let tTest = null;
+  for (let t = 0; t < plan.cycle * 2; t += 0.25) { const s = legState(plan, 'nt', t); if (s.state !== 'red' && Math.abs(s.remain - 13) < 0.2) { tTest = t; break; } }
+  assert.ok(tTest !== null);
+  const startFirst = traverseEdge(e1, tTest, ctx, curb);
+  assert.ok(startFirst.wait > 0, '전체를 못 건너는데 출발했습니다');
+  // 이미 가운데에 있으면(건너는 중) 신호와 상관없이 바로 이어 간다
+  const midRed = traverseEdge(e2, tTest + 20, ctx, middle);
+  assert.equal(midRed.wait, 0);
+  // 경로 전체에서도 차도 가운데 노드에서 기다리는 단계가 없어야 한다
+  const route = evaluate(g, [e1, e2], curb, tTest, ctx);
+  assert.equal(route.steps[1].wait, 0);
+  assert.equal(route.nodes.at(-1), other);
+});
+
+test('횡단보도 시설 태그: 잔여시간 표시기·음향신호기·보행자 버튼', async () => {
+  const { crossingFeatures } = await import('../src/osm.js');
+  const it = [...g.intersections.values()].find((i) => i.kind === 'osm');
+  const east = g.crossings.get(it.legs.et.crossings[0]);
+  assert.deepEqual(
+    { countdown: east.features.countdown, sound: east.features.sound, button: east.features.button, vibration: east.features.vibration },
+    { countdown: true, sound: true, button: true, vibration: false });
+  // 대전 시청역 횡단보도 노드의 실제 태그
+  const f = crossingFeatures({ highway: 'footway', footway: 'crossing' }, [{ button_operated: 'yes', crossing: 'traffic_signals', 'traffic_signals:countdown': 'yes', 'traffic_signals:sound': 'walk', 'traffic_signals:vibration': 'no', tactile_paving: 'no', 'crossing:island': 'no' }]);
+  assert.deepEqual(f, { countdown: true, sound: true, vibration: false, button: true, island: false, tactile: false });
+});

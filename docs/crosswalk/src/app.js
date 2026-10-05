@@ -11,10 +11,17 @@ const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const FONT = '"IBM Plex Sans KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif';
 const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const PLACES = { gangnam: { lat: 37.49795, lon: 127.02764, name: '강남역 주변' }, yeoksam: { lat: 37.50062, lon: 127.03644, name: '역삼역 주변' } };
+const PLACES = {
+  dj_cityhall: { lat: 36.351406, lon: 127.3867, name: '대전 시청역·둔산 주변' },
+  dj_complex: { lat: 36.357675, lon: 127.381019, name: '대전 정부청사역 주변' },
+  dj_station: { lat: 36.331331, lon: 127.433019, name: '대전역 주변' },
+  dj_yuseong: { lat: 36.353707, lon: 127.341349, name: '대전 유성온천역 주변' },
+  gangnam: { lat: 37.49795, lon: 127.02764, name: '강남역 주변' },
+  yeoksam: { lat: 37.50062, lon: 127.03644, name: '역삼역 주변' },
+};
 
 // ---------- 설정(이 기기에만 저장) ----------
-const DEFAULTS = { speed: 1.2, margin: 2, speedup: 1, apiBase: '' };
+const DEFAULTS = { speed: 1.2, margin: 2, speedup: 1, apiBase: '', lastMap: null };
 const STORE_KEY = 'greenlight-navi.v1';
 function loadSettings() {
   try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORE_KEY) || '{}') }; } catch { return { ...DEFAULTS }; }
@@ -131,7 +138,10 @@ const state = {
 let dirty = true, cmpDirty = true, lastCmp = 0, lastDraw = 0, toastT = 0;
 
 // ---------- 캔버스와 카메라 ----------
-const cv = $('#cv'), g2 = cv.getContext('2d'), mapEl = $('#map');
+const cv = $('#cv'), ctxMain = cv.getContext('2d'), mapEl = $('#map');
+const baseCv = document.createElement('canvas'), ctxBase = baseCv.getContext('2d');
+let g2 = ctxMain;            // 지금 그리는 대상. 바탕을 그릴 때만 ctxBase 로 바뀐다.
+let baseKey = '', themeVer = 0, worldVer = 0;
 const cam = { cx: 0, cy: 0, scale: 0.3 };
 let W = 1, H = 1, DPR = 1;
 let C = {};
@@ -139,6 +149,7 @@ let C = {};
 function readTheme() {
   const cs = getComputedStyle(document.documentElement);
   const g = (n) => cs.getPropertyValue(n).trim();
+  themeVer++;
   C = { bg: g('--bg'), surface: g('--surface'), road: g('--road'), roadEdge: g('--road-edge'), roadCenter: g('--road-center'), ink: g('--ink'), ink2: g('--ink-2'), ink3: g('--ink-3'), accent: g('--accent'), accentInk: g('--accent-ink'), green: g('--green'), red: g('--red'), park: g('--park'), water: g('--water'), building: g('--building'), buildingEdge: g('--building-edge'), path: g('--path'), crossNone: g('--cross-none') };
   dirty = true;
 }
@@ -147,6 +158,7 @@ function resize() {
   W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
   DPR = Math.min(3, window.devicePixelRatio || 1);
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  baseCv.width = cv.width; baseCv.height = cv.height; baseKey = '';
   dirty = true;
 }
 function fitBounds(b, pad, maxScale = 1.2) {
@@ -304,14 +316,25 @@ function drawPin(node, label, fill, ink) {
   g2.font = `700 11px ${FONT}`; g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.fillStyle = ink; g2.fillText(label, p.x, p.y + 0.5);
 }
 
-function draw() {
-  const t = clock.now();
-  const G = world.graph;
+function drawBase() {
+  g2 = ctxBase;
   g2.setTransform(DPR, 0, 0, DPR, 0, 0);
   g2.fillStyle = C.bg; g2.fillRect(0, 0, W, H);
   g2.lineCap = 'butt'; g2.lineJoin = 'round';
   if (world.kind === 'schematic') drawSchematicBase(); else drawOsmBase();
   for (const l of world.labels) drawLabelAlong(l);
+  g2 = ctxMain;
+}
+function draw() {
+  const t = clock.now();
+  const G = world.graph;
+  const key = `${cam.cx.toFixed(2)}|${cam.cy.toFixed(2)}|${cam.scale.toFixed(5)}|${W}|${H}|${DPR}|${themeVer}|${worldVer}`;
+  if (key !== baseKey) { drawBase(); baseKey = key; }
+  g2 = ctxMain;
+  g2.setTransform(1, 0, 0, 1, 0, 0);
+  g2.drawImage(baseCv, 0, 0);
+  g2.setTransform(DPR, 0, 0, DPR, 0, 0);
+  g2.lineCap = 'butt'; g2.lineJoin = 'round';
   if (state.cmp) {
     if (!state.cmp.sameRoute) drawRoute(state.cmp.dist, C.ink3, 3, [7, 7]);
     drawRoute(state.cmp.fast, C.accent, 5, null);
@@ -523,13 +546,28 @@ function crossingInfo(groupId) {
   const nextStart = s.state === 'red' ? t + s.remain : nextGreenStart(plan, gr.leg, t);
   return { gr, it, t, s, need, plan, nextStart };
 }
+function featuresHTML(gr, it) {
+  const f = gr.features;
+  if (!f) return '';
+  const chips = [];
+  if (f.countdown) chips.push('잔여시간 표시기');
+  if (f.sound) chips.push('음향신호기');
+  if (f.vibration) chips.push('진동 안내');
+  if (f.button) chips.push('보행자 버튼');
+  if (f.island) chips.push('중앙 보행섬');
+  if (f.tactile) chips.push('점자블록');
+  if (!chips.length) return '';
+  const note = f.button && it && it.kind === 'midblock'
+    ? '<p class="note">보행자 버튼이 있는 단일로 횡단보도입니다. 버튼을 눌러야 초록불이 켜지는 신호라면 실제 대기 시간이 계산과 다를 수 있습니다.</p>' : '';
+  return `<div class="xfeat">${chips.map((c) => `<span class="pill">${c}</span>`).join('')}<span class="xsrc">OpenStreetMap</span></div>${note}`;
+}
 function crossingHTML(groupId) {
   const { gr, it, s, need, plan } = crossingInfo(groupId);
   const sub = `${gr.across} 건너기 · ${Math.round(gr.length)} m · ${settings.speed.toFixed(1)} m/s로 ${fmtDur(need)}`;
   if (!it) {
     return `<div class="xcard">
 <div class="xhead"><div><div class="xname">${esc(gr.name)}</div><div class="xsub">${esc(sub)}</div></div><button class="btn" id="btnCloseX" type="button">닫기</button></div>
-<p class="note">${gr.kind === 'marked' ? '신호등이 없는 횡단보도입니다. 차를 살피고 건너세요. 경로 계산에는 4초를 더합니다.' : '신호도 표시도 없는 횡단 지점입니다. 경로 계산에는 2초를 더합니다.'}</p>
+<p class="note">${gr.kind === 'marked' ? '신호등이 없는 횡단보도입니다. 차를 살피고 건너세요. 경로 계산에는 4초를 더합니다.' : '신호도 표시도 없는 횡단 지점입니다. 경로 계산에는 2초를 더합니다.'}</p>${featuresHTML(gr, null)}
 <div class="xactions"><button class="btn primary" id="btnFromHere" type="button">여기서 출발</button><button class="btn" id="btnToHere" type="button">여기까지</button></div>
 </div>`;
   }
@@ -539,7 +577,7 @@ function crossingHTML(groupId) {
 <div class="xhead"><div><div class="xname">${esc(gr.name)}</div><div class="xsub">${esc(sub)}</div></div><button class="btn" id="btnCloseX" type="button">닫기</button></div>
 <div class="ledwrap"><div id="led"></div><div class="ledlabel" id="ledLabel"></div></div>
 <div class="xverdict" id="xverdict"></div>
-<div class="xplan">신호 주기 ${plan.cycle}초 · 보행 초록불 ${greenDur}초 · <span id="xnext"></span></div>
+<div class="xplan">신호 주기 ${plan.cycle}초 · 보행 초록불 ${greenDur}초 · <span id="xnext"></span></div>${featuresHTML(gr, it)}
 <div class="xactions"><button class="btn primary" id="btnFromHere" type="button">여기서 출발</button><button class="btn" id="btnToHere" type="button">여기까지</button></div>
 </div>`;
 }
@@ -623,7 +661,7 @@ function pickDefaultEndpoints(opts = {}) {
   state.to = to ? to.node : null; state.toLabel = to ? to.name : '';
 }
 function setWorld(graph, meta = {}, opts = {}) {
-  world = makeWorld(graph, meta);
+  world = makeWorld(graph, meta); worldVer++;
   state.sel = null; state.cmp = null; setTapMode(null);
   state.user = opts.userPos || null;
   live.obs.clear();
@@ -655,9 +693,10 @@ async function loadRealMap(center, radius, label, opts = {}) {
     if (graph.nodes.size < 20) throw new Error('이 지역에는 걸을 수 있는 길 데이터가 거의 없습니다.');
     const userPos = opts.userLatLon ? graph.proj.toLocal(opts.userLatLon.lat, opts.userLatLon.lon) : null;
     setWorld(graph, { label, center, radius }, { userPos });
+    if (!opts.userLatLon) { settings.lastMap = { lat: center.lat, lon: center.lon, radius, label, key: opts.key || null }; saveSettings(); }
     setMapStatus(`불러왔습니다. 길 ${graph.stats.edges}개, 횡단보도 ${graph.stats.crossings}개(신호 ${graph.stats.signalized}), 교차로 ${graph.stats.intersections}곳.`);
     toast(`실제 지도: ${label}. 횡단보도 ${graph.stats.crossings}개를 찾았습니다.`);
-    fetchOsm('context', bbox, () => {}).then((ctxData) => { if (world.graph === graph) { addContext(graph, ctxData); renderMapNow(); dirty = true; } }).catch(() => {});
+    fetchOsm('context', bbox, () => {}).then((ctxData) => { if (world.graph === graph) { addContext(graph, ctxData); worldVer++; renderMapNow(); dirty = true; } }).catch(() => {});
   } catch (e) {
     const msg = e && e.name === 'AbortError' ? '응답이 너무 오래 걸립니다. 반경을 줄여보세요.' : (e && e.message) || String(e);
     const blocked = /Failed to fetch|NetworkError|Load failed/i.test(msg);
@@ -670,7 +709,7 @@ async function loadRealMap(center, radius, label, opts = {}) {
 function openMapSheet(open) { $('#mapsheet').hidden = !open; if (open) { renderMapNow(); setMapStatus(osm.status); } }
 $('#btnMap').addEventListener('click', () => openMapSheet(true));
 $('#btnCloseMap').addEventListener('click', () => openMapSheet(false));
-$('#btnSchematic').addEventListener('click', () => { setWorld(SCHEMATIC, { label: '개략도 · 강남 테헤란로 일대' }); setMapStatus(''); toast('개략도로 돌아왔습니다.'); });
+$('#btnSchematic').addEventListener('click', () => { setWorld(SCHEMATIC, { label: '개략도 · 강남 테헤란로 일대' }); settings.lastMap = null; saveSettings(); setMapStatus(''); toast('개략도로 돌아왔습니다.'); });
 $('#btnLoadMap').addEventListener('click', async () => {
   const which = $('#inCenter').value, radius = Number($('#inRadius').value) || 700;
   if (which === 'user') {
@@ -684,8 +723,8 @@ $('#btnLoadMap').addEventListener('click', async () => {
     await loadRealMap(c, radius, '지금 보는 곳 주변');
     return;
   }
-  const pl = PLACES[which] || PLACES.gangnam;
-  await loadRealMap({ lat: pl.lat, lon: pl.lon }, radius, pl.name);
+  const pl = PLACES[which] || PLACES.dj_cityhall;
+  await loadRealMap({ lat: pl.lat, lon: pl.lon }, radius, pl.name, { key: which });
 });
 
 // ---------- 배지·설정·토스트 ----------
@@ -780,6 +819,13 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { di
 readTheme(); resize(); buildSelects(); syncOutputs(); updateBadge(); renderMapNow(); recompute();
 requestAnimationFrame(() => { resize(); fitRoute(); });
 if (settings.apiBase) liveConnect(settings.apiBase);
+if (settings.lastMap && Number.isFinite(settings.lastMap.lat)) {
+  const lm = settings.lastMap;
+  if (lm.key && PLACES[lm.key]) $('#inCenter').value = lm.key;
+  $('#inRadius').value = String(lm.radius || 700);
+  toast(`지난번 지도(${lm.label})를 불러오는 중…`);
+  loadRealMap({ lat: lm.lat, lon: lm.lon }, lm.radius || 700, lm.label, { key: lm.key });
+}
 requestAnimationFrame(loop);
 
 // 테스트와 디버깅용 손잡이(화면 동작에는 쓰지 않음)
