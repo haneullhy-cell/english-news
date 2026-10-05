@@ -1,13 +1,17 @@
-// 초록불 내비 – 화면과 상호작용. build.mjs 가 geo/signal/network/routing 과 함께 하나의 스크립트로 묶는다.
-import { toLocal, dist, fmtDist, fmtDur, fmtClock } from './geo.js';
+// 초록불 내비 – 화면과 상호작용. build.mjs 가 geo/signal/network/routing/osm 과 함께 하나의 스크립트로 묶는다.
+// '세계(world)'는 지금 보는 지도 하나를 뜻한다: 개략도(network.js) 또는 실제 지도(osm.js). 둘 다 같은 그래프 구조라
+// 그리기·탭·경로 계산 코드를 공유한다.
+import { dist, fmtDist, fmtDur, fmtClock } from './geo.js';
 import { legState, nextGreenStart, anchorPlan, extrapolate } from './signal.js';
 import { buildDemo, nearestNode, nearestCrossing, crossingName, LEG_SHORT } from './network.js';
 import { adjacency, compare } from './routing.js';
+import { bboxAround, networkQuery, contextQuery, fetchOverpass, buildOsmWorld, addContext } from './osm.js';
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const FONT = '"IBM Plex Sans KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif';
 const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PLACES = { gangnam: { lat: 37.49795, lon: 127.02764, name: '강남역 주변' }, yeoksam: { lat: 37.50062, lon: 127.03644, name: '역삼역 주변' } };
 
 // ---------- 설정(이 기기에만 저장) ----------
 const DEFAULTS = { speed: 1.2, margin: 2, speedup: 1, apiBase: '' };
@@ -27,13 +31,32 @@ const clock = {
   setSpeed(s) { const v = this.now(); this.anchorReal = Date.now() / 1000; this.anchorVirtual = v; this.speed = s; },
 };
 
-// ---------- 도로망과 신호 ----------
-const graph = buildDemo();
-const adj = adjacency(graph);
-const plans = new Map([...graph.intersections].map(([id, it]) => [id, it.plan]));
-const streetName = Object.fromEntries(graph.streets.map((s) => [s.id, s.name]));
+// ---------- 세계(지도) ----------
+function schematicStreetLabels(graph) {
+  const out = [];
+  const its = [...graph.intersections.values()].filter((i) => i.kind === '4way');
+  for (const s of graph.streets) {
+    const on = its.filter((i) => (s.kind === 'ew' ? i.ew === s.id : i.ns === s.id));
+    const dir = s.kind === 'ew' ? graph.u : graph.v;
+    on.sort((a, b) => (a.x * dir.x + a.y * dir.y) - (b.x * dir.x + b.y * dir.y));
+    for (let i = 0; i + 1 < on.length; i++) out.push({ name: s.name, x: (on[i].x + on[i + 1].x) / 2, y: (on[i].y + on[i + 1].y) / 2, dir, minScale: 0.12 });
+  }
+  return out;
+}
+function makeWorld(graph, meta = {}) {
+  const w = {
+    graph, adj: adjacency(graph), kind: graph.kind, meta,
+    plans: new Map([...graph.intersections].map(([id, it]) => [id, it.plan])),
+    labels: graph.kind === 'schematic' ? schematicStreetLabels(graph) : graph.labels,
+    streetById: Object.fromEntries((graph.streets || []).map((s) => [s.id, s.name])),
+  };
+  w.walkName = (e) => (graph.kind === 'schematic' ? `${w.streetById[e.street] || ''} 보도` : (e.street || '길'));
+  return w;
+}
+const SCHEMATIC = buildDemo();
+let world = makeWorld(SCHEMATIC, { label: '개략도 · 강남 테헤란로 일대' });
 
-const live = { on: false, base: '', ok: false, lastOk: 0, serverMode: '', obs: new Map(), timer: null, error: '' };
+const live = { on: false, base: '', ok: false, lastOk: 0, serverMode: '', obs: new Map(), timer: null, error: '', osm: false };
 
 function sigState(iid, leg, t) {
   if (live.on && live.ok) {
@@ -41,7 +64,8 @@ function sigState(iid, leg, t) {
     const l = o && o.legs[leg];
     if (l) { const ex = extrapolate(l, o.t, t); if (ex) return ex; }
   }
-  return legState(plans.get(iid), leg, t);
+  const plan = world.plans.get(iid);
+  return plan ? legState(plan, leg, t) : { state: 'red', remain: 0 };
 }
 function sigNextGreen(iid, leg, t) {
   if (live.on && live.ok) {
@@ -49,7 +73,8 @@ function sigNextGreen(iid, leg, t) {
     const l = o && o.legs[leg];
     if (l && l.state === 'red' && l.remain != null) { const g = o.t + l.remain; if (g > t) return g; }
   }
-  return nextGreenStart(plans.get(iid), leg, t);
+  const plan = world.plans.get(iid);
+  return plan ? nextGreenStart(plan, leg, t) : t;
 }
 const routeCtx = () => ({ speed: settings.speed, margin: settings.margin, signal: sigState, nextGreen: sigNextGreen });
 
@@ -60,7 +85,7 @@ async function liveConnect(base) {
     const r = await fetch(`${live.base}/api/health`, { cache: 'no-store' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const h = await r.json();
-    live.serverMode = h.mode || '';
+    live.serverMode = h.mode || ''; live.osm = !!h.osm;
     if (h.mode === 'nokey') live.error = '서버에 TDATA_API_KEY 가 없습니다. 모의 데이터는 --mock 으로 실행합니다.';
   } catch (e) { live.error = `서버에 연결하지 못했습니다 (${e.message || e})`; }
   if (live.timer) clearInterval(live.timer);
@@ -75,10 +100,10 @@ async function livePoll() {
     const data = await r.json();
     const t = clock.now();
     for (const [iid, rec] of Object.entries(data.intersections || {})) {
-      const it = graph.intersections.get(iid);
+      const it = world.graph.intersections.get(iid);
       if (!it || !rec.legs) continue;
       live.obs.set(iid, { t, legs: rec.legs });
-      plans.set(iid, anchorPlan(it.plan, rec.legs, t));
+      world.plans.set(iid, anchorPlan(it.plan, rec.legs, t));
     }
     live.ok = true; live.lastOk = Date.now(); live.error = '';
     if (data.mode) live.serverMode = data.mode;
@@ -93,7 +118,7 @@ function liveDisconnect() {
   live.on = false; live.ok = false; live.error = '';
   if (live.timer) clearInterval(live.timer);
   live.timer = null; live.obs.clear();
-  for (const [id, it] of graph.intersections) plans.set(id, it.plan);
+  for (const [id, it] of world.graph.intersections) world.plans.set(id, it.plan);
   cmpDirty = true; updateBadge();
 }
 
@@ -101,7 +126,7 @@ function liveDisconnect() {
 const state = {
   from: 'gangnamdaero|teheranro#SW', fromLabel: '강남역',
   to: 'nonhyeonro|bongeunsaro#NE', toLabel: '언주역',
-  cmp: null, sel: null, tapMode: null, user: null,
+  cmp: null, sel: null, tapMode: null, user: null, userLatLon: null,
 };
 let dirty = true, cmpDirty = true, lastCmp = 0, lastDraw = 0, toastT = 0;
 
@@ -114,7 +139,7 @@ let C = {};
 function readTheme() {
   const cs = getComputedStyle(document.documentElement);
   const g = (n) => cs.getPropertyValue(n).trim();
-  C = { bg: g('--bg'), surface: g('--surface'), road: g('--road'), roadEdge: g('--road-edge'), roadCenter: g('--road-center'), ink: g('--ink'), ink2: g('--ink-2'), ink3: g('--ink-3'), accent: g('--accent'), accentInk: g('--accent-ink'), green: g('--green'), red: g('--red') };
+  C = { bg: g('--bg'), surface: g('--surface'), road: g('--road'), roadEdge: g('--road-edge'), roadCenter: g('--road-center'), ink: g('--ink'), ink2: g('--ink-2'), ink3: g('--ink-3'), accent: g('--accent'), accentInk: g('--accent-ink'), green: g('--green'), red: g('--red'), park: g('--park'), water: g('--water'), building: g('--building'), buildingEdge: g('--building-edge'), path: g('--path'), crossNone: g('--cross-none') };
   dirty = true;
 }
 function resize() {
@@ -124,11 +149,17 @@ function resize() {
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   dirty = true;
 }
-function fitAll() {
-  const b = graph.bounds, pad = 70;
-  cam.scale = Math.min(W / (b.maxX - b.minX + 2 * pad), H / (b.maxY - b.minY + 2 * pad));
+function fitBounds(b, pad, maxScale = 1.2) {
+  cam.scale = Math.max(0.05, Math.min(maxScale, Math.min(W / (b.maxX - b.minX + 2 * pad), H / (b.maxY - b.minY + 2 * pad))));
   cam.cx = (b.minX + b.maxX) / 2; cam.cy = (b.minY + b.maxY) / 2;
   dirty = true;
+}
+function fitAll() { fitBounds(world.graph.bounds, 70, 8); }
+function fitRoute() {
+  const r = state.cmp && state.cmp.fast;
+  if (!r || r.nodes.length < 2) { fitAll(); return; }
+  const pts = r.nodes.map((id) => world.graph.nodes.get(id));
+  fitBounds({ minX: Math.min(...pts.map((p) => p.x)), maxX: Math.max(...pts.map((p) => p.x)), minY: Math.min(...pts.map((p) => p.y)), maxY: Math.max(...pts.map((p) => p.y)) }, 140);
 }
 const w2s = (p) => ({ x: (p.x - cam.cx) * cam.scale + W / 2, y: H / 2 - (p.y - cam.cy) * cam.scale });
 const s2w = (sx, sy) => ({ x: (sx - W / 2) / cam.scale + cam.cx, y: cam.cy - (sy - H / 2) / cam.scale });
@@ -140,20 +171,12 @@ function zoomAt(factor, sx, sy) {
   dirty = true;
 }
 function panTo(p) { cam.cx = p.x; cam.cy = p.y; dirty = true; }
-function fitRoute() {
-  const r = state.cmp && state.cmp.fast;
-  if (!r || r.nodes.length < 2) { fitAll(); return; }
-  const pts = r.nodes.map((id) => graph.nodes.get(id));
-  const minX = Math.min(...pts.map((p) => p.x)), maxX = Math.max(...pts.map((p) => p.x));
-  const minY = Math.min(...pts.map((p) => p.y)), maxY = Math.max(...pts.map((p) => p.y));
-  const pad = 140;
-  cam.scale = Math.max(0.05, Math.min(1.2, Math.min(W / (maxX - minX + 2 * pad), H / (maxY - minY + 2 * pad))));
-  cam.cx = (minX + maxX) / 2; cam.cy = (minY + maxY) / 2;
-  dirty = true;
-}
 
 // ---------- 그리기 ----------
 function line(a, b) { g2.beginPath(); g2.moveTo(a.x, a.y); g2.lineTo(b.x, b.y); g2.stroke(); }
+function polyPath(pts) { g2.beginPath(); pts.forEach((p, i) => { const s = w2s(p); if (i) g2.lineTo(s.x, s.y); else g2.moveTo(s.x, s.y); }); }
+function strokePts(pts, color, width, dash) { g2.strokeStyle = color; g2.lineWidth = width; g2.setLineDash(dash || []); polyPath(pts); g2.stroke(); g2.setLineDash([]); }
+function fillPts(pts, fill, stroke) { polyPath(pts); g2.closePath(); g2.fillStyle = fill; g2.fill(); if (stroke) { g2.strokeStyle = stroke; g2.lineWidth = 1; g2.stroke(); } }
 function rrect(x, y, w, h, r, fill, stroke) {
   g2.beginPath(); g2.roundRect(x, y, w, h, r);
   if (fill) { g2.fillStyle = fill; g2.fill(); }
@@ -165,68 +188,104 @@ function haloText(txt, x, y, size, color, weight = 600) {
   g2.lineJoin = 'round'; g2.lineWidth = 4; g2.strokeStyle = C.bg; g2.strokeText(txt, x, y);
   g2.fillStyle = color; g2.fillText(txt, x, y);
 }
+function inView(p, margin = 60) { const s = w2s(p); return s.x > -margin && s.x < W + margin && s.y > -margin && s.y < H + margin; }
 
-// 도로명 위치: 같은 도로 위의 교차로 사이 중간점
-const streetLabels = (() => {
-  const out = [];
-  const its = [...graph.intersections.values()].filter((i) => i.kind === '4way');
-  for (const s of graph.streets) {
-    const on = its.filter((i) => (s.kind === 'ew' ? i.ew === s.id : i.ns === s.id));
-    const dir = s.kind === 'ew' ? graph.u : graph.v;
-    on.sort((a, b) => (a.x * dir.x + a.y * dir.y) - (b.x * dir.x + b.y * dir.y));
-    for (let i = 0; i + 1 < on.length; i++) {
-      out.push({ name: s.name, x: (on[i].x + on[i + 1].x) / 2, y: (on[i].y + on[i + 1].y) / 2, dir, width: s.width });
-    }
-  }
-  return out;
-})();
-
-function drawStreetName(l) {
+function drawLabelAlong(l) {
+  if (cam.scale < l.minScale || !inView(l)) return;
   const p = w2s(l);
   let ang = -Math.atan2(l.dir.y, l.dir.x);
   if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI;
   const size = cam.scale > 0.5 ? 13 : 11;
   g2.save(); g2.translate(p.x, p.y); g2.rotate(ang);
   g2.font = `500 ${size}px ${FONT}`; g2.textAlign = 'center'; g2.textBaseline = 'middle';
+  if (world.kind === 'osm') { g2.lineWidth = 3; g2.strokeStyle = C.road; g2.strokeText(l.name, 0, 0); }
   g2.fillStyle = C.ink3; g2.fillText(l.name, 0, 0);
   g2.restore();
 }
 
+function drawSchematicBase() {
+  for (const s of world.graph.streets) {
+    const a = w2s(s.from), b = w2s(s.to), wpx = Math.max(2, s.width * cam.scale);
+    g2.strokeStyle = C.roadEdge; g2.lineWidth = wpx + 2; line(a, b);
+    g2.strokeStyle = C.road; g2.lineWidth = wpx; line(a, b);
+    if (wpx > 12) { g2.strokeStyle = C.roadCenter; g2.lineWidth = 1; g2.setLineDash([10, 10]); line(a, b); g2.setLineDash([]); }
+  }
+}
+function drawOsmBase() {
+  const d = world.graph.draw;
+  g2.lineJoin = 'round'; g2.lineCap = 'round';
+  for (const a of d.green) fillPts(a.pts, C.park);
+  for (const a of d.water) fillPts(a.pts, C.water);
+  if (cam.scale >= 0.3) for (const b of d.buildings) { if (inView(b.pts[0], 200)) fillPts(b.pts, C.building, C.buildingEdge); }
+  for (const r of d.roads) {
+    const wpx = Math.max(1.5, r.width * cam.scale);
+    strokePts(r.pts, C.roadEdge, wpx + 2); strokePts(r.pts, C.road, wpx);
+  }
+  if (cam.scale >= 0.22) for (const p of d.paths) {
+    if (p.crossing) continue;
+    strokePts(p.pts, C.path, p.hw === 'steps' ? 3 : 1.5, p.tunnel ? [2, 6] : p.hw === 'steps' ? [3, 3] : null);
+  }
+  g2.lineCap = 'butt';
+}
+
 function drawRoute(r, color, width, dash) {
   g2.lineCap = 'round'; g2.lineJoin = 'round';
-  const seg = (e, d) => { g2.setLineDash(d || []); line(w2s(graph.nodes.get(e.a)), w2s(graph.nodes.get(e.b))); };
-  if (!dash) { g2.strokeStyle = C.surface; g2.lineWidth = width + 3; for (const e of r.edges) if (e.via !== 'underpass') seg(e); }
+  const seg = (e, d) => { g2.setLineDash(d || []); line(w2s(world.graph.nodes.get(e.a)), w2s(world.graph.nodes.get(e.b))); };
+  const under = (e) => e.via === 'underpass' || e.via === 'tunnel';
+  if (!dash) { g2.strokeStyle = C.surface; g2.lineWidth = width + 3; for (const e of r.edges) if (!under(e)) seg(e); }
   g2.strokeStyle = color; g2.lineWidth = width;
-  for (const e of r.edges) if (e.via !== 'underpass') seg(e, dash);
+  for (const e of r.edges) if (!under(e)) seg(e, dash);
   g2.lineWidth = Math.max(2, width - 1);
-  for (const e of r.edges) if (e.via === 'underpass') seg(e, [3, 7]);
+  for (const e of r.edges) if (under(e)) seg(e, [3, 7]);
   g2.setLineDash([]); g2.lineCap = 'butt';
 }
 
-function drawCrossing(e, t) {
-  const A = w2s(graph.nodes.get(e.a)), B = w2s(graph.nodes.get(e.b));
-  const s = sigState(e.signal.intersection, e.signal.leg, t);
-  const col = s.state === 'red' ? C.red : C.green;
-  const wpx = Math.max(4, 5 * cam.scale);
-  const selected = state.sel === e.id;
-  if (selected) { g2.strokeStyle = C.accent; g2.lineWidth = wpx + 8; g2.globalAlpha = 0.45; line(A, B); g2.globalAlpha = 1; }
-  g2.strokeStyle = col; g2.globalAlpha = 0.9; g2.lineWidth = wpx; line(A, B); g2.globalAlpha = 1;
-  if (cam.scale > 1.6) {
-    const L = e.length, dx = (B.x - A.x) / L, dy = (B.y - A.y) / L;
-    g2.strokeStyle = 'rgba(255,255,255,.85)'; g2.lineWidth = wpx * 0.7;
-    for (let i = 0.5; i + 0.5 < L; i += 1) line({ x: A.x + dx * i, y: A.y + dy * i }, { x: A.x + dx * (i + 0.5), y: A.y + dy * (i + 0.5) });
+function groupState(gr, t) {
+  if (gr.kind !== 'signals' || !gr.intersection) return { state: 'none', remain: 0 };
+  return sigState(gr.intersection, gr.leg, t);
+}
+function drawCrossings(t) {
+  const G = world.graph;
+  // 띠(간선마다)
+  for (const e of G.edges) {
+    if (e.kind !== 'cross' || !e.group) continue;
+    const gr = G.crossings.get(e.group); if (!gr) continue;
+    const A = w2s(G.nodes.get(e.a)), B = w2s(G.nodes.get(e.b));
+    if (!inView(G.nodes.get(e.a))) continue;
+    const s = groupState(gr, t);
+    const col = s.state === 'none' ? C.crossNone : s.state === 'red' ? C.red : C.green;
+    const wpx = Math.max(gr.kind === 'signals' ? 4 : 3, 5 * cam.scale);
+    const selected = state.sel === gr.id;
+    if (selected) { g2.strokeStyle = C.accent; g2.lineWidth = wpx + 8; g2.globalAlpha = 0.45; line(A, B); g2.globalAlpha = 1; }
+    g2.strokeStyle = col; g2.globalAlpha = gr.kind === 'signals' ? 0.9 : 0.7; g2.lineWidth = wpx; line(A, B); g2.globalAlpha = 1;
+    if (cam.scale > 1.6) {
+      const L = e.length, dx = (B.x - A.x) / L, dy = (B.y - A.y) / L;
+      g2.strokeStyle = 'rgba(255,255,255,.85)'; g2.lineWidth = wpx * 0.7;
+      for (let i = 0.5; i + 0.5 < L; i += 1) line({ x: A.x + dx * i, y: A.y + dy * i }, { x: A.x + dx * (i + 0.5), y: A.y + dy * (i + 0.5) });
+    }
   }
-  const mid = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
-  const onRoute = state.cmp && state.cmp.fast.edges.includes(e);
-  if (cam.scale >= 0.28 || selected || (onRoute && cam.scale >= 0.18)) {
-    // 숫자 알약은 교차로 중심에서 바깥쪽으로 밀어 네 개가 겹치지 않게 한다
-    const it = graph.intersections.get(e.signal.intersection);
-    const c = w2s(it);
-    let ox = mid.x - c.x, oy = mid.y - c.y;
+  // 숫자 알약(횡단보도 묶음마다). 교차로 중심에서 바깥쪽으로 밀어 겹치지 않게 한다.
+  const onRoute = new Set(state.cmp ? state.cmp.fast.edges.filter((e) => e.group).map((e) => e.group) : []);
+  for (const gr of G.crossings.values()) {
+    if (gr.kind !== 'signals' || !inView(gr.mid)) continue;
+    const selected = state.sel === gr.id;
+    if (!(cam.scale >= 0.28 || selected || (onRoute.has(gr.id) && cam.scale >= 0.18))) {
+      const m = w2s(gr.mid); g2.beginPath(); g2.arc(m.x, m.y, 3, 0, Math.PI * 2); g2.fillStyle = groupState(gr, t).state === 'red' ? C.red : C.green; g2.fill();
+      continue;
+    }
+    const s = groupState(gr, t);
+    const col = s.state === 'red' ? C.red : C.green;
+    const mid = w2s(gr.mid);
+    const it = gr.intersection ? G.intersections.get(gr.intersection) : null;
+    let ox = 0, oy = 0;
+    if (it) { const c = w2s(it); ox = mid.x - c.x; oy = mid.y - c.y; }
     const len = Math.hypot(ox, oy);
-    if (len < 1) { ox = -graph.v.x; oy = graph.v.y; } else { ox /= len; oy /= len; }
+    if (len < 1) {
+      const a = G.nodes.get(gr.nodes[0]), b = G.nodes.get(gr.nodes[gr.nodes.length - 1]);
+      ox = -(b.y - a.y); oy = -(b.x - a.x); const l2 = Math.hypot(ox, oy) || 1; ox /= l2; oy /= l2;
+    } else { ox /= len; oy /= len; }
     const fs = selected ? 15 : cam.scale >= 0.6 ? 12 : 11;
-    const push = wpx / 2 + (selected ? 14 : 11);
+    const push = Math.max(4, 5 * cam.scale) / 2 + (selected ? 14 : 11);
     const px = mid.x + ox * push, py = mid.y + oy * push;
     const blinkOff = s.state === 'flash' && !reduceMotion && Math.floor(Date.now() / 500) % 2 === 1;
     const txt = String(Math.min(999, Math.max(0, Math.ceil(s.remain))));
@@ -235,8 +294,6 @@ function drawCrossing(e, t) {
     rrect(px - pw / 2, py - ph / 2, pw, ph, 6, col, selected ? C.ink : 'rgba(255,255,255,.9)');
     g2.fillStyle = blinkOff ? 'rgba(255,255,255,.45)' : '#fff';
     g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.fillText(txt, px, py + 0.5);
-  } else {
-    g2.beginPath(); g2.arc(mid.x, mid.y, 3, 0, Math.PI * 2); g2.fillStyle = col; g2.fill();
   }
 }
 
@@ -249,27 +306,24 @@ function drawPin(node, label, fill, ink) {
 
 function draw() {
   const t = clock.now();
+  const G = world.graph;
   g2.setTransform(DPR, 0, 0, DPR, 0, 0);
   g2.fillStyle = C.bg; g2.fillRect(0, 0, W, H);
   g2.lineCap = 'butt'; g2.lineJoin = 'round';
-  for (const s of graph.streets) {
-    const a = w2s(s.from), b = w2s(s.to), wpx = Math.max(2, s.width * cam.scale);
-    g2.strokeStyle = C.roadEdge; g2.lineWidth = wpx + 2; line(a, b);
-    g2.strokeStyle = C.road; g2.lineWidth = wpx; line(a, b);
-    if (wpx > 12) { g2.strokeStyle = C.roadCenter; g2.lineWidth = 1; g2.setLineDash([10, 10]); line(a, b); g2.setLineDash([]); }
-  }
-  if (cam.scale > 0.12) for (const l of streetLabels) drawStreetName(l);
+  if (world.kind === 'schematic') drawSchematicBase(); else drawOsmBase();
+  for (const l of world.labels) drawLabelAlong(l);
   if (state.cmp) {
     if (!state.cmp.sameRoute) drawRoute(state.cmp.dist, C.ink3, 3, [7, 7]);
     drawRoute(state.cmp.fast, C.accent, 5, null);
   }
-  for (const e of graph.edges) if (e.kind === 'cross') drawCrossing(e, t);
+  drawCrossings(t);
   if (cam.scale > 0.16) {
-    for (const it of graph.intersections.values()) {
-      if (it.kind !== '4way') continue;
+    for (const it of G.intersections.values()) {
+      if (it.kind === 'midblock' || !inView(it)) continue;
       const p = w2s(it);
-      const ew = graph.area.ew.find((s) => s.id === it.ew);
-      const lift = (ew.width / 2 + 3) * cam.scale + (cam.scale >= 0.18 ? 34 : 10);
+      let lift;
+      if (world.kind === 'schematic') { const ew = G.area.ew.find((s) => s.id === it.ew); lift = (ew.width / 2 + 3) * cam.scale + (cam.scale >= 0.18 ? 34 : 10); }
+      else lift = 28 * cam.scale + 30;
       haloText(it.name, p.x, p.y - lift, cam.scale > 0.45 ? 13 : 12, C.ink2);
     }
   }
@@ -279,8 +333,8 @@ function draw() {
     g2.beginPath(); g2.arc(p.x, p.y, 7, 0, Math.PI * 2); g2.fillStyle = C.accent; g2.fill();
     g2.lineWidth = 2; g2.strokeStyle = '#fff'; g2.stroke();
   }
-  if (state.from) drawPin(graph.nodes.get(state.from), '출', C.accent, C.accentInk);
-  if (state.to) drawPin(graph.nodes.get(state.to), '도', C.ink, C.surface);
+  if (state.from && G.nodes.get(state.from)) drawPin(G.nodes.get(state.from), '출', C.accent, C.accentInk);
+  if (state.to && G.nodes.get(state.to)) drawPin(G.nodes.get(state.to), '도', C.ink, C.surface);
   lastDraw = Date.now(); dirty = false;
 }
 
@@ -326,16 +380,16 @@ cv.addEventListener('wheel', (ev) => { ev.preventDefault(); const rect = cv.getB
 function onTap(sx, sy) {
   const p = s2w(sx, sy);
   if (state.tapMode) {
-    const nn = nearestNode(graph, p);
-    if (!nn || nn.d > 140) { toast('보도 가까이를 눌러주세요.'); return; }
+    const nn = nearestNode(world.graph, p);
+    if (!nn || nn.d > 140) { toast('길 가까이를 눌러주세요.'); return; }
     const which = state.tapMode;
     setEndpoint(which, nn.node.id, nn.node.label);
     setTapMode(null);
     toast(`${which === 'from' ? '출발' : '도착'} 지점을 지정했습니다.`);
     return;
   }
-  const hit = nearestCrossing(graph, p, Math.max(8, 18 / cam.scale));
-  if (hit) { selectCrossing(hit.edge.id); return; }
+  const hit = nearestCrossing(world.graph, p, Math.max(8, 18 / cam.scale));
+  if (hit && hit.group) { selectCrossing(hit.group.id); return; }
   if (state.sel) { state.sel = null; renderPanel(); dirty = true; }
 }
 function setTapMode(mode) {
@@ -343,7 +397,7 @@ function setTapMode(mode) {
   cv.classList.toggle('aim', !!mode);
   const hint = $('#hint');
   hint.hidden = !mode;
-  if (mode) hint.textContent = mode === 'from' ? '지도에서 출발 지점(보도)을 누르세요' : '지도에서 도착 지점(보도)을 누르세요';
+  if (mode) hint.textContent = mode === 'from' ? '지도에서 출발 지점(길)을 누르세요' : '지도에서 도착 지점(길)을 누르세요';
 }
 
 // ---------- 출발·도착 ----------
@@ -355,15 +409,15 @@ function setEndpoint(which, nodeId, label) {
 function buildSelects() {
   for (const [sel, which] of [[$('#selFrom'), 'from'], [$('#selTo'), 'to']]) {
     sel.innerHTML = '';
-    const opts = [...graph.pois.map((p) => ({ v: p.node, t: p.name })), { v: '__map', t: '지도에서 선택…' }];
+    const opts = [...world.graph.pois.map((p) => ({ v: p.node, t: p.name })), { v: '__map', t: '지도에서 선택…' }];
     if (state.user) opts.unshift({ v: '__user', t: '내 위치' });
     for (const o of opts) { const el = document.createElement('option'); el.value = o.v; el.textContent = o.t; sel.appendChild(el); }
     const custom = document.createElement('option'); custom.value = '__custom'; custom.hidden = true; sel.appendChild(custom);
     sel.onchange = () => {
       const v = sel.value;
       if (v === '__map') { setTapMode(which); syncSelects(); toast(`지도에서 ${which === 'from' ? '출발' : '도착'} 지점을 누르세요.`); return; }
-      if (v === '__user') { const nn = nearestNode(graph, state.user); setEndpoint(which, nn.node.id, '내 위치'); return; }
-      const poi = graph.pois.find((p) => p.node === v);
+      if (v === '__user') { const nn = nearestNode(world.graph, state.user); setEndpoint(which, nn.node.id, '내 위치'); return; }
+      const poi = world.graph.pois.find((p) => p.node === v);
       if (poi) setEndpoint(which, poi.node, poi.name);
     };
   }
@@ -371,7 +425,7 @@ function buildSelects() {
 }
 function syncSelects() {
   for (const [sel, node, label] of [[$('#selFrom'), state.from, state.fromLabel], [$('#selTo'), state.to, state.toLabel]]) {
-    const poi = graph.pois.find((p) => p.node === node);
+    const poi = world.graph.pois.find((p) => p.node === node && p.name === label);
     if (poi) sel.value = poi.node;
     else { const c = sel.querySelector('option[value="__custom"]'); c.textContent = label; c.hidden = false; sel.value = '__custom'; }
   }
@@ -385,33 +439,42 @@ $('#swap').addEventListener('click', () => {
 // ---------- 경로 계산과 패널 ----------
 function recompute() {
   lastCmp = Date.now(); cmpDirty = false;
-  state.cmp = state.from && state.to && state.from !== state.to ? compare(graph, adj, state.from, state.to, clock.now(), routeCtx()) : null;
+  const G = world.graph;
+  state.cmp = state.from && state.to && state.from !== state.to && G.nodes.has(state.from) && G.nodes.has(state.to)
+    ? compare(G, world.adj, state.from, state.to, clock.now(), routeCtx()) : null;
   dirty = true;
   if (!state.sel) renderPanel();
 }
 
 function stepRows(route) {
   const rows = []; let acc = null;
+  const flush = () => { if (acc) { rows.push(acc); acc = null; } };
   for (const s of route.steps) {
     if (s.kind === 'walk') {
-      const via = s.edge.via || 'walk';
-      if (acc && (acc.via !== via || acc.street !== s.edge.street)) { rows.push(acc); acc = null; }
-      if (!acc) acc = { kind: 'walk', length: 0, sec: 0, via, street: s.edge.street, tArrive: s.tArrive };
+      const via = s.edge.via || (s.edge.hw === 'steps' ? 'steps' : 'walk');
+      const name = world.walkName(s.edge);
+      if (acc && (acc.kind !== 'walk' || acc.via !== via || acc.name !== name)) flush();
+      if (!acc) acc = { kind: 'walk', length: 0, sec: 0, via, name, tArrive: s.tArrive };
       acc.length += s.length; acc.sec += s.walkSec;
-    } else { if (acc) { rows.push(acc); acc = null; } rows.push(s); }
+    } else {
+      const gid = s.edge.group;
+      if (acc && acc.kind === 'cross' && acc.group === gid) { acc.length += s.length; acc.sec += s.walkSec; continue; }
+      flush();
+      acc = { kind: 'cross', group: gid, length: s.length, sec: s.walkSec, wait: s.wait, tArrive: s.tArrive, crossAt: s.crossAt, signal: !!s.edge.signal, name: crossingName(world.graph, s.edge) };
+    }
   }
-  if (acc) rows.push(acc);
+  flush();
   return rows;
 }
 function stepsHTML(route) {
   return `<ol class="steps">${stepRows(route).map((r) => {
     if (r.kind === 'walk') {
-      const what = r.via === 'underpass' ? '지하보도로 건너기 (계단 포함)' : `${streetName[r.street] || ''} 보도 따라 걷기`;
+      const what = r.via === 'underpass' ? '지하보도로 건너기 (계단 포함)' : r.via === 'tunnel' ? `${r.name} (지하 통로)` : r.via === 'steps' ? '계단' : `${r.name} 따라 걷기`;
       return `<li class="step"><span class="chip walk">${fmtDur(r.sec)}</span><div><b>${esc(what)}</b><div class="meta">${fmtDist(r.length)}</div></div></li>`;
     }
-    const e = r.edge, name = crossingName(graph, e);
     const chip = r.wait > 0.5 ? `<span class="chip wait">${fmtDur(r.wait)} 대기</span>` : '<span class="chip go">바로 건넘</span>';
-    return `<li class="step">${chip}<div><b>${esc(name)}</b><div class="meta">${fmtClock(r.tArrive)} 도착 → ${fmtClock(r.crossAt)} 건너기 시작 · ${Math.round(r.length)} m</div></div></li>`;
+    const meta = r.signal ? `${fmtClock(r.tArrive)} 도착 → ${fmtClock(r.crossAt)} 건너기 시작 · ${Math.round(r.length)} m` : `신호 없음 · 차를 살피고 건너기 · ${Math.round(r.length)} m`;
+    return `<li class="step">${chip}<div><b>${esc(r.name)}</b><div class="meta">${meta}</div></div></li>`;
   }).join('')}</ol>`;
 }
 function routeHTML(c) {
@@ -425,10 +488,10 @@ function routeHTML(c) {
   } else {
     verdict = '지금 출발하면 두 방식의 차이가 거의 없습니다. 거리만 본 경로도 신호가 잘 맞습니다.';
   }
-  const notes = c.notes.filter((n) => n.diff >= 5).map((n) => `<p class="note"><b>${esc(n.name)}</b>에서는 ${LEG_SHORT[n.first]} 횡단보도를 먼저 건너세요. ${LEG_SHORT[n.altFirst]}부터 건너면 ${fmtDur(n.diff)} 더 걸립니다.</p>`).join('');
+  const notes = c.notes.filter((n) => n.diff >= 5).map((n) => `<p class="note"><b>${esc(n.name)}</b>에서는 ${LEG_SHORT[n.first] || ''} 횡단보도를 먼저 건너세요. ${LEG_SHORT[n.altFirst] || '다른 쪽'}부터 건너면 ${fmtDur(n.diff)} 더 걸립니다.</p>`).join('');
   const slack = c.slack >= 15 ? `<p class="note">지금 출발해도, <b>${fmtDur(c.slack)} 뒤</b>에 출발해도 도착 시각은 같습니다. 어차피 신호에서 기다리게 되니 서두르지 않아도 됩니다.</p>` : '';
-  const live1 = live.on && live.ok ? '실시간 신호' : '시뮬레이션 신호';
-  return `<div class="route-head"><span><b>${esc(state.fromLabel)}</b> → <b>${esc(state.toLabel)}</b></span><span>${live1} · ${settings.speed.toFixed(1)} m/s</span></div>
+  const src = live.on && live.ok ? '실시간 신호' : '시뮬레이션 신호';
+  return `<div class="route-head"><span><b>${esc(state.fromLabel)}</b> → <b>${esc(state.toLabel)}</b></span><span>${src} · ${settings.speed.toFixed(1)} m/s</span></div>
 <div class="cmp">${row('fast', '신호 보고 걷기', fast)}${row('dist', '거리만 보고 걷기', d)}</div>
 <p class="verdict">${verdict}</p>${slack}${notes}
 <h2 class="sec">신호 보고 걷기 · 단계별</h2>${stepsHTML(fast)}
@@ -448,25 +511,33 @@ function ledSVG(n, cls) {
   return `<svg class="led ${cls}" viewBox="0 0 196 100" aria-hidden="true">${body}</svg>`;
 }
 
-function crossingInfo(edgeId) {
-  const e = graph.edges.find((x) => x.id === edgeId);
-  const it = graph.intersections.get(e.signal.intersection);
-  const leg = it.legs[e.signal.leg];
+function crossingInfo(groupId) {
+  const G = world.graph;
+  const gr = G.crossings.get(groupId);
+  const it = gr && gr.intersection ? G.intersections.get(gr.intersection) : null;
   const t = clock.now();
-  const s = sigState(it.id, e.signal.leg, t);
-  const need = e.length / settings.speed;
-  const plan = plans.get(it.id);
-  const nextStart = s.state === 'red' ? t + s.remain : nextGreenStart(plan, e.signal.leg, t);
-  return { e, it, leg, t, s, need, plan, nextStart };
+  const need = (gr.length / settings.speed);
+  if (!it || gr.kind !== 'signals') return { gr, it: null, t, s: { state: 'none', remain: 0 }, need, plan: null, nextStart: null };
+  const s = sigState(it.id, gr.leg, t);
+  const plan = world.plans.get(it.id);
+  const nextStart = s.state === 'red' ? t + s.remain : nextGreenStart(plan, gr.leg, t);
+  return { gr, it, t, s, need, plan, nextStart };
 }
-function crossingHTML(edgeId) {
-  const { e, it, leg, s, need, plan } = crossingInfo(edgeId);
-  const title = it.kind === 'midblock' ? it.name : `${it.name} ${leg.name}`;
-  const sub = `${leg.across} 건너기 · ${Math.round(e.length)} m · ${settings.speed.toFixed(1)} m/s로 ${fmtDur(need)}`;
-  const greenDur = (plan.starts[e.signal.leg] || [{ dur: 0 }])[0].dur;
+function crossingHTML(groupId) {
+  const { gr, it, s, need, plan } = crossingInfo(groupId);
+  const sub = `${gr.across} 건너기 · ${Math.round(gr.length)} m · ${settings.speed.toFixed(1)} m/s로 ${fmtDur(need)}`;
+  if (!it) {
+    return `<div class="xcard">
+<div class="xhead"><div><div class="xname">${esc(gr.name)}</div><div class="xsub">${esc(sub)}</div></div><button class="btn" id="btnCloseX" type="button">닫기</button></div>
+<p class="note">${gr.kind === 'marked' ? '신호등이 없는 횡단보도입니다. 차를 살피고 건너세요. 경로 계산에는 4초를 더합니다.' : '신호도 표시도 없는 횡단 지점입니다. 경로 계산에는 2초를 더합니다.'}</p>
+<div class="xactions"><button class="btn primary" id="btnFromHere" type="button">여기서 출발</button><button class="btn" id="btnToHere" type="button">여기까지</button></div>
+</div>`;
+  }
+  const greenDur = (plan.starts[gr.leg] || [{ dur: 0 }])[0].dur;
+  void s;
   return `<div class="xcard">
-<div class="xhead"><div><div class="xname">${esc(title)}</div><div class="xsub">${esc(sub)}</div></div><button class="btn" id="btnCloseX" type="button">닫기</button></div>
-<div class="ledwrap"><div id="led">${ledSVG(s.remain, s.state)}</div><div class="ledlabel" id="ledLabel"></div></div>
+<div class="xhead"><div><div class="xname">${esc(gr.name)}</div><div class="xsub">${esc(sub)}</div></div><button class="btn" id="btnCloseX" type="button">닫기</button></div>
+<div class="ledwrap"><div id="led"></div><div class="ledlabel" id="ledLabel"></div></div>
 <div class="xverdict" id="xverdict"></div>
 <div class="xplan">신호 주기 ${plan.cycle}초 · 보행 초록불 ${greenDur}초 · <span id="xnext"></span></div>
 <div class="xactions"><button class="btn primary" id="btnFromHere" type="button">여기서 출발</button><button class="btn" id="btnToHere" type="button">여기까지</button></div>
@@ -474,7 +545,7 @@ function crossingHTML(edgeId) {
 }
 function updateCrossingCard() {
   const led = $('#led'); if (!led) return;
-  const { e, it, leg, s, need, nextStart, t } = crossingInfo(state.sel);
+  const { s, need, nextStart, t } = crossingInfo(state.sel);
   led.innerHTML = ledSVG(s.remain, s.state);
   const liveTag = s.live ? ' (실시간)' : '';
   if (s.state === 'red') {
@@ -487,14 +558,12 @@ function updateCrossingCard() {
     $('#xverdict').textContent = ok ? `지금 건너면 ${fmtDur(s.remain - need)} 남기고 도착합니다.` : `남은 시간이 부족합니다. 다음 초록불(${fmtClock(nextStart)})을 기다리세요.`;
   }
   $('#xnext').textContent = `다음 초록불 ${fmtClock(nextStart)} · 지금 ${fmtClock(t)}`;
-  void e; void it; void leg;
 }
-function selectCrossing(edgeId) {
-  state.sel = edgeId; dirty = true;
-  const e = graph.edges.find((x) => x.id === edgeId);
-  const mid = { x: (graph.nodes.get(e.a).x + graph.nodes.get(e.b).x) / 2, y: (graph.nodes.get(e.a).y + graph.nodes.get(e.b).y) / 2 };
-  const sp = w2s(mid);
-  if (sp.x < 40 || sp.x > W - 40 || sp.y < 40 || sp.y > H - 40) panTo(mid);
+function selectCrossing(groupId) {
+  const gr = world.graph.crossings.get(groupId); if (!gr) return;
+  state.sel = groupId; dirty = true;
+  const sp = w2s(gr.mid);
+  if (sp.x < 40 || sp.x > W - 40 || sp.y < 40 || sp.y > H - 40) panTo(gr.mid);
   renderPanel();
 }
 function renderPanel() {
@@ -504,18 +573,120 @@ function renderPanel() {
     updateCrossingCard();
     $('#btnCloseX').onclick = () => { state.sel = null; renderPanel(); dirty = true; };
     const pick = (which) => {
-      const e = graph.edges.find((x) => x.id === state.sel);
-      const a = graph.nodes.get(e.a);
-      setEndpoint(which, a.id, a.label);
-      toast(`${which === 'from' ? '출발' : '도착'} 지점을 ${a.label}으로 정했습니다.`);
+      const gr = world.graph.crossings.get(state.sel);
+      const a = world.graph.nodes.get(gr.nodes[0]);
+      setEndpoint(which, a.id, gr.name);
+      toast(`${which === 'from' ? '출발' : '도착'} 지점을 ${gr.name} 앞으로 정했습니다.`);
     };
     $('#btnFromHere').onclick = () => pick('from');
     $('#btnToHere').onclick = () => pick('to');
     return;
   }
   if (state.cmp) { const top = panel.scrollTop; panel.innerHTML = routeHTML(state.cmp); panel.scrollTop = top; return; }
-  panel.innerHTML = '<p class="note">출발과 도착을 고르면 거리만 본 경로와 신호를 본 경로를 비교합니다. 지도의 횡단보도를 누르면 그 신호의 잔여시간을 봅니다.</p>';
+  panel.innerHTML = state.from && state.to && state.from !== state.to
+    ? '<p class="note">두 지점을 잇는 길을 찾지 못했습니다. 지도에 보도 정보가 없는 곳일 수 있습니다. 다른 지점을 골라보세요.</p>'
+    : '<p class="note">출발과 도착을 고르면 거리만 본 경로와 신호를 본 경로를 비교합니다. 지도의 횡단보도를 누르면 그 신호의 잔여시간을 봅니다.</p>';
 }
+
+// ---------- 지도 바꾸기(개략도 ↔ 실제 지도) ----------
+const osm = { loading: false, status: '' };
+function setMapStatus(msg) { osm.status = msg; const el = $('#mapStatus'); if (el) el.textContent = msg; }
+function renderMapNow() {
+  const el = $('#mapNow'); if (!el) return;
+  const G = world.graph;
+  el.innerHTML = world.kind === 'schematic'
+    ? `<span class="pill">개략도</span><b>${esc(G.area.name)}</b><span class="status">실제 거리로 그린 격자. 신호는 시뮬레이션.</span>`
+    : `<span class="pill osm">실제 지도</span><b>${esc(world.meta.label || G.area.name)}</b><span class="status">길 ${G.stats.edges}개 · 횡단보도 ${G.stats.crossings}개(신호 ${G.stats.signalized}) · 교차로 ${G.stats.intersections}곳 · 출입구 ${G.stats.pois}곳</span>`;
+  $('#attrib').hidden = world.kind !== 'osm';
+  $('#areaNote').textContent = `${world.kind === 'schematic' ? '데모 지역' : '지도'}: ${G.area.name}. ${G.area.note}`;
+}
+function pickDefaultEndpoints(opts = {}) {
+  const G = world.graph;
+  if (world.kind === 'schematic') {
+    state.from = 'gangnamdaero|teheranro#SW'; state.fromLabel = '강남역';
+    state.to = 'nonhyeonro|bongeunsaro#NE'; state.toLabel = '언주역';
+    return;
+  }
+  const center = opts.userPos || { x: 0, y: 0 };
+  let from = null, to = null;
+  if (opts.userPos) { const nn = nearestNode(G, opts.userPos); if (nn) from = { node: nn.node.id, name: '내 위치' }; }
+  const pois = G.pois.slice();
+  if (!from && pois.length) { pois.sort((a, b) => dist(a, center) - dist(b, center)); from = { node: pois[0].node, name: pois[0].name }; }
+  if (!from) { const nn = nearestNode(G, center); from = nn ? { node: nn.node.id, name: nn.node.label } : null; }
+  if (from) {
+    const fp = G.nodes.get(from.node);
+    const far = pois.filter((p) => p.node !== from.node).sort((a, b) => dist(b, fp) - dist(a, fp))[0];
+    if (far) to = { node: far.node, name: far.name };
+    else { let best = null, bd = -1; for (const n of G.nodes.values()) { const d = dist(n, fp); if (d > bd) { bd = d; best = n; } } if (best) to = { node: best.id, name: best.label }; }
+  }
+  state.from = from ? from.node : null; state.fromLabel = from ? from.name : '';
+  state.to = to ? to.node : null; state.toLabel = to ? to.name : '';
+}
+function setWorld(graph, meta = {}, opts = {}) {
+  world = makeWorld(graph, meta);
+  state.sel = null; state.cmp = null; setTapMode(null);
+  state.user = opts.userPos || null;
+  live.obs.clear();
+  pickDefaultEndpoints(opts);
+  buildSelects(); renderMapNow(); updateBadge();
+  recompute(); fitRoute();
+}
+async function fetchOsm(kind, bbox, onStatus) {
+  if (settings.apiBase) {
+    try {
+      onStatus('서버에서 지도 데이터를 받는 중…');
+      const u = `${settings.apiBase.replace(/\/+$/, '')}/api/osm?kind=${kind}&s=${bbox.s}&w=${bbox.w}&n=${bbox.n}&e=${bbox.e}`;
+      const r = await fetch(u, { cache: 'no-store' });
+      if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || `HTTP ${r.status}`); }
+      return await r.json();
+    } catch (e) { onStatus(`서버 실패(${e.message || e}), OpenStreetMap에 직접 요청…`); }
+  }
+  return fetchOverpass(kind === 'context' ? contextQuery(bbox) : networkQuery(bbox), { onStatus });
+}
+async function loadRealMap(center, radius, label, opts = {}) {
+  if (osm.loading) return;
+  osm.loading = true; $('#btnLoadMap').disabled = true;
+  const bbox = bboxAround(center.lat, center.lon, radius);
+  try {
+    const net = await fetchOsm('network', bbox, setMapStatus);
+    setMapStatus('보행 그래프를 만드는 중…');
+    await new Promise((r) => setTimeout(r, 20));
+    const graph = buildOsmWorld(net, null, { center, name: label });
+    if (graph.nodes.size < 20) throw new Error('이 지역에는 걸을 수 있는 길 데이터가 거의 없습니다.');
+    const userPos = opts.userLatLon ? graph.proj.toLocal(opts.userLatLon.lat, opts.userLatLon.lon) : null;
+    setWorld(graph, { label, center, radius }, { userPos });
+    setMapStatus(`불러왔습니다. 길 ${graph.stats.edges}개, 횡단보도 ${graph.stats.crossings}개(신호 ${graph.stats.signalized}), 교차로 ${graph.stats.intersections}곳.`);
+    toast(`실제 지도: ${label}. 횡단보도 ${graph.stats.crossings}개를 찾았습니다.`);
+    fetchOsm('context', bbox, () => {}).then((ctxData) => { if (world.graph === graph) { addContext(graph, ctxData); renderMapNow(); dirty = true; } }).catch(() => {});
+  } catch (e) {
+    const msg = e && e.name === 'AbortError' ? '응답이 너무 오래 걸립니다. 반경을 줄여보세요.' : (e && e.message) || String(e);
+    const blocked = /Failed to fetch|NetworkError|Load failed/i.test(msg);
+    setMapStatus(`실패: ${blocked ? '이 환경에서는 지도 서버에 접근할 수 없습니다. 넷리파이 같은 일반 웹 주소에서 열어주세요.' : msg}`);
+    toast('실제 지도를 불러오지 못했습니다.');
+  } finally {
+    osm.loading = false; $('#btnLoadMap').disabled = false;
+  }
+}
+function openMapSheet(open) { $('#mapsheet').hidden = !open; if (open) { renderMapNow(); setMapStatus(osm.status); } }
+$('#btnMap').addEventListener('click', () => openMapSheet(true));
+$('#btnCloseMap').addEventListener('click', () => openMapSheet(false));
+$('#btnSchematic').addEventListener('click', () => { setWorld(SCHEMATIC, { label: '개략도 · 강남 테헤란로 일대' }); setMapStatus(''); toast('개략도로 돌아왔습니다.'); });
+$('#btnLoadMap').addEventListener('click', async () => {
+  const which = $('#inCenter').value, radius = Number($('#inRadius').value) || 700;
+  if (which === 'user') {
+    const ll = await getPosition();
+    if (!ll) return;
+    await loadRealMap(ll, radius, '내 위치 주변', { userLatLon: ll });
+    return;
+  }
+  if (which === 'view') {
+    const c = world.graph.proj.toLatLon(cam.cx, cam.cy);
+    await loadRealMap(c, radius, '지금 보는 곳 주변');
+    return;
+  }
+  const pl = PLACES[which] || PLACES.gangnam;
+  await loadRealMap({ lat: pl.lat, lon: pl.lon }, radius, pl.name);
+});
 
 // ---------- 배지·설정·토스트 ----------
 function updateBadge() {
@@ -536,7 +707,7 @@ function updateBadge() {
 }
 function toast(msg) {
   const el = $('#toast'); el.textContent = msg; el.hidden = false;
-  clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2800);
+  clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3200);
 }
 function openSettings(open) { $('#settings').hidden = !open; }
 $('#btnSettings').addEventListener('click', () => openSettings(true));
@@ -560,20 +731,36 @@ $('#btnLive').addEventListener('click', async () => {
   updateBadge(); $('#liveStatus').textContent = '연결 중…';
   await liveConnect(settings.apiBase || '');
 });
-$('#areaNote').textContent = `데모 지역: ${graph.area.name}. ${graph.area.note} 교차로 ${[...graph.intersections.values()].filter((i) => i.kind === '4way').length}곳, 단일로 횡단보도 ${[...graph.intersections.values()].filter((i) => i.kind === 'midblock').length}곳.`;
+inApi.addEventListener('change', () => { settings.apiBase = inApi.value.trim(); saveSettings(); });
 
 // ---------- 내 위치 ----------
-function locate() {
-  if (!navigator.geolocation) { toast('이 환경에서는 위치를 쓸 수 없습니다.'); return; }
-  toast('위치를 확인하는 중…');
-  navigator.geolocation.getCurrentPosition((pos) => {
-    const p = toLocal(pos.coords.latitude, pos.coords.longitude);
-    const b = graph.bounds;
-    const inside = p.x > b.minX - 600 && p.x < b.maxX + 600 && p.y > b.minY - 600 && p.y < b.maxY + 600;
-    if (!inside) { state.user = null; toast(`데모 지역(강남) 밖입니다. 강남역에서 ${fmtDist(dist(p, { x: 0, y: 0 }))} 떨어져 있어요.`); dirty = true; return; }
-    state.user = p; panTo(p); buildSelects();
-    toast('내 위치를 표시했습니다. 출발 목록에서 "내 위치"를 고를 수 있어요.');
-  }, (err) => toast(`위치를 가져오지 못했습니다. ${err && err.message ? err.message : '권한이 없습니다.'}`), { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 });
+function getPosition() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { toast('이 환경에서는 위치를 쓸 수 없습니다.'); resolve(null); return; }
+    toast('위치를 확인하는 중…');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      (err) => { toast(`위치를 가져오지 못했습니다. ${err && err.message ? err.message : '권한이 없습니다.'}`); resolve(null); },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 });
+  });
+}
+async function locate() {
+  const ll = await getPosition();
+  if (!ll) return;
+  state.userLatLon = ll;
+  const G = world.graph;
+  const p = G.proj.toLocal(ll.lat, ll.lon);
+  const b = G.bounds;
+  const inside = p.x > b.minX - 400 && p.x < b.maxX + 400 && p.y > b.minY - 400 && p.y < b.maxY + 400;
+  if (!inside) {
+    state.user = null; dirty = true;
+    const d = dist(p, { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 });
+    toast(`지금 지도 범위 밖입니다 (약 ${fmtDist(d)} 떨어짐). 지도 버튼에서 '내 위치 주변'을 불러오세요.`);
+    $('#inCenter').value = 'user'; openMapSheet(true);
+    return;
+  }
+  state.user = p; panTo(p); buildSelects();
+  toast('내 위치를 표시했습니다. 출발 목록에서 "내 위치"를 고를 수 있어요.');
 }
 
 // ---------- 시작 ----------
@@ -590,10 +777,10 @@ if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEven
 new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { dirty = true; });
 
-readTheme(); resize(); buildSelects(); syncOutputs(); updateBadge(); recompute();
+readTheme(); resize(); buildSelects(); syncOutputs(); updateBadge(); renderMapNow(); recompute();
 requestAnimationFrame(() => { resize(); fitRoute(); });
 if (settings.apiBase) liveConnect(settings.apiBase);
 requestAnimationFrame(loop);
 
 // 테스트와 디버깅용 손잡이(화면 동작에는 쓰지 않음)
-window.__greenlight = { state, graph, cam, settings, live, w2s: (p) => w2s(p), recompute, selectCrossing };
+window.__greenlight = { get world() { return world; }, state, cam, settings, live, w2s: (p) => w2s(p), recompute, selectCrossing, loadRealMap, setWorld, SCHEMATIC };

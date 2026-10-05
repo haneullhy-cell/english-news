@@ -9,6 +9,19 @@ export function toLocal(lat, lon) {
 export function toLatLon(x, y) {
   return { lat: ORIGIN.lat + y / M_PER_DEG_LAT, lon: ORIGIN.lon + x / M_PER_DEG_LON };
 }
+// 원점을 지정한 투영. 실제 지도는 불러온 영역의 중심을 원점으로 쓴다.
+export function makeProjection(lat0, lon0) {
+  const mLon = 111320 * Math.cos((lat0 * Math.PI) / 180);
+  return {
+    lat0, lon0,
+    toLocal: (lat, lon) => ({ x: (lon - lon0) * mLon, y: (lat - lat0) * M_PER_DEG_LAT }),
+    toLatLon: (x, y) => ({ lat: lat0 + y / M_PER_DEG_LAT, lon: lon0 + x / mLon }),
+  };
+}
+export function bearingDeg(from, to) {
+  // 로컬 미터 좌표에서 북쪽 기준 시계방향 방위각(0~360)
+  return ((Math.atan2(to.x - from.x, to.y - from.y) * 180) / Math.PI + 360) % 360;
+}
 export function dist(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }

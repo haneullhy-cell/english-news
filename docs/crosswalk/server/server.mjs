@@ -9,6 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDemo } from '../src/network.js';
 import { legState } from '../src/signal.js';
+import { fetchOverpass, networkQuery, contextQuery } from '../src/osm.js';
 import { normalizeRecord, findRecords, remapLegs } from './tdata.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -20,6 +21,8 @@ const DIVISOR = Number(process.env.TDATA_REMAIN_DIVISOR || 10);
 const MOCK = process.argv.includes('--mock');
 const MOCK_SHIFT = 37; // 모의 데이터는 앱의 시뮬레이션과 다른 옵셋을 써서 '실시간 반영'이 눈에 보이게 한다.
 
+const CACHE_DIR = path.join(here, 'cache');
+const OSM_CACHE_MS = 24 * 3600 * 1000;
 const cfg = JSON.parse(fs.readFileSync(path.join(here, 'intersections.json'), 'utf8'));
 const mapping = Object.entries(cfg.intersections).filter(([, m]) => m.itstId);
 const graph = buildDemo();
@@ -69,6 +72,21 @@ function mockData() {
   return out;
 }
 
+// OpenStreetMap(Overpass) 프록시. 같은 영역은 하루 동안 디스크에 캐시한다. --mock 이면 합성 데이터를 준다.
+async function osmData(kind, bbox) {
+  if (MOCK) {
+    const fx = JSON.parse(fs.readFileSync(path.join(ROOT, 'test', 'fixtures', 'osm-sample.json'), 'utf8'));
+    return kind === 'context' ? fx.context : fx.network;
+  }
+  const key = `${kind}_${bbox.s.toFixed(4)}_${bbox.w.toFixed(4)}_${bbox.n.toFixed(4)}_${bbox.e.toFixed(4)}.json`;
+  const file = path.join(CACHE_DIR, key);
+  try { const st = fs.statSync(file); if (Date.now() - st.mtimeMs < OSM_CACHE_MS) return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { /* 캐시 없음 */ }
+  const json = await fetchOverpass(kind === 'context' ? contextQuery(bbox) : networkQuery(bbox), { timeoutMs: 80000 });
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(json));
+  return json;
+}
+
 function send(res, code, body, type = 'application/json; charset=utf-8') {
   res.writeHead(code, { 'Content-Type': type, 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' });
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
@@ -90,12 +108,20 @@ function serveStatic(req, res, pathname) {
 const server = http.createServer(async (req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost');
   if (req.method === 'OPTIONS') return send(res, 204, '');
-  if (pathname === '/api/health') return send(res, 200, { ok: true, mode, intersections: MOCK ? graph.intersections.size : mapping.length, endpoint: MOCK ? null : ENDPOINT });
+  if (pathname === '/api/health') return send(res, 200, { ok: true, mode, intersections: MOCK ? graph.intersections.size : mapping.length, endpoint: MOCK ? null : ENDPOINT, osm: true });
   if (pathname === '/api/signals') {
     if (MOCK) return send(res, 200, mockData());
     if (!API_KEY) return send(res, 503, { error: 'TDATA_API_KEY 환경변수가 없습니다. --mock 으로 실행하거나 키를 넣어주세요.' });
     if (!mapping.length) return send(res, 503, { error: 'server/intersections.json 에 itstId 가 채워진 교차로가 없습니다.' });
     try { return send(res, 200, await liveData()); } catch (e) { return send(res, 502, { error: String(e.message || e) }); }
+  }
+  if (pathname === '/api/osm') {
+    const q = new URL(req.url, 'http://localhost').searchParams;
+    const bbox = { s: Number(q.get('s')), w: Number(q.get('w')), n: Number(q.get('n')), e: Number(q.get('e')) };
+    if (![bbox.s, bbox.w, bbox.n, bbox.e].every(Number.isFinite) || bbox.n <= bbox.s || bbox.e <= bbox.w) return send(res, 400, { error: 'bbox 가 필요합니다: s,w,n,e' });
+    if ((bbox.n - bbox.s) > 0.03 || (bbox.e - bbox.w) > 0.04) return send(res, 400, { error: '영역이 너무 큽니다 (반경 1.5 km 이하)' });
+    try { return send(res, 200, await osmData(q.get('kind') === 'context' ? 'context' : 'network', bbox)); }
+    catch (e) { return send(res, 502, { error: String(e.message || e) }); }
   }
   if (pathname.startsWith('/api/')) return send(res, 404, { error: 'not found' });
   return serveStatic(req, res, pathname);

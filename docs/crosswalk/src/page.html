@@ -9,6 +9,7 @@
   --accent:#2b5bd7; --accent-ink:#ffffff; --accent-soft:#e3eafb;
   --green:#149a52; --green-soft:#dcf2e3; --red:#d33f3a; --red-soft:#fae1df;
   --led-bg:#15181b; --led-off:rgba(255,255,255,.07); --led-red:#ff4a3d; --led-green:#2ee06f;
+  --park:#d9ead3; --water:#c9dcec; --building:#e2e4de; --building-edge:#cdd1c9; --path:#b9c1b7; --cross-none:#9aa39d;
   --shadow:0 1px 2px rgba(20,30,25,.06),0 10px 24px -14px rgba(20,30,25,.35);
   --font:"IBM Plex Sans KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --r:14px;
@@ -20,6 +21,7 @@
     --accent:#7d9eff; --accent-ink:#0f1626; --accent-soft:#223050;
     --green:#36c571; --green-soft:#1b3a29; --red:#f0675f; --red-soft:#47241f;
     --led-bg:#0d0f11;
+    --park:#1f2e23; --water:#1b2a38; --building:#262c2a; --building-edge:#333a37; --path:#4a534e; --cross-none:#6b746e;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -14px rgba(0,0,0,.8);
     color-scheme:dark;
   }
@@ -30,6 +32,7 @@
   --accent:#7d9eff; --accent-ink:#0f1626; --accent-soft:#223050;
   --green:#36c571; --green-soft:#1b3a29; --red:#f0675f; --red-soft:#47241f;
   --led-bg:#0d0f11;
+  --park:#1f2e23; --water:#1b2a38; --building:#262c2a; --building-edge:#333a37; --path:#4a534e; --cross-none:#6b746e;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -14px rgba(0,0,0,.8);
   color-scheme:dark;
 }
@@ -62,6 +65,13 @@ button,select,input{font:inherit;color:inherit}
 .legend i.r{border-color:var(--red)}
 .legend i.f{border-color:var(--accent);border-top-width:4px}
 .legend i.d{border-color:var(--ink-3);border-top-style:dashed}
+.legend .attrib{grid-column:1 / -1;font-size:10px;color:var(--ink-3)}
+.legend .attrib a{color:inherit}
+.btn.sm{padding:6px 10px;font-size:12px}
+.mapnow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mapnow b{font-weight:600}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:var(--accent-soft);color:var(--accent)}
+.pill.osm{background:var(--green-soft);color:var(--green)}
 .hint{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:7px 12px;border-radius:999px;font-size:12px;font-weight:600;box-shadow:var(--shadow);max-width:calc(100% - 130px);text-align:center}
 .sheet{flex:none;background:var(--surface);border-top:1px solid var(--line);max-height:52%;display:flex;flex-direction:column;box-shadow:0 -6px 24px -18px rgba(0,0,0,.4)}
 .routebar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:end;padding:10px 16px;border-bottom:1px solid var(--line)}
@@ -149,8 +159,9 @@ h2.sec{font-size:12px;color:var(--ink-3);letter-spacing:.06em;margin:14px 0 6px;
       <button class="icon-btn" id="zout" type="button" aria-label="축소"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
       <button class="icon-btn" id="fit" type="button" aria-label="전체 보기"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <button class="icon-btn" id="loc" type="button" aria-label="내 위치"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></button>
+      <button class="icon-btn" id="btnMap" type="button" aria-label="지도 바꾸기"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></button>
     </div>
-    <div class="legend" aria-hidden="true"><span><i class="g"></i>초록불</span><span><i class="r"></i>빨간불</span><span><i class="f"></i>신호 보고 걷기</span><span><i class="d"></i>거리만 보고 걷기</span></div>
+    <div class="legend"><span><i class="g"></i>초록불</span><span><i class="r"></i>빨간불</span><span><i class="f"></i>신호 보고 걷기</span><span><i class="d"></i>거리만 보고 걷기</span><span class="attrib" id="attrib" hidden>지도 데이터 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> 기여자</span></div>
     <div class="hint" id="hint" hidden></div>
   </div>
   <section class="sheet" id="sheet" aria-label="경로와 신호">
@@ -161,6 +172,20 @@ h2.sec{font-size:12px;color:var(--ink-3);letter-spacing:.06em;margin:14px 0 6px;
     </div>
     <div class="sheet-body" id="panel"></div>
   </section>
+  <div class="settings" id="mapsheet" hidden>
+    <div class="settings-head"><h2>지도</h2><button class="icon-btn" id="btnCloseMap" type="button" aria-label="지도 설정 닫기"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="srow"><label>지금 보는 지도</label><div class="mapnow" id="mapNow"></div></div>
+    <div class="srow">
+      <label for="inCenter">실제 지도 불러오기 (OpenStreetMap)</label>
+      <div class="row">
+        <select id="inCenter"><option value="gangnam">강남역 주변</option><option value="yeoksam">역삼역 주변</option><option value="user">내 위치 주변</option><option value="view">지금 보는 곳 주변</option></select>
+        <select id="inRadius"><option value="500">반경 500 m</option><option value="700" selected>반경 700 m</option><option value="1000">반경 1 km</option></select>
+      </div>
+      <div class="row"><button class="btn primary" id="btnLoadMap" type="button">불러오기</button><button class="btn" id="btnSchematic" type="button">개략도로 돌아가기</button></div>
+      <div class="status" id="mapStatus"></div>
+      <p class="help">보도·횡단보도·신호등 위치를 OpenStreetMap에서 받아옵니다. 큰길은 횡단보도로만 건너는 것으로 보고, 신호 시간은 시뮬레이션입니다. 보도 정보가 없는 곳에서는 경로가 골목으로 돌아갈 수 있습니다.</p>
+    </div>
+  </div>
   <div class="settings" id="settings" hidden>
     <div class="settings-head"><h2>설정</h2><button class="icon-btn" id="btnCloseSettings" type="button" aria-label="설정 닫기"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     <div class="srow">

@@ -6,10 +6,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const ORDER = ['geo.js', 'signal.js', 'network.js', 'routing.js', 'app.js'];
+const ORDER = ['geo.js', 'signal.js', 'network.js', 'routing.js', 'osm.js', 'app.js'];
 const strip = (src) => src
   .replace(/^import[^\n]*\n/gm, '')
-  .replace(/^export\s+(?=(const|let|function|class)\b)/gm, '');
+  .replace(/^export\s+(?=(const|let|function|class|async)\b)/gm, '');
 
 const bundle = ORDER
   .map((f) => `// ---- ${f} ----\n${strip(fs.readFileSync(path.join(here, 'src', f), 'utf8'))}`)

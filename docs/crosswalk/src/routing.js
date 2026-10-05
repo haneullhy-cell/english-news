@@ -33,8 +33,13 @@ export function adjacency(graph) {
 
 // 간선 하나를 t초에 진입할 때의 통과 결과. ctx = {speed, margin, signal(iid, leg, t), nextGreen(iid, leg, t)}
 export function traverseEdge(e, t, ctx) {
-  const walkSec = e.length / ctx.speed;
+  const walkSec = (e.length / ctx.speed) * (e.slow || 1);
   if (e.kind !== 'cross') return { tExit: t + walkSec, wait: 0, walkSec };
+  if (!e.signal) {
+    // 신호 없는 횡단보도(마킹만 있거나 없는 곳): 차를 살피는 시간만큼 고정 지연
+    const d = e.delay || 0;
+    return { tExit: t + d + walkSec, wait: d, walkSec, crossAt: t + d, signal: { state: 'none', remain: 0 } };
+  }
   const { intersection, leg } = e.signal;
   const s = ctx.signal(intersection, leg, t);
   // 보수적 규칙: 남은 녹색 시간 안에 여유(margin)를 두고 다 건널 수 있을 때만 바로 건넌다.
@@ -45,8 +50,8 @@ export function traverseEdge(e, t, ctx) {
   return { tExit: g + walkSec, wait: g - t, walkSec, crossAt: g, signal: s };
 }
 
-// 일반 다익스트라. costFn(edge, tArrive) → tExit(단조증가).
-function dijkstra(graph, adj, from, to, t0, costFn) {
+// 일반 다익스트라. costFn(edge, tArrive) → tExit(단조증가). opts.skipEdge / opts.allowNode 로 탐색을 제한할 수 있다.
+function dijkstra(graph, adj, from, to, t0, costFn, opts = {}) {
   const best = new Map([[from, t0]]);
   const prev = new Map();
   const heap = new MinHeap();
@@ -57,8 +62,10 @@ function dijkstra(graph, adj, from, to, t0, costFn) {
     if (done.has(n)) continue;
     done.add(n);
     if (n === to) break;
-    for (const { e, to: m } of adj.get(n)) {
+    for (const { e, to: m } of adj.get(n) || []) {
       if (done.has(m)) continue;
+      if (opts.skipEdges && opts.skipEdges.has(e)) continue;
+      if (opts.allowNode && !opts.allowNode(m)) continue;
       const tx = costFn(e, t);
       if (tx < (best.get(m) ?? Infinity)) { best.set(m, tx); prev.set(m, { n, e }); heap.push(tx, m); }
     }
@@ -75,8 +82,8 @@ export function shortestDistance(graph, adj, from, to) {
   return r && { ...r, length: r.arrival };
 }
 
-export function shortestTime(graph, adj, from, to, t0, ctx) {
-  return dijkstra(graph, adj, from, to, t0, (e, t) => traverseEdge(e, t, ctx).tExit);
+export function shortestTime(graph, adj, from, to, t0, ctx, opts) {
+  return dijkstra(graph, adj, from, to, t0, (e, t) => traverseEdge(e, t, ctx).tExit, opts);
 }
 
 // 경로(간선 순서)를 t0에 출발해 실제로 걸었을 때의 시간표
@@ -96,29 +103,45 @@ export function evaluate(graph, edgesPath, from, t0, ctx) {
   return { edges: edgesPath, nodes: [from, ...steps.map((s) => s.to)], steps, length, wait, walk, time: t - t0, arrival: t, t0 };
 }
 
-// 두 횡단보도를 연달아 건너는 교차로에서 '어느 쪽을 먼저 건너는지'가 얼마나 차이 나는지
-export function crossingOrderNotes(graph, route, ctx) {
+// 한 교차로에서 횡단보도를 두 번 건너는 구간: 첫 횡단보도를 다른 쪽으로 바꾸면 얼마나 더 걸리는지.
+// 횡단보도 하나가 여러 간선(연석-차도-연석)으로 되어 있어도 묶음(group) 단위로 본다.
+// 교차로 주변(반경 90m)만 보고, 처음 건넌 횡단보도를 빼고 다시 최단시간을 구해 비교한다.
+export function crossingOrderNotes(graph, route, ctx, adj) {
   const notes = [];
-  const edgeBetween = (a, b) => graph.edges.find((e) => e.kind === 'cross' && ((e.a === a && e.b === b) || (e.a === b && e.b === a)));
-  for (let i = 0; i + 1 < route.steps.length; i++) {
-    const s1 = route.steps[i], s2 = route.steps[i + 1];
-    if (s1.kind !== 'cross' || s2.kind !== 'cross' || s1.intersection !== s2.intersection) continue;
-    const it = graph.intersections.get(s1.intersection);
-    if (it.kind !== '4way') continue;
-    const corners = Object.values(it.corners);
-    const other = corners.find((c) => c !== s1.from && c !== s1.to && c !== s2.to);
-    const e1 = edgeBetween(s1.from, other), e2 = edgeBetween(other, s2.to);
-    if (!e1 || !e2) continue;
-    const r1 = traverseEdge(e1, s1.tArrive, ctx);
-    const r2 = traverseEdge(e2, r1.tExit, ctx);
-    const diff = r2.tExit - s2.tExit; // 다른 순서가 얼마나 더 걸리는지(≥0)
-    notes.push({ intersection: it.id, name: it.name, first: s1.leg, second: s2.leg, altFirst: e1.signal.leg, altSecond: e2.signal.leg, diff });
+  const steps = route.steps;
+  adj = adj || adjacency(graph);
+  const groupOf = (s) => (s && s.kind === 'cross' && s.edge.signal ? (s.edge.group || s.edge.id) : null);
+  let i = 0;
+  while (i < steps.length) {
+    const g1 = groupOf(steps[i]);
+    if (!g1) { i++; continue; }
+    let e1 = i;
+    while (e1 + 1 < steps.length && groupOf(steps[e1 + 1]) === g1) e1++;
+    // 같은 교차로의 다음 횡단보도를 짧은 보도(합계 40m 이하)만 지나 만나야 한다
+    let walked = 0, j = e1 + 1;
+    while (j < steps.length && steps[j].kind !== 'cross' && walked <= 40) { walked += steps[j].length; j++; }
+    const g2 = groupOf(steps[j]);
+    if (!g2 || g2 === g1 || walked > 40 || steps[j].intersection !== steps[i].intersection) { i = e1 + 1; continue; }
+    let e2 = j;
+    while (e2 + 1 < steps.length && groupOf(steps[e2 + 1]) === g2) e2++;
+    const it = graph.intersections.get(steps[i].intersection);
+    if (!it) { i = e1 + 1; continue; }
+    const near = (id) => { const n = graph.nodes.get(id); return n && Math.hypot(n.x - it.x, n.y - it.y) <= 90; };
+    const skip = new Set(graph.edges.filter((e) => (e.group || e.id) === g1));
+    const alt = shortestTime(graph, adj, steps[i].from, steps[e2].to, steps[i].tArrive, ctx, { skipEdges: skip, allowNode: near });
+    if (alt) {
+      const firstCross = alt.edges.find((e) => e.kind === 'cross' && e.signal && e.signal.intersection === it.id);
+      if (firstCross && (firstCross.group || firstCross.id) !== g1) {
+        notes.push({ intersection: it.id, name: it.name, first: steps[i].leg, second: steps[j].leg, altFirst: firstCross.signal.leg, diff: alt.arrival - steps[e2].tExit });
+      }
+    }
+    i = e2 + 1;
   }
   return notes;
 }
 
 // 지금 출발했을 때와 같은 시각에 도착하는 가장 늦은 출발(초). 신호 때문에 서둘러 나갈 필요가 없는 여유.
-export function latestDeparture(graph, adj, from, to, t0, ctx, horizon = 180, step = 5) {
+export function latestDeparture(graph, adj, from, to, t0, ctx, horizon = 150, step = 10) {
   const base = shortestTime(graph, adj, from, to, t0, ctx);
   if (!base) return 0;
   let ok = 0;
@@ -142,7 +165,7 @@ export function compare(graph, adj, from, to, t0, ctx) {
     dist: distRoute, fast: fastRoute, sameRoute,
     saving: distRoute.time - fastRoute.time,
     extraDist: fastRoute.length - distRoute.length,
-    notes: crossingOrderNotes(graph, fastRoute, ctx),
+    notes: crossingOrderNotes(graph, fastRoute, ctx, adj),
     slack: latestDeparture(graph, adj, from, to, t0, ctx),
   };
 }

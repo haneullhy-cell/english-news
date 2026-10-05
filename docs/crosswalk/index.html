@@ -25,6 +25,7 @@
   --accent:#2b5bd7; --accent-ink:#ffffff; --accent-soft:#e3eafb;
   --green:#149a52; --green-soft:#dcf2e3; --red:#d33f3a; --red-soft:#fae1df;
   --led-bg:#15181b; --led-off:rgba(255,255,255,.07); --led-red:#ff4a3d; --led-green:#2ee06f;
+  --park:#d9ead3; --water:#c9dcec; --building:#e2e4de; --building-edge:#cdd1c9; --path:#b9c1b7; --cross-none:#9aa39d;
   --shadow:0 1px 2px rgba(20,30,25,.06),0 10px 24px -14px rgba(20,30,25,.35);
   --font:"IBM Plex Sans KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --r:14px;
@@ -36,6 +37,7 @@
     --accent:#7d9eff; --accent-ink:#0f1626; --accent-soft:#223050;
     --green:#36c571; --green-soft:#1b3a29; --red:#f0675f; --red-soft:#47241f;
     --led-bg:#0d0f11;
+    --park:#1f2e23; --water:#1b2a38; --building:#262c2a; --building-edge:#333a37; --path:#4a534e; --cross-none:#6b746e;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -14px rgba(0,0,0,.8);
     color-scheme:dark;
   }
@@ -46,6 +48,7 @@
   --accent:#7d9eff; --accent-ink:#0f1626; --accent-soft:#223050;
   --green:#36c571; --green-soft:#1b3a29; --red:#f0675f; --red-soft:#47241f;
   --led-bg:#0d0f11;
+  --park:#1f2e23; --water:#1b2a38; --building:#262c2a; --building-edge:#333a37; --path:#4a534e; --cross-none:#6b746e;
   --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -14px rgba(0,0,0,.8);
   color-scheme:dark;
 }
@@ -78,6 +81,13 @@ button,select,input{font:inherit;color:inherit}
 .legend i.r{border-color:var(--red)}
 .legend i.f{border-color:var(--accent);border-top-width:4px}
 .legend i.d{border-color:var(--ink-3);border-top-style:dashed}
+.legend .attrib{grid-column:1 / -1;font-size:10px;color:var(--ink-3)}
+.legend .attrib a{color:inherit}
+.btn.sm{padding:6px 10px;font-size:12px}
+.mapnow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mapnow b{font-weight:600}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:var(--accent-soft);color:var(--accent)}
+.pill.osm{background:var(--green-soft);color:var(--green)}
 .hint{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:7px 12px;border-radius:999px;font-size:12px;font-weight:600;box-shadow:var(--shadow);max-width:calc(100% - 130px);text-align:center}
 .sheet{flex:none;background:var(--surface);border-top:1px solid var(--line);max-height:52%;display:flex;flex-direction:column;box-shadow:0 -6px 24px -18px rgba(0,0,0,.4)}
 .routebar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:end;padding:10px 16px;border-bottom:1px solid var(--line)}
@@ -165,8 +175,9 @@ h2.sec{font-size:12px;color:var(--ink-3);letter-spacing:.06em;margin:14px 0 6px;
       <button class="icon-btn" id="zout" type="button" aria-label="축소"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
       <button class="icon-btn" id="fit" type="button" aria-label="전체 보기"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <button class="icon-btn" id="loc" type="button" aria-label="내 위치"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></button>
+      <button class="icon-btn" id="btnMap" type="button" aria-label="지도 바꾸기"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></button>
     </div>
-    <div class="legend" aria-hidden="true"><span><i class="g"></i>초록불</span><span><i class="r"></i>빨간불</span><span><i class="f"></i>신호 보고 걷기</span><span><i class="d"></i>거리만 보고 걷기</span></div>
+    <div class="legend"><span><i class="g"></i>초록불</span><span><i class="r"></i>빨간불</span><span><i class="f"></i>신호 보고 걷기</span><span><i class="d"></i>거리만 보고 걷기</span><span class="attrib" id="attrib" hidden>지도 데이터 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> 기여자</span></div>
     <div class="hint" id="hint" hidden></div>
   </div>
   <section class="sheet" id="sheet" aria-label="경로와 신호">
@@ -177,6 +188,20 @@ h2.sec{font-size:12px;color:var(--ink-3);letter-spacing:.06em;margin:14px 0 6px;
     </div>
     <div class="sheet-body" id="panel"></div>
   </section>
+  <div class="settings" id="mapsheet" hidden>
+    <div class="settings-head"><h2>지도</h2><button class="icon-btn" id="btnCloseMap" type="button" aria-label="지도 설정 닫기"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="srow"><label>지금 보는 지도</label><div class="mapnow" id="mapNow"></div></div>
+    <div class="srow">
+      <label for="inCenter">실제 지도 불러오기 (OpenStreetMap)</label>
+      <div class="row">
+        <select id="inCenter"><option value="gangnam">강남역 주변</option><option value="yeoksam">역삼역 주변</option><option value="user">내 위치 주변</option><option value="view">지금 보는 곳 주변</option></select>
+        <select id="inRadius"><option value="500">반경 500 m</option><option value="700" selected>반경 700 m</option><option value="1000">반경 1 km</option></select>
+      </div>
+      <div class="row"><button class="btn primary" id="btnLoadMap" type="button">불러오기</button><button class="btn" id="btnSchematic" type="button">개략도로 돌아가기</button></div>
+      <div class="status" id="mapStatus"></div>
+      <p class="help">보도·횡단보도·신호등 위치를 OpenStreetMap에서 받아옵니다. 큰길은 횡단보도로만 건너는 것으로 보고, 신호 시간은 시뮬레이션입니다. 보도 정보가 없는 곳에서는 경로가 골목으로 돌아갈 수 있습니다.</p>
+    </div>
+  </div>
   <div class="settings" id="settings" hidden>
     <div class="settings-head"><h2>설정</h2><button class="icon-btn" id="btnCloseSettings" type="button" aria-label="설정 닫기"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
     <div class="srow">
@@ -216,6 +241,19 @@ function toLocal(lat, lon) {
 }
 function toLatLon(x, y) {
   return { lat: ORIGIN.lat + y / M_PER_DEG_LAT, lon: ORIGIN.lon + x / M_PER_DEG_LON };
+}
+// 원점을 지정한 투영. 실제 지도는 불러온 영역의 중심을 원점으로 쓴다.
+function makeProjection(lat0, lon0) {
+  const mLon = 111320 * Math.cos((lat0 * Math.PI) / 180);
+  return {
+    lat0, lon0,
+    toLocal: (lat, lon) => ({ x: (lon - lon0) * mLon, y: (lat - lat0) * M_PER_DEG_LAT }),
+    toLatLon: (x, y) => ({ lat: lat0 + y / M_PER_DEG_LAT, lon: lon0 + x / mLon }),
+  };
+}
+function bearingDeg(from, to) {
+  // 로컬 미터 좌표에서 북쪽 기준 시계방향 방위각(0~360)
+  return ((Math.atan2(to.x - from.x, to.y - from.y) * 180) / Math.PI + 360) % 360;
 }
 function dist(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
@@ -431,6 +469,7 @@ function buildDemo(area = DEMO_AREA) {
   const nodes = new Map();
   const edges = [];
   const intersections = new Map();
+  const crossings = new Map();
   const addNode = (id, p, kind, label) => { nodes.set(id, { id, x: p.x, y: p.y, kind, label }); return id; };
   const addEdge = (a, b, kind, extra = {}) => {
     const e = { id: `e${edges.length}`, a, b, kind, length: dist(nodes.get(a), nodes.get(b)), ...extra };
@@ -474,7 +513,12 @@ function buildDemo(area = DEMO_AREA) {
       const it = { id, name, x: c.x, y: c.y, kind: '4way', ew: ew.id, ns: ns.id, legs, plan, corners: { NE, NW, SE, SW }, itstId: null };
       intersections.set(id, it);
       for (const [leg, L] of Object.entries(legs)) {
-        L.edge = addEdge(L.nodes[0], L.nodes[1], 'cross', { signal: { intersection: id, leg } }).id;
+        const gid = `${id}:${leg}`;
+        const e = addEdge(L.nodes[0], L.nodes[1], 'cross', { signal: { intersection: id, leg }, group: gid, delay: 0 });
+        e.crossTotal = e.length;
+        L.edge = e.id; L.crossings = [gid];
+        const A = nodes.get(L.nodes[0]), B = nodes.get(L.nodes[1]);
+        crossings.set(gid, { id: gid, nodes: [...L.nodes], edges: [e.id], length: e.length, mid: { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 }, kind: 'signals', across: L.across, intersection: id, leg, name: `${name} ${L.name}` });
       }
       if ((area.underpasses || []).includes(id)) {
         it.underpass = true;
@@ -504,10 +548,12 @@ function buildDemo(area = DEMO_AREA) {
         const N = addNode(`${mb.id}#N`, shift(c, 0, hv), 'mid', `${mb.name} 북측`);
         const S = addNode(`${mb.id}#S`, shift(c, 0, -hv), 'mid', `${mb.name} 남측`);
         walk(prevN, N, ew); walk(prevS, S, ew);
-        const leg = { name: LEG_NAMES.xw, across: ew.name, length: 2 * hv, nodes: [N, S] };
+        const leg = { name: LEG_NAMES.xw, across: ew.name, length: 2 * hv, nodes: [N, S], crossings: [`${mb.id}:xw`] };
         const it = { id: mb.id, name: mb.name, x: c.x, y: c.y, kind: 'midblock', ew: ew.id, legs: { xw: leg }, plan: midblockPlan(area, ew, leg, mb.a), itstId: null };
         intersections.set(mb.id, it);
-        leg.edge = addEdge(N, S, 'cross', { signal: { intersection: mb.id, leg: 'xw' } }).id;
+        const ce = addEdge(N, S, 'cross', { signal: { intersection: mb.id, leg: 'xw' }, group: `${mb.id}:xw`, delay: 0 });
+        ce.crossTotal = ce.length; leg.edge = ce.id;
+        crossings.set(`${mb.id}:xw`, { id: `${mb.id}:xw`, nodes: [N, S], edges: [ce.id], length: ce.length, mid: { x: c.x, y: c.y }, kind: 'signals', across: ew.name, intersection: mb.id, leg: 'xw', name: mb.name });
         prevN = N; prevS = S;
       }
       walk(prevN, I2.corners.NW, ew); walk(prevS, I2.corners.SW, ew);
@@ -536,7 +582,7 @@ function buildDemo(area = DEMO_AREA) {
 
   const pois = [...intersections.values()].filter((it) => it.kind === '4way').map((it) => ({ id: it.id, name: it.name, node: it.corners.SW }));
 
-  return { area, nodes, edges, intersections, streets, bounds, pois, u, v };
+  return { kind: 'schematic', proj: makeProjection(ORIGIN.lat, ORIGIN.lon), area, nodes, edges, intersections, crossings, streets, bounds, pois, u, v, draw: null, labels: [] };
 }
 
 function nearestNode(graph, p) {
@@ -548,20 +594,20 @@ function nearestNode(graph, p) {
   return best ? { node: best, d: bd } : null;
 }
 
+// 가장 가까운 횡단보도(묶음). 간선 하나가 아니라 횡단보도 전체(group)를 돌려준다.
 function nearestCrossing(graph, p, maxDist) {
   let best = null, bd = Infinity;
   for (const e of graph.edges) {
-    if (e.kind !== 'cross') continue;
+    if (e.kind !== 'cross' || !e.group) continue;
     const { d } = pointToSegment(p, graph.nodes.get(e.a), graph.nodes.get(e.b));
     if (d < bd) { bd = d; best = e; }
   }
-  return best && bd <= maxDist ? { edge: best, d: bd } : null;
+  return best && bd <= maxDist ? { edge: best, group: graph.crossings.get(best.group), d: bd } : null;
 }
 
-function crossingName(graph, edge) {
-  const it = graph.intersections.get(edge.signal.intersection);
-  const leg = it.legs[edge.signal.leg];
-  return it.kind === 'midblock' ? it.name : `${it.name} ${leg.name}`;
+function crossingName(graph, edgeOrGroup) {
+  const g = edgeOrGroup.group ? graph.crossings.get(edgeOrGroup.group) : edgeOrGroup;
+  return g ? g.name : '횡단보도';
 }
 
 // ---- routing.js ----
@@ -600,8 +646,13 @@ function adjacency(graph) {
 
 // 간선 하나를 t초에 진입할 때의 통과 결과. ctx = {speed, margin, signal(iid, leg, t), nextGreen(iid, leg, t)}
 function traverseEdge(e, t, ctx) {
-  const walkSec = e.length / ctx.speed;
+  const walkSec = (e.length / ctx.speed) * (e.slow || 1);
   if (e.kind !== 'cross') return { tExit: t + walkSec, wait: 0, walkSec };
+  if (!e.signal) {
+    // 신호 없는 횡단보도(마킹만 있거나 없는 곳): 차를 살피는 시간만큼 고정 지연
+    const d = e.delay || 0;
+    return { tExit: t + d + walkSec, wait: d, walkSec, crossAt: t + d, signal: { state: 'none', remain: 0 } };
+  }
   const { intersection, leg } = e.signal;
   const s = ctx.signal(intersection, leg, t);
   // 보수적 규칙: 남은 녹색 시간 안에 여유(margin)를 두고 다 건널 수 있을 때만 바로 건넌다.
@@ -612,8 +663,8 @@ function traverseEdge(e, t, ctx) {
   return { tExit: g + walkSec, wait: g - t, walkSec, crossAt: g, signal: s };
 }
 
-// 일반 다익스트라. costFn(edge, tArrive) → tExit(단조증가).
-function dijkstra(graph, adj, from, to, t0, costFn) {
+// 일반 다익스트라. costFn(edge, tArrive) → tExit(단조증가). opts.skipEdge / opts.allowNode 로 탐색을 제한할 수 있다.
+function dijkstra(graph, adj, from, to, t0, costFn, opts = {}) {
   const best = new Map([[from, t0]]);
   const prev = new Map();
   const heap = new MinHeap();
@@ -624,8 +675,10 @@ function dijkstra(graph, adj, from, to, t0, costFn) {
     if (done.has(n)) continue;
     done.add(n);
     if (n === to) break;
-    for (const { e, to: m } of adj.get(n)) {
+    for (const { e, to: m } of adj.get(n) || []) {
       if (done.has(m)) continue;
+      if (opts.skipEdges && opts.skipEdges.has(e)) continue;
+      if (opts.allowNode && !opts.allowNode(m)) continue;
       const tx = costFn(e, t);
       if (tx < (best.get(m) ?? Infinity)) { best.set(m, tx); prev.set(m, { n, e }); heap.push(tx, m); }
     }
@@ -642,8 +695,8 @@ function shortestDistance(graph, adj, from, to) {
   return r && { ...r, length: r.arrival };
 }
 
-function shortestTime(graph, adj, from, to, t0, ctx) {
-  return dijkstra(graph, adj, from, to, t0, (e, t) => traverseEdge(e, t, ctx).tExit);
+function shortestTime(graph, adj, from, to, t0, ctx, opts) {
+  return dijkstra(graph, adj, from, to, t0, (e, t) => traverseEdge(e, t, ctx).tExit, opts);
 }
 
 // 경로(간선 순서)를 t0에 출발해 실제로 걸었을 때의 시간표
@@ -663,29 +716,45 @@ function evaluate(graph, edgesPath, from, t0, ctx) {
   return { edges: edgesPath, nodes: [from, ...steps.map((s) => s.to)], steps, length, wait, walk, time: t - t0, arrival: t, t0 };
 }
 
-// 두 횡단보도를 연달아 건너는 교차로에서 '어느 쪽을 먼저 건너는지'가 얼마나 차이 나는지
-function crossingOrderNotes(graph, route, ctx) {
+// 한 교차로에서 횡단보도를 두 번 건너는 구간: 첫 횡단보도를 다른 쪽으로 바꾸면 얼마나 더 걸리는지.
+// 횡단보도 하나가 여러 간선(연석-차도-연석)으로 되어 있어도 묶음(group) 단위로 본다.
+// 교차로 주변(반경 90m)만 보고, 처음 건넌 횡단보도를 빼고 다시 최단시간을 구해 비교한다.
+function crossingOrderNotes(graph, route, ctx, adj) {
   const notes = [];
-  const edgeBetween = (a, b) => graph.edges.find((e) => e.kind === 'cross' && ((e.a === a && e.b === b) || (e.a === b && e.b === a)));
-  for (let i = 0; i + 1 < route.steps.length; i++) {
-    const s1 = route.steps[i], s2 = route.steps[i + 1];
-    if (s1.kind !== 'cross' || s2.kind !== 'cross' || s1.intersection !== s2.intersection) continue;
-    const it = graph.intersections.get(s1.intersection);
-    if (it.kind !== '4way') continue;
-    const corners = Object.values(it.corners);
-    const other = corners.find((c) => c !== s1.from && c !== s1.to && c !== s2.to);
-    const e1 = edgeBetween(s1.from, other), e2 = edgeBetween(other, s2.to);
-    if (!e1 || !e2) continue;
-    const r1 = traverseEdge(e1, s1.tArrive, ctx);
-    const r2 = traverseEdge(e2, r1.tExit, ctx);
-    const diff = r2.tExit - s2.tExit; // 다른 순서가 얼마나 더 걸리는지(≥0)
-    notes.push({ intersection: it.id, name: it.name, first: s1.leg, second: s2.leg, altFirst: e1.signal.leg, altSecond: e2.signal.leg, diff });
+  const steps = route.steps;
+  adj = adj || adjacency(graph);
+  const groupOf = (s) => (s && s.kind === 'cross' && s.edge.signal ? (s.edge.group || s.edge.id) : null);
+  let i = 0;
+  while (i < steps.length) {
+    const g1 = groupOf(steps[i]);
+    if (!g1) { i++; continue; }
+    let e1 = i;
+    while (e1 + 1 < steps.length && groupOf(steps[e1 + 1]) === g1) e1++;
+    // 같은 교차로의 다음 횡단보도를 짧은 보도(합계 40m 이하)만 지나 만나야 한다
+    let walked = 0, j = e1 + 1;
+    while (j < steps.length && steps[j].kind !== 'cross' && walked <= 40) { walked += steps[j].length; j++; }
+    const g2 = groupOf(steps[j]);
+    if (!g2 || g2 === g1 || walked > 40 || steps[j].intersection !== steps[i].intersection) { i = e1 + 1; continue; }
+    let e2 = j;
+    while (e2 + 1 < steps.length && groupOf(steps[e2 + 1]) === g2) e2++;
+    const it = graph.intersections.get(steps[i].intersection);
+    if (!it) { i = e1 + 1; continue; }
+    const near = (id) => { const n = graph.nodes.get(id); return n && Math.hypot(n.x - it.x, n.y - it.y) <= 90; };
+    const skip = new Set(graph.edges.filter((e) => (e.group || e.id) === g1));
+    const alt = shortestTime(graph, adj, steps[i].from, steps[e2].to, steps[i].tArrive, ctx, { skipEdges: skip, allowNode: near });
+    if (alt) {
+      const firstCross = alt.edges.find((e) => e.kind === 'cross' && e.signal && e.signal.intersection === it.id);
+      if (firstCross && (firstCross.group || firstCross.id) !== g1) {
+        notes.push({ intersection: it.id, name: it.name, first: steps[i].leg, second: steps[j].leg, altFirst: firstCross.signal.leg, diff: alt.arrival - steps[e2].tExit });
+      }
+    }
+    i = e2 + 1;
   }
   return notes;
 }
 
 // 지금 출발했을 때와 같은 시각에 도착하는 가장 늦은 출발(초). 신호 때문에 서둘러 나갈 필요가 없는 여유.
-function latestDeparture(graph, adj, from, to, t0, ctx, horizon = 180, step = 5) {
+function latestDeparture(graph, adj, from, to, t0, ctx, horizon = 150, step = 10) {
   const base = shortestTime(graph, adj, from, to, t0, ctx);
   if (!base) return 0;
   let ok = 0;
@@ -709,18 +778,486 @@ function compare(graph, adj, from, to, t0, ctx) {
     dist: distRoute, fast: fastRoute, sameRoute,
     saving: distRoute.time - fastRoute.time,
     extraDist: fastRoute.length - distRoute.length,
-    notes: crossingOrderNotes(graph, fastRoute, ctx),
+    notes: crossingOrderNotes(graph, fastRoute, ctx, adj),
     slack: latestDeparture(graph, adj, from, to, t0, ctx),
   };
 }
 
+// ---- osm.js ----
+// 실제 지도: OpenStreetMap 데이터(Overpass API)를 받아 보행 그래프·횡단보도·교차로·그리기 레이어로 바꾼다.
+// 모델: 보도, 골목, 공원길처럼 '걸을 수 있는 길'만 그래프에 넣고 큰길(primary/secondary)은 차도라서 걷지 않는다.
+// 큰길은 횡단보도(footway=crossing)로만 건널 수 있으므로 어디서 언제 건너느냐가 경로에 그대로 반영된다.
+
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+];
+// 차도만 있어 걷지 않는 길. 횡단보도로만 건넌다.
+const MAJOR = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link', 'secondary', 'secondary_link']);
+// 걸을 수 있는 길
+const WALKABLE = new Set(['footway', 'path', 'pedestrian', 'steps', 'living_street', 'residential', 'service', 'unclassified', 'road', 'track', 'tertiary', 'tertiary_link', 'cycleway', 'bridleway']);
+const ROAD_WIDTH = { motorway: 24, trunk: 22, primary: 20, primary_link: 10, secondary: 14, secondary_link: 8, tertiary: 10, tertiary_link: 7, unclassified: 7, residential: 7, living_street: 6, service: 4.5, pedestrian: 6, road: 7, track: 3 };
+const CYCLE_BY_CLASS = { motorway: 170, trunk: 170, primary: 160, primary_link: 150, secondary: 150, secondary_link: 140, tertiary: 130, tertiary_link: 120, unclassified: 120, residential: 110, living_street: 100, service: 100 };
+const CLASS_LABEL = { footway: '보도', path: '오솔길', pedestrian: '보행자길', steps: '계단', living_street: '골목길', residential: '골목길', service: '진입로', unclassified: '길', road: '길', track: '농로', tertiary: '길', tertiary_link: '길', cycleway: '자전거길', bridleday: '길', primary: '큰길', secondary: '큰길', trunk: '간선도로' };
+const SNAP_DEAD_END_M = 12;   // 끊긴 보도 끝을 가까운 길에 붙이는 거리
+const CLUSTER_M = 60;         // 신호 횡단보도를 한 교차로로 묶는 거리
+const POI_SNAP_M = 80;
+
+function bboxAround(lat, lon, radiusM) {
+  const dLat = radiusM / 110574;
+  const dLon = radiusM / (111320 * Math.cos((lat * Math.PI) / 180));
+  return { s: lat - dLat, w: lon - dLon, n: lat + dLat, e: lon + dLon };
+}
+const bboxStr = (b) => `${b.s.toFixed(6)},${b.w.toFixed(6)},${b.n.toFixed(6)},${b.e.toFixed(6)}`;
+
+function networkQuery(b) {
+  return `[out:json][timeout:60][bbox:${bboxStr(b)}];
+(
+  way[highway][highway!~"^(motorway|motorway_link|trunk|trunk_link|proposed|construction|raceway|bus_guideway|corridor|platform|abandoned|razed)$"];
+  node[highway=crossing];
+  node[highway=traffic_signals];
+  node[junction];
+  node[railway=subway_entrance];
+  node[railway=station];
+  node[public_transport=station];
+);
+out body geom;`;
+}
+function contextQuery(b) {
+  return `[out:json][timeout:60][bbox:${bboxStr(b)}];
+(
+  way[building];
+  way[leisure~"^(park|garden|playground|pitch)$"];
+  way[landuse~"^(grass|cemetery|recreation_ground|forest)$"];
+  way[natural~"^(water|wood)$"];
+  way[waterway~"^(river|stream|canal)$"];
+);
+out geom;`;
+}
+
+// Overpass 서버에 차례로 물어본다. 실패하면 다음 서버.
+async function fetchOverpass(query, opts = {}) {
+  const endpoints = opts.endpoints || OVERPASS_ENDPOINTS;
+  const f = opts.fetchImpl || globalThis.fetch;
+  const timeoutMs = opts.timeoutMs || 70000;
+  let lastErr = null;
+  for (const url of endpoints) {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), timeoutMs);
+    try {
+      if (opts.onStatus) opts.onStatus(`${new URL(url).host} 에 요청 중…`);
+      const r = await f(url, { method: 'POST', body: `data=${encodeURIComponent(query)}`, headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctl.signal });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const json = await r.json();
+      if (!json || !Array.isArray(json.elements)) throw new Error('응답 형식이 다릅니다');
+      if (!json.elements.length && json.remark && /error|timeout|runtime/i.test(json.remark)) throw new Error(json.remark);
+      return json;
+    } catch (e) {
+      lastErr = e;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw lastErr || new Error('Overpass 서버에 연결하지 못했습니다');
+}
+
+function walkable(t) {
+  const hw = t.highway;
+  if (!hw || !WALKABLE.has(hw)) return false;
+  if (t.foot === 'no' || t.foot === 'private') return false;
+  const footOk = t.foot === 'yes' || t.foot === 'designated' || t.foot === 'permissive';
+  if ((t.access === 'no' || t.access === 'private') && !footOk) return false;
+  if (hw === 'cycleway' && !footOk && t.segregated == null) return false;
+  if (t.indoor === 'yes') return false;
+  return true;
+}
+const isCrossingWay = (w) => w.tags.footway === 'crossing' || w.tags.path === 'crossing' || w.tags.cycleway === 'crossing' || (w.tags.highway === 'footway' && !!w.tags.crossing);
+const isSignalTags = (t) => t.crossing === 'traffic_signals' || t['crossing:signals'] === 'yes' || t.highway === 'traffic_signals' || t.crossing === 'pelican' || t.crossing === 'toucan';
+const isMarkedTags = (t) => ['marked', 'zebra', 'uncontrolled'].includes(t.crossing) || (t['crossing:markings'] && t['crossing:markings'] !== 'no');
+
+function crossingKind(wayTags, nodeTagsList) {
+  if (isSignalTags(wayTags) || nodeTagsList.some(isSignalTags)) return 'signals';
+  if (isMarkedTags(wayTags) || nodeTagsList.some(isMarkedTags)) return 'marked';
+  return 'unmarked';
+}
+const roadWidth = (t) => { const lanes = Number(t.lanes); if (lanes > 0) return Math.min(40, lanes * 3.3); return ROAD_WIDTH[t.highway] || 6; };
+const roadName = (t) => t.name || (t.tunnel && t.tunnel !== 'no' && ['footway', 'path', 'steps'].includes(t.highway) ? '지하보도' : CLASS_LABEL[t.highway]) || '길';
+const classRank = (hw) => ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'unclassified', 'residential', 'living_street', 'service'].indexOf((hw || '').replace(/_link$/, ''));
+
+function meanLatLon(ways) {
+  let n = 0, lat = 0, lon = 0;
+  for (const w of ways) for (const g of w.geometry || []) { lat += g.lat; lon += g.lon; n++; }
+  return n ? { lat: lat / n, lon: lon / n } : { lat: 37.5, lon: 127.03 };
+}
+function hashOffset(id, cycle) { let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h % cycle; }
+function legBucket(az) { return az < 45 || az >= 315 ? 'nt' : az < 135 ? 'et' : az < 225 ? 'st' : 'wt'; }
+
+function buildOsmWorld(net, ctxData, opts = {}) {
+  const els = net.elements || [];
+  const nodesRaw = new Map();
+  const ways = [];
+  for (const el of els) {
+    if (el.type === 'node') nodesRaw.set(el.id, el);
+    else if (el.type === 'way' && el.geometry && el.nodes && el.tags) ways.push(el);
+  }
+  const roadWays = ways.filter((w) => w.tags.highway);
+  const center = opts.center || meanLatLon(roadWays);
+  const proj = makeProjection(center.lat, center.lon);
+  const coord = new Map();
+  for (const w of ways) w.nodes.forEach((id, i) => { if (!coord.has(id) && w.geometry[i]) coord.set(id, proj.toLocal(w.geometry[i].lat, w.geometry[i].lon)); });
+  for (const [id, n] of nodesRaw) if (!coord.has(id) && n.lat != null) coord.set(id, proj.toLocal(n.lat, n.lon));
+  const tagsOf = (id) => (nodesRaw.get(id) && nodesRaw.get(id).tags) || {};
+
+  const graph = {
+    kind: 'osm', proj, nodes: new Map(), edges: [], intersections: new Map(), crossings: new Map(), pois: [], streets: [],
+    u: { x: 1, y: 0 }, v: { x: 0, y: 1 }, bounds: null,
+    area: { name: opts.name || '실제 지도', note: '지도 데이터 © OpenStreetMap 기여자. 신호 시간은 시뮬레이션입니다.', ew: [] },
+    draw: { roads: [], paths: [], buildings: [], green: [], water: [] }, labels: [],
+  };
+  const nid = (id) => `n${id}`;
+  const addNode = (id, label) => {
+    const k = nid(id);
+    if (!graph.nodes.has(k)) { const c = coord.get(id); if (!c) return null; graph.nodes.set(k, { id: k, x: c.x, y: c.y, kind: 'osm', label: label || '길', osm: id }); }
+    return k;
+  };
+  const addEdge = (a, b, kind, extra = {}) => {
+    const e = { id: `e${graph.edges.length}`, a, b, kind, length: dist(graph.nodes.get(a), graph.nodes.get(b)), ...extra };
+    graph.edges.push(e);
+    return e;
+  };
+
+  // 노드 → 지나는 도로 way 목록 (횡단보도가 어느 길을 건너는지, 큰길의 어느 쪽인지 알아내는 데 쓴다)
+  const nodeWays = new Map();
+  for (const w of roadWays) for (const id of w.nodes) { if (!nodeWays.has(id)) nodeWays.set(id, []); nodeWays.get(id).push(w); }
+
+  // 1) 걸을 수 있는 길 → 보도 간선
+  for (const w of roadWays) {
+    if (isCrossingWay(w) || !walkable(w.tags)) continue;
+    const label = roadName(w.tags);
+    const slow = w.tags.highway === 'steps' ? 1.6 : 1;
+    for (let i = 0; i + 1 < w.nodes.length; i++) {
+      const a = addNode(w.nodes[i], label), b = addNode(w.nodes[i + 1], label);
+      if (!a || !b || a === b) continue;
+      addEdge(a, b, 'walk', { street: label, hw: w.tags.highway, slow, via: w.tags.tunnel && w.tags.tunnel !== 'no' ? 'tunnel' : undefined, way: w.id });
+    }
+  }
+
+  // 2) 횡단보도 way → 횡단보도 묶음(group). 신호 유무는 way 태그와 노드 태그를 함께 본다.
+  const crossingWayNodeIds = new Set();
+  for (const w of roadWays) {
+    if (!isCrossingWay(w) || w.nodes.length < 2) continue;
+    const kind = crossingKind(w.tags, w.nodes.map(tagsOf));
+    const ids = w.nodes.map((id) => addNode(id, '횡단보도')).filter(Boolean);
+    const edges = []; let length = 0;
+    for (let i = 0; i + 1 < ids.length; i++) {
+      if (ids[i] === ids[i + 1]) continue;
+      const e = addEdge(ids[i], ids[i + 1], 'cross', { way: w.id });
+      edges.push(e); length += e.length;
+    }
+    if (!edges.length) continue;
+    w.nodes.forEach((id) => crossingWayNodeIds.add(id));
+    let across = null;
+    for (const id of w.nodes) for (const r of nodeWays.get(id) || []) if (r !== w && !isCrossingWay(r) && r.tags.highway !== 'footway' && r.tags.highway !== 'path' && r.tags.highway !== 'steps') { if (!across || classRank(r.tags.highway) < classRank(across.tags.highway)) across = r; }
+    makeGroup(`c${w.id}`, ids, edges, length, kind, across);
+  }
+
+  function makeGroup(id, ids, edges, length, kind, across) {
+    const pts = ids.map((k) => graph.nodes.get(k));
+    const mid = chainMidpoint(pts);
+    const g = { id, nodes: ids, edges: edges.map((e) => e.id), length, mid, kind, across: across ? roadName(across.tags) : '길', acrossClass: across ? across.tags.highway : null, acrossWidth: across ? roadWidth(across.tags) : 8, intersection: null, leg: null, name: '' };
+    for (const e of edges) { e.group = id; e.crossTotal = length; e.delay = kind === 'signals' ? 0 : kind === 'marked' ? 4 : 2; e.signal = null; }
+    graph.crossings.set(id, g);
+    return g;
+  }
+
+  // 3) 횡단보도 way 없이 노드로만 표시된 큰길 횡단보도: 양쪽 보도를 찾아 횡단 간선을 만든다
+  synthesizeNodeCrossings(graph, nodesRaw, nodeWays, coord, crossingWayNodeIds, addNode, addEdge, makeGroup);
+
+  // 4) 끊긴 보도 끝을 가까운 길에 붙인다
+  snapDeadEnds(graph, addEdge);
+
+  // 5) 가장 큰 연결 덩어리만 남긴다
+  keepLargestComponent(graph);
+
+  // 6) 신호 횡단보도를 교차로로 묶고 신호 계획을 만든다
+  buildIntersections(graph, nodesRaw, coord);
+
+  // 7) 지하철 출입구·역 → 출발/도착 후보
+  buildPois(graph, nodesRaw, coord);
+
+  // 8) 그리기 레이어와 도로명
+  buildDrawLayers(graph, roadWays, ctxData, proj);
+
+  const xs = [...coord.values()];
+  graph.bounds = xs.length
+    ? { minX: Math.min(...xs.map((p) => p.x)), maxX: Math.max(...xs.map((p) => p.x)), minY: Math.min(...xs.map((p) => p.y)), maxY: Math.max(...xs.map((p) => p.y)) }
+    : { minX: -100, maxX: 100, minY: -100, maxY: 100 };
+  graph.stats = { nodes: graph.nodes.size, edges: graph.edges.length, crossings: graph.crossings.size, signalized: [...graph.crossings.values()].filter((g) => g.kind === 'signals').length, intersections: graph.intersections.size, pois: graph.pois.length, buildings: graph.draw.buildings.length };
+  return graph;
+}
+
+function chainMidpoint(pts) {
+  let total = 0;
+  for (let i = 0; i + 1 < pts.length; i++) total += dist(pts[i], pts[i + 1]);
+  let acc = 0;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const d = dist(pts[i], pts[i + 1]);
+    if (acc + d >= total / 2) { const t = d ? (total / 2 - acc) / d : 0; return { x: pts[i].x + (pts[i + 1].x - pts[i].x) * t, y: pts[i].y + (pts[i + 1].y - pts[i].y) * t }; }
+    acc += d;
+  }
+  return pts[0] ? { x: pts[0].x, y: pts[0].y } : { x: 0, y: 0 };
+}
+
+function synthesizeNodeCrossings(graph, nodesRaw, nodeWays, coord, crossingWayNodeIds, addNode, addEdge, makeGroup) {
+  // 후보: highway=crossing 노드 중 횡단보도 way에 속하지 않고, 걷지 않는 큰길 위에 있는 것
+  const cands = [];
+  for (const [id, n] of nodesRaw) {
+    const t = n.tags || {};
+    if (t.highway !== 'crossing' || crossingWayNodeIds.has(id)) continue;
+    const roads = (nodeWays.get(id) || []).filter((w) => MAJOR.has(w.tags.highway));
+    if (!roads.length || !coord.has(id)) continue;
+    const road = roads[0];
+    const i = road.nodes.indexOf(id);
+    const p0 = coord.get(road.nodes[Math.max(0, i - 1)]), p1 = coord.get(road.nodes[Math.min(road.nodes.length - 1, i + 1)]);
+    if (!p0 || !p1) continue;
+    const L = dist(p0, p1) || 1;
+    cands.push({ id, p: coord.get(id), dir: { x: (p1.x - p0.x) / L, y: (p1.y - p0.y) / L }, tags: t, road });
+  }
+  const used = new Set();
+  const walkNodes = [...graph.nodes.values()];
+  for (const c of cands) {
+    if (used.has(c.id)) continue;
+    // 같은 방향의 큰길 위에 30m 안에 있는 다른 후보(평행 차도)를 하나로 묶는다
+    const group = [c];
+    for (const o of cands) if (o !== c && !used.has(o.id) && dist(o.p, c.p) <= 30 && Math.abs(o.dir.x * c.dir.x + o.dir.y * c.dir.y) > 0.9) group.push(o);
+    const perp = { x: -c.dir.y, y: c.dir.x };
+    group.sort((a, b) => (a.p.x * perp.x + a.p.y * perp.y) - (b.p.x * perp.x + b.p.y * perp.y));
+    const first = group[0].p, last = group[group.length - 1].p;
+    const findSide = (from, sign) => {
+      let best = null, bd = Infinity;
+      for (const n of walkNodes) {
+        const dx = n.x - from.x, dy = n.y - from.y;
+        const along = (dx * perp.x + dy * perp.y) * sign, lateral = Math.abs(dx * c.dir.x + dy * c.dir.y);
+        if (along < 2 || along > 28 || lateral > 10) continue;
+        const d = Math.hypot(dx, dy);
+        if (d < bd) { bd = d; best = n; }
+      }
+      return best;
+    };
+    const endA = findSide(first, -1), endB = findSide(last, 1);
+    if (!endA || !endB || endA === endB) continue;
+    group.forEach((g) => used.add(g.id));
+    const ids = [endA.id, ...group.map((g) => addNode(g.id, '횡단보도')).filter(Boolean), endB.id];
+    const edges = []; let length = 0;
+    for (let i = 0; i + 1 < ids.length; i++) { const e = addEdge(ids[i], ids[i + 1], 'cross', { synthesized: true }); edges.push(e); length += e.length; }
+    const kind = crossingKind({}, group.map((g) => g.tags));
+    makeGroup(`x${c.id}`, ids, edges, length, kind, c.road);
+  }
+}
+
+function snapDeadEnds(graph, addEdge) {
+  const deg = new Map();
+  for (const e of graph.edges) { deg.set(e.a, (deg.get(e.a) || 0) + 1); deg.set(e.b, (deg.get(e.b) || 0) + 1); }
+  const ends = [...graph.nodes.values()].filter((n) => deg.get(n.id) === 1);
+  const walkEdges = () => graph.edges.filter((e) => e.kind === 'walk');
+  let edges = walkEdges();
+  for (const n of ends) {
+    const own = graph.edges.find((e) => e.a === n.id || e.b === n.id);
+    let best = null, bd = SNAP_DEAD_END_M, bq = null;
+    for (const e of edges) {
+      if (e === own || e.a === n.id || e.b === n.id) continue;
+      if (own && own.way != null && e.way === own.way) continue;
+      const A = graph.nodes.get(e.a), B = graph.nodes.get(e.b);
+      if (Math.min(A.x, B.x) - bd > n.x || Math.max(A.x, B.x) + bd < n.x || Math.min(A.y, B.y) - bd > n.y || Math.max(A.y, B.y) + bd < n.y) continue;
+      const r = pointToSegment(n, A, B);
+      if (r.d < bd) { bd = r.d; best = e; bq = r; }
+    }
+    if (!best) continue;
+    // 가까운 길을 투영점에서 나누고 끊긴 끝을 잇는다
+    const id = `s${graph.nodes.size}`;
+    graph.nodes.set(id, { id, x: bq.q.x, y: bq.q.y, kind: 'osm', label: best.street || '길' });
+    const extra = { street: best.street, hw: best.hw, slow: best.slow, via: best.via, way: best.way };
+    const bEnd = best.b;
+    best.b = id; best.length = dist(graph.nodes.get(best.a), graph.nodes.get(id));
+    addEdge(id, bEnd, 'walk', extra);
+    addEdge(n.id, id, 'walk', { street: best.street, hw: best.hw, slow: 1, snapped: true });
+    edges = walkEdges();
+  }
+}
+
+function keepLargestComponent(graph) {
+  const adj = new Map();
+  for (const e of graph.edges) { (adj.get(e.a) || adj.set(e.a, []).get(e.a)).push(e.b); (adj.get(e.b) || adj.set(e.b, []).get(e.b)).push(e.a); }
+  const seen = new Set(); let bestComp = null;
+  for (const start of graph.nodes.keys()) {
+    if (seen.has(start)) continue;
+    const comp = []; const stack = [start]; seen.add(start);
+    while (stack.length) { const n = stack.pop(); comp.push(n); for (const m of adj.get(n) || []) if (!seen.has(m)) { seen.add(m); stack.push(m); } }
+    if (!bestComp || comp.length > bestComp.length) bestComp = comp;
+  }
+  if (!bestComp) return;
+  const keep = new Set(bestComp);
+  for (const id of [...graph.nodes.keys()]) if (!keep.has(id)) graph.nodes.delete(id);
+  graph.edges = graph.edges.filter((e) => keep.has(e.a) && keep.has(e.b));
+  graph.edges.forEach((e, i) => { e.id = `e${i}`; });
+  for (const [gid, g] of [...graph.crossings]) {
+    const edges = graph.edges.filter((e) => e.group === gid);
+    if (!edges.length || !g.nodes.every((n) => keep.has(n))) { graph.crossings.delete(gid); edges.forEach((e) => { e.group = null; }); continue; }
+    g.edges = edges.map((e) => e.id);
+  }
+}
+
+function buildIntersections(graph, nodesRaw, coord) {
+  const sig = [...graph.crossings.values()].filter((g) => g.kind === 'signals');
+  // union-find: 60m 안의 신호 횡단보도는 같은 교차로
+  const parent = new Map(sig.map((g) => [g.id, g.id]));
+  const find = (x) => { while (parent.get(x) !== x) { parent.set(x, parent.get(parent.get(x))); x = parent.get(x); } return x; };
+  const union = (a, b) => { parent.set(find(a), find(b)); };
+  for (let i = 0; i < sig.length; i++) for (let j = i + 1; j < sig.length; j++) if (dist(sig[i].mid, sig[j].mid) <= CLUSTER_M) union(sig[i].id, sig[j].id);
+  const clusters = new Map();
+  for (const g of sig) { const r = find(g.id); if (!clusters.has(r)) clusters.set(r, []); clusters.get(r).push(g); }
+  // 이름 후보: junction 노드, 신호등 노드
+  const junctions = [];
+  for (const [id, n] of nodesRaw) { const t = n.tags || {}; if ((t.junction || t.highway === 'traffic_signals') && t.name && coord.has(id)) junctions.push({ name: t.name, p: coord.get(id) }); }
+  for (const groups of clusters.values()) {
+    const cx = groups.reduce((s, g) => s + g.mid.x, 0) / groups.length, cy = groups.reduce((s, g) => s + g.mid.y, 0) / groups.length;
+    const center = { x: cx, y: cy };
+    const id = `i${groups.map((g) => g.id).sort().join('_')}`;
+    const legs = {};
+    if (groups.length === 1) {
+      const g = groups[0];
+      legs.xw = { name: LEG_NAMES.xw, across: g.across, length: g.length, crossings: [g.id], acrossClass: g.acrossClass, width: g.acrossWidth };
+      g.intersection = id; g.leg = 'xw';
+    } else {
+      for (const g of groups) {
+        const leg = legBucket(bearingDeg(center, g.mid));
+        if (!legs[leg]) legs[leg] = { name: LEG_NAMES[leg], across: g.across, length: g.length, crossings: [], acrossClass: g.acrossClass, width: g.acrossWidth };
+        legs[leg].crossings.push(g.id);
+        legs[leg].length = Math.max(legs[leg].length, g.length);
+        g.intersection = id; g.leg = leg;
+      }
+    }
+    const plan = planFor(id, legs);
+    let name = null, bd = 70;
+    for (const j of junctions) { const d = dist(j.p, center); if (d < bd) { bd = d; name = j.name; } }
+    if (!name) {
+      const names = [...new Set(groups.map((g) => g.across))];
+      name = groups.length === 1 ? `${groups[0].across} 횡단보도` : names.slice(0, 2).join('·');
+    }
+    graph.intersections.set(id, { id, name, x: cx, y: cy, kind: groups.length === 1 ? 'midblock' : 'osm', legs, plan, itstId: null });
+    for (const g of groups) g.name = groups.length === 1 ? name : `${name} ${LEG_NAMES[g.leg]}`;
+  }
+  for (const g of graph.crossings.values()) {
+    if (!g.name) g.name = `${g.across} ${g.kind === 'marked' ? '횡단보도' : '비신호 횡단'}`;
+    if (!g.intersection) continue;
+    for (const eid of g.edges) { const e = graph.edges.find((x) => x.id === eid); if (e) e.signal = { intersection: g.intersection, leg: g.leg }; }
+  }
+}
+
+function planFor(id, legs) {
+  const cls = Object.values(legs).map((l) => l.acrossClass).filter(Boolean);
+  const cycle = Math.max(...cls.map((c) => CYCLE_BY_CLASS[c] || 120), 110);
+  if (legs.xw) {
+    const pg = pedGreenFor(legs.xw.length, cycle - 60);
+    const pedPhase = pg + 4;
+    return makePlan({ cycle, offset: hashOffset(id, cycle), pedGreen: { xw: pg }, phases: [{ name: '차량 통행', dur: cycle - pedPhase, ped: [] }, { name: '보행', dur: pedPhase, ped: ['xw'] }] });
+  }
+  const left = cycle >= 150 ? 25 : 20;
+  const through = cycle - 2 * left;
+  // 북·남 횡단보도는 남북 도로를 건너고, 그 보행 녹색은 동서 직진 현시 때 켜진다
+  const wNS = Math.max(legs.nt ? legs.nt.width : 0, legs.st ? legs.st.width : 0) || 10;
+  const wEW = Math.max(legs.et ? legs.et.width : 0, legs.wt ? legs.wt.width : 0) || 10;
+  const ewThrough = Math.round((through * wEW) / (wEW + wNS));
+  const nsThrough = through - ewThrough;
+  const pedGreen = {};
+  for (const leg of ['nt', 'st']) if (legs[leg]) pedGreen[leg] = pedGreenFor(legs[leg].length, ewThrough);
+  for (const leg of ['et', 'wt']) if (legs[leg]) pedGreen[leg] = pedGreenFor(legs[leg].length, nsThrough);
+  return makePlan({
+    cycle, offset: hashOffset(id, cycle), pedGreen,
+    phases: [
+      { name: '동서 직진', dur: ewThrough, ped: ['nt', 'st'].filter((l) => legs[l]) },
+      { name: '동서 좌회전', dur: left, ped: [] },
+      { name: '남북 직진', dur: nsThrough, ped: ['et', 'wt'].filter((l) => legs[l]) },
+      { name: '남북 좌회전', dur: left, ped: [] },
+    ],
+  });
+}
+
+function buildPois(graph, nodesRaw, coord) {
+  const nodes = [...graph.nodes.values()];
+  const stations = [];
+  for (const [id, n] of nodesRaw) { const t = n.tags || {}; if ((t.railway === 'station' || t.public_transport === 'station') && t.name && coord.has(id)) stations.push({ name: t.name, p: coord.get(id) }); }
+  const nearestNode = (p) => { let best = null, bd = POI_SNAP_M; for (const n of nodes) { const d = dist(n, p); if (d < bd) { bd = d; best = n; } } return best; };
+  const seen = new Set();
+  const push = (name, p) => { if (!name || seen.has(name)) return; const n = nearestNode(p); if (!n) return; seen.add(name); graph.pois.push({ id: `poi${graph.pois.length}`, name, node: n.id, x: p.x, y: p.y }); };
+  for (const [id, n] of nodesRaw) {
+    const t = n.tags || {};
+    if (t.railway !== 'subway_entrance' || !coord.has(id)) continue;
+    const p = coord.get(id);
+    let name = t.description || t.name;
+    if (!name && t.ref) { let st = null, bd = 400; for (const s of stations) { const d = dist(s.p, p); if (d < bd) { bd = d; st = s; } } name = `${st ? st.name : '지하철'} ${t.ref}번 출구`; }
+    push(name, p);
+  }
+  for (const s of stations) push(s.name, s.p);
+  graph.pois.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+}
+
+function buildDrawLayers(graph, roadWays, ctxData, proj) {
+  const toPts = (w) => (w.geometry || []).map((g) => proj.toLocal(g.lat, g.lon));
+  const seenLabel = [];
+  for (const w of roadWays) {
+    const t = w.tags; const pts = toPts(w);
+    if (pts.length < 2) continue;
+    const hw = t.highway;
+    if (['footway', 'path', 'steps', 'cycleway', 'bridleway', 'track'].includes(hw)) {
+      graph.draw.paths.push({ pts, hw, crossing: isCrossingWay(w), tunnel: !!t.tunnel && t.tunnel !== 'no' });
+      continue;
+    }
+    graph.draw.roads.push({ pts, hw, width: roadWidth(t), name: t.name || '', rank: classRank(hw) });
+    if (t.name) {
+      // 가장 긴 구간의 중간에 도로명을 둔다. 같은 이름은 250m 안에 하나만.
+      let bi = 0, bl = 0;
+      for (let i = 0; i + 1 < pts.length; i++) { const l = dist(pts[i], pts[i + 1]); if (l > bl) { bl = l; bi = i; } }
+      if (bl < 40) continue;
+      const mid = { x: (pts[bi].x + pts[bi + 1].x) / 2, y: (pts[bi].y + pts[bi + 1].y) / 2 };
+      if (seenLabel.some((l) => l.name === t.name && dist(l, mid) < 250)) continue;
+      const dir = { x: (pts[bi + 1].x - pts[bi].x) / bl, y: (pts[bi + 1].y - pts[bi].y) / bl };
+      const rank = classRank(hw);
+      const label = { name: t.name, x: mid.x, y: mid.y, dir, minScale: rank <= 3 ? 0.14 : rank <= 4 ? 0.3 : 0.6 };
+      seenLabel.push(label); graph.labels.push(label);
+    }
+  }
+  graph.draw.roads.sort((a, b) => b.rank - a.rank);
+  if (ctxData) addContext(graph, ctxData);
+}
+
+// 건물·공원·물 같은 배경 레이어. 보행 그래프와 따로 받아 나중에 더할 수 있다.
+function addContext(graph, ctxData) {
+  const proj = graph.proj;
+  graph.draw.buildings = []; graph.draw.green = []; graph.draw.water = [];
+  for (const el of (ctxData && ctxData.elements) || []) {
+    if (el.type !== 'way' || !el.geometry || !el.tags) continue;
+    const pts = el.geometry.map((g) => proj.toLocal(g.lat, g.lon));
+    if (pts.length < 3) continue;
+    const t = el.tags;
+    if (t.building) graph.draw.buildings.push({ pts, name: t.name || '' });
+    else if (t.natural === 'water' || t.waterway) graph.draw.water.push({ pts });
+    else graph.draw.green.push({ pts });
+  }
+  if (graph.stats) graph.stats.buildings = graph.draw.buildings.length;
+}
+
 // ---- app.js ----
-// 초록불 내비 – 화면과 상호작용. build.mjs 가 geo/signal/network/routing 과 함께 하나의 스크립트로 묶는다.
+// 초록불 내비 – 화면과 상호작용. build.mjs 가 geo/signal/network/routing/osm 과 함께 하나의 스크립트로 묶는다.
+// '세계(world)'는 지금 보는 지도 하나를 뜻한다: 개략도(network.js) 또는 실제 지도(osm.js). 둘 다 같은 그래프 구조라
+// 그리기·탭·경로 계산 코드를 공유한다.
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const FONT = '"IBM Plex Sans KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif';
 const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PLACES = { gangnam: { lat: 37.49795, lon: 127.02764, name: '강남역 주변' }, yeoksam: { lat: 37.50062, lon: 127.03644, name: '역삼역 주변' } };
 
 // ---------- 설정(이 기기에만 저장) ----------
 const DEFAULTS = { speed: 1.2, margin: 2, speedup: 1, apiBase: '' };
@@ -740,13 +1277,32 @@ const clock = {
   setSpeed(s) { const v = this.now(); this.anchorReal = Date.now() / 1000; this.anchorVirtual = v; this.speed = s; },
 };
 
-// ---------- 도로망과 신호 ----------
-const graph = buildDemo();
-const adj = adjacency(graph);
-const plans = new Map([...graph.intersections].map(([id, it]) => [id, it.plan]));
-const streetName = Object.fromEntries(graph.streets.map((s) => [s.id, s.name]));
+// ---------- 세계(지도) ----------
+function schematicStreetLabels(graph) {
+  const out = [];
+  const its = [...graph.intersections.values()].filter((i) => i.kind === '4way');
+  for (const s of graph.streets) {
+    const on = its.filter((i) => (s.kind === 'ew' ? i.ew === s.id : i.ns === s.id));
+    const dir = s.kind === 'ew' ? graph.u : graph.v;
+    on.sort((a, b) => (a.x * dir.x + a.y * dir.y) - (b.x * dir.x + b.y * dir.y));
+    for (let i = 0; i + 1 < on.length; i++) out.push({ name: s.name, x: (on[i].x + on[i + 1].x) / 2, y: (on[i].y + on[i + 1].y) / 2, dir, minScale: 0.12 });
+  }
+  return out;
+}
+function makeWorld(graph, meta = {}) {
+  const w = {
+    graph, adj: adjacency(graph), kind: graph.kind, meta,
+    plans: new Map([...graph.intersections].map(([id, it]) => [id, it.plan])),
+    labels: graph.kind === 'schematic' ? schematicStreetLabels(graph) : graph.labels,
+    streetById: Object.fromEntries((graph.streets || []).map((s) => [s.id, s.name])),
+  };
+  w.walkName = (e) => (graph.kind === 'schematic' ? `${w.streetById[e.street] || ''} 보도` : (e.street || '길'));
+  return w;
+}
+const SCHEMATIC = buildDemo();
+let world = makeWorld(SCHEMATIC, { label: '개략도 · 강남 테헤란로 일대' });
 
-const live = { on: false, base: '', ok: false, lastOk: 0, serverMode: '', obs: new Map(), timer: null, error: '' };
+const live = { on: false, base: '', ok: false, lastOk: 0, serverMode: '', obs: new Map(), timer: null, error: '', osm: false };
 
 function sigState(iid, leg, t) {
   if (live.on && live.ok) {
@@ -754,7 +1310,8 @@ function sigState(iid, leg, t) {
     const l = o && o.legs[leg];
     if (l) { const ex = extrapolate(l, o.t, t); if (ex) return ex; }
   }
-  return legState(plans.get(iid), leg, t);
+  const plan = world.plans.get(iid);
+  return plan ? legState(plan, leg, t) : { state: 'red', remain: 0 };
 }
 function sigNextGreen(iid, leg, t) {
   if (live.on && live.ok) {
@@ -762,7 +1319,8 @@ function sigNextGreen(iid, leg, t) {
     const l = o && o.legs[leg];
     if (l && l.state === 'red' && l.remain != null) { const g = o.t + l.remain; if (g > t) return g; }
   }
-  return nextGreenStart(plans.get(iid), leg, t);
+  const plan = world.plans.get(iid);
+  return plan ? nextGreenStart(plan, leg, t) : t;
 }
 const routeCtx = () => ({ speed: settings.speed, margin: settings.margin, signal: sigState, nextGreen: sigNextGreen });
 
@@ -773,7 +1331,7 @@ async function liveConnect(base) {
     const r = await fetch(`${live.base}/api/health`, { cache: 'no-store' });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const h = await r.json();
-    live.serverMode = h.mode || '';
+    live.serverMode = h.mode || ''; live.osm = !!h.osm;
     if (h.mode === 'nokey') live.error = '서버에 TDATA_API_KEY 가 없습니다. 모의 데이터는 --mock 으로 실행합니다.';
   } catch (e) { live.error = `서버에 연결하지 못했습니다 (${e.message || e})`; }
   if (live.timer) clearInterval(live.timer);
@@ -788,10 +1346,10 @@ async function livePoll() {
     const data = await r.json();
     const t = clock.now();
     for (const [iid, rec] of Object.entries(data.intersections || {})) {
-      const it = graph.intersections.get(iid);
+      const it = world.graph.intersections.get(iid);
       if (!it || !rec.legs) continue;
       live.obs.set(iid, { t, legs: rec.legs });
-      plans.set(iid, anchorPlan(it.plan, rec.legs, t));
+      world.plans.set(iid, anchorPlan(it.plan, rec.legs, t));
     }
     live.ok = true; live.lastOk = Date.now(); live.error = '';
     if (data.mode) live.serverMode = data.mode;
@@ -806,7 +1364,7 @@ function liveDisconnect() {
   live.on = false; live.ok = false; live.error = '';
   if (live.timer) clearInterval(live.timer);
   live.timer = null; live.obs.clear();
-  for (const [id, it] of graph.intersections) plans.set(id, it.plan);
+  for (const [id, it] of world.graph.intersections) world.plans.set(id, it.plan);
   cmpDirty = true; updateBadge();
 }
 
@@ -814,7 +1372,7 @@ function liveDisconnect() {
 const state = {
   from: 'gangnamdaero|teheranro#SW', fromLabel: '강남역',
   to: 'nonhyeonro|bongeunsaro#NE', toLabel: '언주역',
-  cmp: null, sel: null, tapMode: null, user: null,
+  cmp: null, sel: null, tapMode: null, user: null, userLatLon: null,
 };
 let dirty = true, cmpDirty = true, lastCmp = 0, lastDraw = 0, toastT = 0;
 
@@ -827,7 +1385,7 @@ let C = {};
 function readTheme() {
   const cs = getComputedStyle(document.documentElement);
   const g = (n) => cs.getPropertyValue(n).trim();
-  C = { bg: g('--bg'), surface: g('--surface'), road: g('--road'), roadEdge: g('--road-edge'), roadCenter: g('--road-center'), ink: g('--ink'), ink2: g('--ink-2'), ink3: g('--ink-3'), accent: g('--accent'), accentInk: g('--accent-ink'), green: g('--green'), red: g('--red') };
+  C = { bg: g('--bg'), surface: g('--surface'), road: g('--road'), roadEdge: g('--road-edge'), roadCenter: g('--road-center'), ink: g('--ink'), ink2: g('--ink-2'), ink3: g('--ink-3'), accent: g('--accent'), accentInk: g('--accent-ink'), green: g('--green'), red: g('--red'), park: g('--park'), water: g('--water'), building: g('--building'), buildingEdge: g('--building-edge'), path: g('--path'), crossNone: g('--cross-none') };
   dirty = true;
 }
 function resize() {
@@ -837,11 +1395,17 @@ function resize() {
   cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
   dirty = true;
 }
-function fitAll() {
-  const b = graph.bounds, pad = 70;
-  cam.scale = Math.min(W / (b.maxX - b.minX + 2 * pad), H / (b.maxY - b.minY + 2 * pad));
+function fitBounds(b, pad, maxScale = 1.2) {
+  cam.scale = Math.max(0.05, Math.min(maxScale, Math.min(W / (b.maxX - b.minX + 2 * pad), H / (b.maxY - b.minY + 2 * pad))));
   cam.cx = (b.minX + b.maxX) / 2; cam.cy = (b.minY + b.maxY) / 2;
   dirty = true;
+}
+function fitAll() { fitBounds(world.graph.bounds, 70, 8); }
+function fitRoute() {
+  const r = state.cmp && state.cmp.fast;
+  if (!r || r.nodes.length < 2) { fitAll(); return; }
+  const pts = r.nodes.map((id) => world.graph.nodes.get(id));
+  fitBounds({ minX: Math.min(...pts.map((p) => p.x)), maxX: Math.max(...pts.map((p) => p.x)), minY: Math.min(...pts.map((p) => p.y)), maxY: Math.max(...pts.map((p) => p.y)) }, 140);
 }
 const w2s = (p) => ({ x: (p.x - cam.cx) * cam.scale + W / 2, y: H / 2 - (p.y - cam.cy) * cam.scale });
 const s2w = (sx, sy) => ({ x: (sx - W / 2) / cam.scale + cam.cx, y: cam.cy - (sy - H / 2) / cam.scale });
@@ -853,20 +1417,12 @@ function zoomAt(factor, sx, sy) {
   dirty = true;
 }
 function panTo(p) { cam.cx = p.x; cam.cy = p.y; dirty = true; }
-function fitRoute() {
-  const r = state.cmp && state.cmp.fast;
-  if (!r || r.nodes.length < 2) { fitAll(); return; }
-  const pts = r.nodes.map((id) => graph.nodes.get(id));
-  const minX = Math.min(...pts.map((p) => p.x)), maxX = Math.max(...pts.map((p) => p.x));
-  const minY = Math.min(...pts.map((p) => p.y)), maxY = Math.max(...pts.map((p) => p.y));
-  const pad = 140;
-  cam.scale = Math.max(0.05, Math.min(1.2, Math.min(W / (maxX - minX + 2 * pad), H / (maxY - minY + 2 * pad))));
-  cam.cx = (minX + maxX) / 2; cam.cy = (minY + maxY) / 2;
-  dirty = true;
-}
 
 // ---------- 그리기 ----------
 function line(a, b) { g2.beginPath(); g2.moveTo(a.x, a.y); g2.lineTo(b.x, b.y); g2.stroke(); }
+function polyPath(pts) { g2.beginPath(); pts.forEach((p, i) => { const s = w2s(p); if (i) g2.lineTo(s.x, s.y); else g2.moveTo(s.x, s.y); }); }
+function strokePts(pts, color, width, dash) { g2.strokeStyle = color; g2.lineWidth = width; g2.setLineDash(dash || []); polyPath(pts); g2.stroke(); g2.setLineDash([]); }
+function fillPts(pts, fill, stroke) { polyPath(pts); g2.closePath(); g2.fillStyle = fill; g2.fill(); if (stroke) { g2.strokeStyle = stroke; g2.lineWidth = 1; g2.stroke(); } }
 function rrect(x, y, w, h, r, fill, stroke) {
   g2.beginPath(); g2.roundRect(x, y, w, h, r);
   if (fill) { g2.fillStyle = fill; g2.fill(); }
@@ -878,68 +1434,104 @@ function haloText(txt, x, y, size, color, weight = 600) {
   g2.lineJoin = 'round'; g2.lineWidth = 4; g2.strokeStyle = C.bg; g2.strokeText(txt, x, y);
   g2.fillStyle = color; g2.fillText(txt, x, y);
 }
+function inView(p, margin = 60) { const s = w2s(p); return s.x > -margin && s.x < W + margin && s.y > -margin && s.y < H + margin; }
 
-// 도로명 위치: 같은 도로 위의 교차로 사이 중간점
-const streetLabels = (() => {
-  const out = [];
-  const its = [...graph.intersections.values()].filter((i) => i.kind === '4way');
-  for (const s of graph.streets) {
-    const on = its.filter((i) => (s.kind === 'ew' ? i.ew === s.id : i.ns === s.id));
-    const dir = s.kind === 'ew' ? graph.u : graph.v;
-    on.sort((a, b) => (a.x * dir.x + a.y * dir.y) - (b.x * dir.x + b.y * dir.y));
-    for (let i = 0; i + 1 < on.length; i++) {
-      out.push({ name: s.name, x: (on[i].x + on[i + 1].x) / 2, y: (on[i].y + on[i + 1].y) / 2, dir, width: s.width });
-    }
-  }
-  return out;
-})();
-
-function drawStreetName(l) {
+function drawLabelAlong(l) {
+  if (cam.scale < l.minScale || !inView(l)) return;
   const p = w2s(l);
   let ang = -Math.atan2(l.dir.y, l.dir.x);
   if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI;
   const size = cam.scale > 0.5 ? 13 : 11;
   g2.save(); g2.translate(p.x, p.y); g2.rotate(ang);
   g2.font = `500 ${size}px ${FONT}`; g2.textAlign = 'center'; g2.textBaseline = 'middle';
+  if (world.kind === 'osm') { g2.lineWidth = 3; g2.strokeStyle = C.road; g2.strokeText(l.name, 0, 0); }
   g2.fillStyle = C.ink3; g2.fillText(l.name, 0, 0);
   g2.restore();
 }
 
+function drawSchematicBase() {
+  for (const s of world.graph.streets) {
+    const a = w2s(s.from), b = w2s(s.to), wpx = Math.max(2, s.width * cam.scale);
+    g2.strokeStyle = C.roadEdge; g2.lineWidth = wpx + 2; line(a, b);
+    g2.strokeStyle = C.road; g2.lineWidth = wpx; line(a, b);
+    if (wpx > 12) { g2.strokeStyle = C.roadCenter; g2.lineWidth = 1; g2.setLineDash([10, 10]); line(a, b); g2.setLineDash([]); }
+  }
+}
+function drawOsmBase() {
+  const d = world.graph.draw;
+  g2.lineJoin = 'round'; g2.lineCap = 'round';
+  for (const a of d.green) fillPts(a.pts, C.park);
+  for (const a of d.water) fillPts(a.pts, C.water);
+  if (cam.scale >= 0.3) for (const b of d.buildings) { if (inView(b.pts[0], 200)) fillPts(b.pts, C.building, C.buildingEdge); }
+  for (const r of d.roads) {
+    const wpx = Math.max(1.5, r.width * cam.scale);
+    strokePts(r.pts, C.roadEdge, wpx + 2); strokePts(r.pts, C.road, wpx);
+  }
+  if (cam.scale >= 0.22) for (const p of d.paths) {
+    if (p.crossing) continue;
+    strokePts(p.pts, C.path, p.hw === 'steps' ? 3 : 1.5, p.tunnel ? [2, 6] : p.hw === 'steps' ? [3, 3] : null);
+  }
+  g2.lineCap = 'butt';
+}
+
 function drawRoute(r, color, width, dash) {
   g2.lineCap = 'round'; g2.lineJoin = 'round';
-  const seg = (e, d) => { g2.setLineDash(d || []); line(w2s(graph.nodes.get(e.a)), w2s(graph.nodes.get(e.b))); };
-  if (!dash) { g2.strokeStyle = C.surface; g2.lineWidth = width + 3; for (const e of r.edges) if (e.via !== 'underpass') seg(e); }
+  const seg = (e, d) => { g2.setLineDash(d || []); line(w2s(world.graph.nodes.get(e.a)), w2s(world.graph.nodes.get(e.b))); };
+  const under = (e) => e.via === 'underpass' || e.via === 'tunnel';
+  if (!dash) { g2.strokeStyle = C.surface; g2.lineWidth = width + 3; for (const e of r.edges) if (!under(e)) seg(e); }
   g2.strokeStyle = color; g2.lineWidth = width;
-  for (const e of r.edges) if (e.via !== 'underpass') seg(e, dash);
+  for (const e of r.edges) if (!under(e)) seg(e, dash);
   g2.lineWidth = Math.max(2, width - 1);
-  for (const e of r.edges) if (e.via === 'underpass') seg(e, [3, 7]);
+  for (const e of r.edges) if (under(e)) seg(e, [3, 7]);
   g2.setLineDash([]); g2.lineCap = 'butt';
 }
 
-function drawCrossing(e, t) {
-  const A = w2s(graph.nodes.get(e.a)), B = w2s(graph.nodes.get(e.b));
-  const s = sigState(e.signal.intersection, e.signal.leg, t);
-  const col = s.state === 'red' ? C.red : C.green;
-  const wpx = Math.max(4, 5 * cam.scale);
-  const selected = state.sel === e.id;
-  if (selected) { g2.strokeStyle = C.accent; g2.lineWidth = wpx + 8; g2.globalAlpha = 0.45; line(A, B); g2.globalAlpha = 1; }
-  g2.strokeStyle = col; g2.globalAlpha = 0.9; g2.lineWidth = wpx; line(A, B); g2.globalAlpha = 1;
-  if (cam.scale > 1.6) {
-    const L = e.length, dx = (B.x - A.x) / L, dy = (B.y - A.y) / L;
-    g2.strokeStyle = 'rgba(255,255,255,.85)'; g2.lineWidth = wpx * 0.7;
-    for (let i = 0.5; i + 0.5 < L; i += 1) line({ x: A.x + dx * i, y: A.y + dy * i }, { x: A.x + dx * (i + 0.5), y: A.y + dy * (i + 0.5) });
+function groupState(gr, t) {
+  if (gr.kind !== 'signals' || !gr.intersection) return { state: 'none', remain: 0 };
+  return sigState(gr.intersection, gr.leg, t);
+}
+function drawCrossings(t) {
+  const G = world.graph;
+  // 띠(간선마다)
+  for (const e of G.edges) {
+    if (e.kind !== 'cross' || !e.group) continue;
+    const gr = G.crossings.get(e.group); if (!gr) continue;
+    const A = w2s(G.nodes.get(e.a)), B = w2s(G.nodes.get(e.b));
+    if (!inView(G.nodes.get(e.a))) continue;
+    const s = groupState(gr, t);
+    const col = s.state === 'none' ? C.crossNone : s.state === 'red' ? C.red : C.green;
+    const wpx = Math.max(gr.kind === 'signals' ? 4 : 3, 5 * cam.scale);
+    const selected = state.sel === gr.id;
+    if (selected) { g2.strokeStyle = C.accent; g2.lineWidth = wpx + 8; g2.globalAlpha = 0.45; line(A, B); g2.globalAlpha = 1; }
+    g2.strokeStyle = col; g2.globalAlpha = gr.kind === 'signals' ? 0.9 : 0.7; g2.lineWidth = wpx; line(A, B); g2.globalAlpha = 1;
+    if (cam.scale > 1.6) {
+      const L = e.length, dx = (B.x - A.x) / L, dy = (B.y - A.y) / L;
+      g2.strokeStyle = 'rgba(255,255,255,.85)'; g2.lineWidth = wpx * 0.7;
+      for (let i = 0.5; i + 0.5 < L; i += 1) line({ x: A.x + dx * i, y: A.y + dy * i }, { x: A.x + dx * (i + 0.5), y: A.y + dy * (i + 0.5) });
+    }
   }
-  const mid = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
-  const onRoute = state.cmp && state.cmp.fast.edges.includes(e);
-  if (cam.scale >= 0.28 || selected || (onRoute && cam.scale >= 0.18)) {
-    // 숫자 알약은 교차로 중심에서 바깥쪽으로 밀어 네 개가 겹치지 않게 한다
-    const it = graph.intersections.get(e.signal.intersection);
-    const c = w2s(it);
-    let ox = mid.x - c.x, oy = mid.y - c.y;
+  // 숫자 알약(횡단보도 묶음마다). 교차로 중심에서 바깥쪽으로 밀어 겹치지 않게 한다.
+  const onRoute = new Set(state.cmp ? state.cmp.fast.edges.filter((e) => e.group).map((e) => e.group) : []);
+  for (const gr of G.crossings.values()) {
+    if (gr.kind !== 'signals' || !inView(gr.mid)) continue;
+    const selected = state.sel === gr.id;
+    if (!(cam.scale >= 0.28 || selected || (onRoute.has(gr.id) && cam.scale >= 0.18))) {
+      const m = w2s(gr.mid); g2.beginPath(); g2.arc(m.x, m.y, 3, 0, Math.PI * 2); g2.fillStyle = groupState(gr, t).state === 'red' ? C.red : C.green; g2.fill();
+      continue;
+    }
+    const s = groupState(gr, t);
+    const col = s.state === 'red' ? C.red : C.green;
+    const mid = w2s(gr.mid);
+    const it = gr.intersection ? G.intersections.get(gr.intersection) : null;
+    let ox = 0, oy = 0;
+    if (it) { const c = w2s(it); ox = mid.x - c.x; oy = mid.y - c.y; }
     const len = Math.hypot(ox, oy);
-    if (len < 1) { ox = -graph.v.x; oy = graph.v.y; } else { ox /= len; oy /= len; }
+    if (len < 1) {
+      const a = G.nodes.get(gr.nodes[0]), b = G.nodes.get(gr.nodes[gr.nodes.length - 1]);
+      ox = -(b.y - a.y); oy = -(b.x - a.x); const l2 = Math.hypot(ox, oy) || 1; ox /= l2; oy /= l2;
+    } else { ox /= len; oy /= len; }
     const fs = selected ? 15 : cam.scale >= 0.6 ? 12 : 11;
-    const push = wpx / 2 + (selected ? 14 : 11);
+    const push = Math.max(4, 5 * cam.scale) / 2 + (selected ? 14 : 11);
     const px = mid.x + ox * push, py = mid.y + oy * push;
     const blinkOff = s.state === 'flash' && !reduceMotion && Math.floor(Date.now() / 500) % 2 === 1;
     const txt = String(Math.min(999, Math.max(0, Math.ceil(s.remain))));
@@ -948,8 +1540,6 @@ function drawCrossing(e, t) {
     rrect(px - pw / 2, py - ph / 2, pw, ph, 6, col, selected ? C.ink : 'rgba(255,255,255,.9)');
     g2.fillStyle = blinkOff ? 'rgba(255,255,255,.45)' : '#fff';
     g2.textAlign = 'center'; g2.textBaseline = 'middle'; g2.fillText(txt, px, py + 0.5);
-  } else {
-    g2.beginPath(); g2.arc(mid.x, mid.y, 3, 0, Math.PI * 2); g2.fillStyle = col; g2.fill();
   }
 }
 
@@ -962,27 +1552,24 @@ function drawPin(node, label, fill, ink) {
 
 function draw() {
   const t = clock.now();
+  const G = world.graph;
   g2.setTransform(DPR, 0, 0, DPR, 0, 0);
   g2.fillStyle = C.bg; g2.fillRect(0, 0, W, H);
   g2.lineCap = 'butt'; g2.lineJoin = 'round';
-  for (const s of graph.streets) {
-    const a = w2s(s.from), b = w2s(s.to), wpx = Math.max(2, s.width * cam.scale);
-    g2.strokeStyle = C.roadEdge; g2.lineWidth = wpx + 2; line(a, b);
-    g2.strokeStyle = C.road; g2.lineWidth = wpx; line(a, b);
-    if (wpx > 12) { g2.strokeStyle = C.roadCenter; g2.lineWidth = 1; g2.setLineDash([10, 10]); line(a, b); g2.setLineDash([]); }
-  }
-  if (cam.scale > 0.12) for (const l of streetLabels) drawStreetName(l);
+  if (world.kind === 'schematic') drawSchematicBase(); else drawOsmBase();
+  for (const l of world.labels) drawLabelAlong(l);
   if (state.cmp) {
     if (!state.cmp.sameRoute) drawRoute(state.cmp.dist, C.ink3, 3, [7, 7]);
     drawRoute(state.cmp.fast, C.accent, 5, null);
   }
-  for (const e of graph.edges) if (e.kind === 'cross') drawCrossing(e, t);
+  drawCrossings(t);
   if (cam.scale > 0.16) {
-    for (const it of graph.intersections.values()) {
-      if (it.kind !== '4way') continue;
+    for (const it of G.intersections.values()) {
+      if (it.kind === 'midblock' || !inView(it)) continue;
       const p = w2s(it);
-      const ew = graph.area.ew.find((s) => s.id === it.ew);
-      const lift = (ew.width / 2 + 3) * cam.scale + (cam.scale >= 0.18 ? 34 : 10);
+      let lift;
+      if (world.kind === 'schematic') { const ew = G.area.ew.find((s) => s.id === it.ew); lift = (ew.width / 2 + 3) * cam.scale + (cam.scale >= 0.18 ? 34 : 10); }
+      else lift = 28 * cam.scale + 30;
       haloText(it.name, p.x, p.y - lift, cam.scale > 0.45 ? 13 : 12, C.ink2);
     }
   }
@@ -992,8 +1579,8 @@ function draw() {
     g2.beginPath(); g2.arc(p.x, p.y, 7, 0, Math.PI * 2); g2.fillStyle = C.accent; g2.fill();
     g2.lineWidth = 2; g2.strokeStyle = '#fff'; g2.stroke();
   }
-  if (state.from) drawPin(graph.nodes.get(state.from), '출', C.accent, C.accentInk);
-  if (state.to) drawPin(graph.nodes.get(state.to), '도', C.ink, C.surface);
+  if (state.from && G.nodes.get(state.from)) drawPin(G.nodes.get(state.from), '출', C.accent, C.accentInk);
+  if (state.to && G.nodes.get(state.to)) drawPin(G.nodes.get(state.to), '도', C.ink, C.surface);
   lastDraw = Date.now(); dirty = false;
 }
 
@@ -1039,16 +1626,16 @@ cv.addEventListener('wheel', (ev) => { ev.preventDefault(); const rect = cv.getB
 function onTap(sx, sy) {
   const p = s2w(sx, sy);
   if (state.tapMode) {
-    const nn = nearestNode(graph, p);
-    if (!nn || nn.d > 140) { toast('보도 가까이를 눌러주세요.'); return; }
+    const nn = nearestNode(world.graph, p);
+    if (!nn || nn.d > 140) { toast('길 가까이를 눌러주세요.'); return; }
     const which = state.tapMode;
     setEndpoint(which, nn.node.id, nn.node.label);
     setTapMode(null);
     toast(`${which === 'from' ? '출발' : '도착'} 지점을 지정했습니다.`);
     return;
   }
-  const hit = nearestCrossing(graph, p, Math.max(8, 18 / cam.scale));
-  if (hit) { selectCrossing(hit.edge.id); return; }
+  const hit = nearestCrossing(world.graph, p, Math.max(8, 18 / cam.scale));
+  if (hit && hit.group) { selectCrossing(hit.group.id); return; }
   if (state.sel) { state.sel = null; renderPanel(); dirty = true; }
 }
 function setTapMode(mode) {
@@ -1056,7 +1643,7 @@ function setTapMode(mode) {
   cv.classList.toggle('aim', !!mode);
   const hint = $('#hint');
   hint.hidden = !mode;
-  if (mode) hint.textContent = mode === 'from' ? '지도에서 출발 지점(보도)을 누르세요' : '지도에서 도착 지점(보도)을 누르세요';
+  if (mode) hint.textContent = mode === 'from' ? '지도에서 출발 지점(길)을 누르세요' : '지도에서 도착 지점(길)을 누르세요';
 }
 
 // ---------- 출발·도착 ----------
@@ -1068,15 +1655,15 @@ function setEndpoint(which, nodeId, label) {
 function buildSelects() {
   for (const [sel, which] of [[$('#selFrom'), 'from'], [$('#selTo'), 'to']]) {
     sel.innerHTML = '';
-    const opts = [...graph.pois.map((p) => ({ v: p.node, t: p.name })), { v: '__map', t: '지도에서 선택…' }];
+    const opts = [...world.graph.pois.map((p) => ({ v: p.node, t: p.name })), { v: '__map', t: '지도에서 선택…' }];
     if (state.user) opts.unshift({ v: '__user', t: '내 위치' });
     for (const o of opts) { const el = document.createElement('option'); el.value = o.v; el.textContent = o.t; sel.appendChild(el); }
     const custom = document.createElement('option'); custom.value = '__custom'; custom.hidden = true; sel.appendChild(custom);
     sel.onchange = () => {
       const v = sel.value;
       if (v === '__map') { setTapMode(which); syncSelects(); toast(`지도에서 ${which === 'from' ? '출발' : '도착'} 지점을 누르세요.`); return; }
-      if (v === '__user') { const nn = nearestNode(graph, state.user); setEndpoint(which, nn.node.id, '내 위치'); return; }
-      const poi = graph.pois.find((p) => p.node === v);
+      if (v === '__user') { const nn = nearestNode(world.graph, state.user); setEndpoint(which, nn.node.id, '내 위치'); return; }
+      const poi = world.graph.pois.find((p) => p.node === v);
       if (poi) setEndpoint(which, poi.node, poi.name);
     };
   }
@@ -1084,7 +1671,7 @@ function buildSelects() {
 }
 function syncSelects() {
   for (const [sel, node, label] of [[$('#selFrom'), state.from, state.fromLabel], [$('#selTo'), state.to, state.toLabel]]) {
-    const poi = graph.pois.find((p) => p.node === node);
+    const poi = world.graph.pois.find((p) => p.node === node && p.name === label);
     if (poi) sel.value = poi.node;
     else { const c = sel.querySelector('option[value="__custom"]'); c.textContent = label; c.hidden = false; sel.value = '__custom'; }
   }
@@ -1098,33 +1685,42 @@ $('#swap').addEventListener('click', () => {
 // ---------- 경로 계산과 패널 ----------
 function recompute() {
   lastCmp = Date.now(); cmpDirty = false;
-  state.cmp = state.from && state.to && state.from !== state.to ? compare(graph, adj, state.from, state.to, clock.now(), routeCtx()) : null;
+  const G = world.graph;
+  state.cmp = state.from && state.to && state.from !== state.to && G.nodes.has(state.from) && G.nodes.has(state.to)
+    ? compare(G, world.adj, state.from, state.to, clock.now(), routeCtx()) : null;
   dirty = true;
   if (!state.sel) renderPanel();
 }
 
 function stepRows(route) {
   const rows = []; let acc = null;
+  const flush = () => { if (acc) { rows.push(acc); acc = null; } };
   for (const s of route.steps) {
     if (s.kind === 'walk') {
-      const via = s.edge.via || 'walk';
-      if (acc && (acc.via !== via || acc.street !== s.edge.street)) { rows.push(acc); acc = null; }
-      if (!acc) acc = { kind: 'walk', length: 0, sec: 0, via, street: s.edge.street, tArrive: s.tArrive };
+      const via = s.edge.via || (s.edge.hw === 'steps' ? 'steps' : 'walk');
+      const name = world.walkName(s.edge);
+      if (acc && (acc.kind !== 'walk' || acc.via !== via || acc.name !== name)) flush();
+      if (!acc) acc = { kind: 'walk', length: 0, sec: 0, via, name, tArrive: s.tArrive };
       acc.length += s.length; acc.sec += s.walkSec;
-    } else { if (acc) { rows.push(acc); acc = null; } rows.push(s); }
+    } else {
+      const gid = s.edge.group;
+      if (acc && acc.kind === 'cross' && acc.group === gid) { acc.length += s.length; acc.sec += s.walkSec; continue; }
+      flush();
+      acc = { kind: 'cross', group: gid, length: s.length, sec: s.walkSec, wait: s.wait, tArrive: s.tArrive, crossAt: s.crossAt, signal: !!s.edge.signal, name: crossingName(world.graph, s.edge) };
+    }
   }
-  if (acc) rows.push(acc);
+  flush();
   return rows;
 }
 function stepsHTML(route) {
   return `<ol class="steps">${stepRows(route).map((r) => {
     if (r.kind === 'walk') {
-      const what = r.via === 'underpass' ? '지하보도로 건너기 (계단 포함)' : `${streetName[r.street] || ''} 보도 따라 걷기`;
+      const what = r.via === 'underpass' ? '지하보도로 건너기 (계단 포함)' : r.via === 'tunnel' ? `${r.name} (지하 통로)` : r.via === 'steps' ? '계단' : `${r.name} 따라 걷기`;
       return `<li class="step"><span class="chip walk">${fmtDur(r.sec)}</span><div><b>${esc(what)}</b><div class="meta">${fmtDist(r.length)}</div></div></li>`;
     }
-    const e = r.edge, name = crossingName(graph, e);
     const chip = r.wait > 0.5 ? `<span class="chip wait">${fmtDur(r.wait)} 대기</span>` : '<span class="chip go">바로 건넘</span>';
-    return `<li class="step">${chip}<div><b>${esc(name)}</b><div class="meta">${fmtClock(r.tArrive)} 도착 → ${fmtClock(r.crossAt)} 건너기 시작 · ${Math.round(r.length)} m</div></div></li>`;
+    const meta = r.signal ? `${fmtClock(r.tArrive)} 도착 → ${fmtClock(r.crossAt)} 건너기 시작 · ${Math.round(r.length)} m` : `신호 없음 · 차를 살피고 건너기 · ${Math.round(r.length)} m`;
+    return `<li class="step">${chip}<div><b>${esc(r.name)}</b><div class="meta">${meta}</div></div></li>`;
   }).join('')}</ol>`;
 }
 function routeHTML(c) {
@@ -1138,10 +1734,10 @@ function routeHTML(c) {
   } else {
     verdict = '지금 출발하면 두 방식의 차이가 거의 없습니다. 거리만 본 경로도 신호가 잘 맞습니다.';
   }
-  const notes = c.notes.filter((n) => n.diff >= 5).map((n) => `<p class="note"><b>${esc(n.name)}</b>에서는 ${LEG_SHORT[n.first]} 횡단보도를 먼저 건너세요. ${LEG_SHORT[n.altFirst]}부터 건너면 ${fmtDur(n.diff)} 더 걸립니다.</p>`).join('');
+  const notes = c.notes.filter((n) => n.diff >= 5).map((n) => `<p class="note"><b>${esc(n.name)}</b>에서는 ${LEG_SHORT[n.first] || ''} 횡단보도를 먼저 건너세요. ${LEG_SHORT[n.altFirst] || '다른 쪽'}부터 건너면 ${fmtDur(n.diff)} 더 걸립니다.</p>`).join('');
   const slack = c.slack >= 15 ? `<p class="note">지금 출발해도, <b>${fmtDur(c.slack)} 뒤</b>에 출발해도 도착 시각은 같습니다. 어차피 신호에서 기다리게 되니 서두르지 않아도 됩니다.</p>` : '';
-  const live1 = live.on && live.ok ? '실시간 신호' : '시뮬레이션 신호';
-  return `<div class="route-head"><span><b>${esc(state.fromLabel)}</b> → <b>${esc(state.toLabel)}</b></span><span>${live1} · ${settings.speed.toFixed(1)} m/s</span></div>
+  const src = live.on && live.ok ? '실시간 신호' : '시뮬레이션 신호';
+  return `<div class="route-head"><span><b>${esc(state.fromLabel)}</b> → <b>${esc(state.toLabel)}</b></span><span>${src} · ${settings.speed.toFixed(1)} m/s</span></div>
 <div class="cmp">${row('fast', '신호 보고 걷기', fast)}${row('dist', '거리만 보고 걷기', d)}</div>
 <p class="verdict">${verdict}</p>${slack}${notes}
 <h2 class="sec">신호 보고 걷기 · 단계별</h2>${stepsHTML(fast)}
@@ -1161,25 +1757,33 @@ function ledSVG(n, cls) {
   return `<svg class="led ${cls}" viewBox="0 0 196 100" aria-hidden="true">${body}</svg>`;
 }
 
-function crossingInfo(edgeId) {
-  const e = graph.edges.find((x) => x.id === edgeId);
-  const it = graph.intersections.get(e.signal.intersection);
-  const leg = it.legs[e.signal.leg];
+function crossingInfo(groupId) {
+  const G = world.graph;
+  const gr = G.crossings.get(groupId);
+  const it = gr && gr.intersection ? G.intersections.get(gr.intersection) : null;
   const t = clock.now();
-  const s = sigState(it.id, e.signal.leg, t);
-  const need = e.length / settings.speed;
-  const plan = plans.get(it.id);
-  const nextStart = s.state === 'red' ? t + s.remain : nextGreenStart(plan, e.signal.leg, t);
-  return { e, it, leg, t, s, need, plan, nextStart };
+  const need = (gr.length / settings.speed);
+  if (!it || gr.kind !== 'signals') return { gr, it: null, t, s: { state: 'none', remain: 0 }, need, plan: null, nextStart: null };
+  const s = sigState(it.id, gr.leg, t);
+  const plan = world.plans.get(it.id);
+  const nextStart = s.state === 'red' ? t + s.remain : nextGreenStart(plan, gr.leg, t);
+  return { gr, it, t, s, need, plan, nextStart };
 }
-function crossingHTML(edgeId) {
-  const { e, it, leg, s, need, plan } = crossingInfo(edgeId);
-  const title = it.kind === 'midblock' ? it.name : `${it.name} ${leg.name}`;
-  const sub = `${leg.across} 건너기 · ${Math.round(e.length)} m · ${settings.speed.toFixed(1)} m/s로 ${fmtDur(need)}`;
-  const greenDur = (plan.starts[e.signal.leg] || [{ dur: 0 }])[0].dur;
+function crossingHTML(groupId) {
+  const { gr, it, s, need, plan } = crossingInfo(groupId);
+  const sub = `${gr.across} 건너기 · ${Math.round(gr.length)} m · ${settings.speed.toFixed(1)} m/s로 ${fmtDur(need)}`;
+  if (!it) {
+    return `<div class="xcard">
+<div class="xhead"><div><div class="xname">${esc(gr.name)}</div><div class="xsub">${esc(sub)}</div></div><button class="btn" id="btnCloseX" type="button">닫기</button></div>
+<p class="note">${gr.kind === 'marked' ? '신호등이 없는 횡단보도입니다. 차를 살피고 건너세요. 경로 계산에는 4초를 더합니다.' : '신호도 표시도 없는 횡단 지점입니다. 경로 계산에는 2초를 더합니다.'}</p>
+<div class="xactions"><button class="btn primary" id="btnFromHere" type="button">여기서 출발</button><button class="btn" id="btnToHere" type="button">여기까지</button></div>
+</div>`;
+  }
+  const greenDur = (plan.starts[gr.leg] || [{ dur: 0 }])[0].dur;
+  void s;
   return `<div class="xcard">
-<div class="xhead"><div><div class="xname">${esc(title)}</div><div class="xsub">${esc(sub)}</div></div><button class="btn" id="btnCloseX" type="button">닫기</button></div>
-<div class="ledwrap"><div id="led">${ledSVG(s.remain, s.state)}</div><div class="ledlabel" id="ledLabel"></div></div>
+<div class="xhead"><div><div class="xname">${esc(gr.name)}</div><div class="xsub">${esc(sub)}</div></div><button class="btn" id="btnCloseX" type="button">닫기</button></div>
+<div class="ledwrap"><div id="led"></div><div class="ledlabel" id="ledLabel"></div></div>
 <div class="xverdict" id="xverdict"></div>
 <div class="xplan">신호 주기 ${plan.cycle}초 · 보행 초록불 ${greenDur}초 · <span id="xnext"></span></div>
 <div class="xactions"><button class="btn primary" id="btnFromHere" type="button">여기서 출발</button><button class="btn" id="btnToHere" type="button">여기까지</button></div>
@@ -1187,7 +1791,7 @@ function crossingHTML(edgeId) {
 }
 function updateCrossingCard() {
   const led = $('#led'); if (!led) return;
-  const { e, it, leg, s, need, nextStart, t } = crossingInfo(state.sel);
+  const { s, need, nextStart, t } = crossingInfo(state.sel);
   led.innerHTML = ledSVG(s.remain, s.state);
   const liveTag = s.live ? ' (실시간)' : '';
   if (s.state === 'red') {
@@ -1200,14 +1804,12 @@ function updateCrossingCard() {
     $('#xverdict').textContent = ok ? `지금 건너면 ${fmtDur(s.remain - need)} 남기고 도착합니다.` : `남은 시간이 부족합니다. 다음 초록불(${fmtClock(nextStart)})을 기다리세요.`;
   }
   $('#xnext').textContent = `다음 초록불 ${fmtClock(nextStart)} · 지금 ${fmtClock(t)}`;
-  void e; void it; void leg;
 }
-function selectCrossing(edgeId) {
-  state.sel = edgeId; dirty = true;
-  const e = graph.edges.find((x) => x.id === edgeId);
-  const mid = { x: (graph.nodes.get(e.a).x + graph.nodes.get(e.b).x) / 2, y: (graph.nodes.get(e.a).y + graph.nodes.get(e.b).y) / 2 };
-  const sp = w2s(mid);
-  if (sp.x < 40 || sp.x > W - 40 || sp.y < 40 || sp.y > H - 40) panTo(mid);
+function selectCrossing(groupId) {
+  const gr = world.graph.crossings.get(groupId); if (!gr) return;
+  state.sel = groupId; dirty = true;
+  const sp = w2s(gr.mid);
+  if (sp.x < 40 || sp.x > W - 40 || sp.y < 40 || sp.y > H - 40) panTo(gr.mid);
   renderPanel();
 }
 function renderPanel() {
@@ -1217,18 +1819,120 @@ function renderPanel() {
     updateCrossingCard();
     $('#btnCloseX').onclick = () => { state.sel = null; renderPanel(); dirty = true; };
     const pick = (which) => {
-      const e = graph.edges.find((x) => x.id === state.sel);
-      const a = graph.nodes.get(e.a);
-      setEndpoint(which, a.id, a.label);
-      toast(`${which === 'from' ? '출발' : '도착'} 지점을 ${a.label}으로 정했습니다.`);
+      const gr = world.graph.crossings.get(state.sel);
+      const a = world.graph.nodes.get(gr.nodes[0]);
+      setEndpoint(which, a.id, gr.name);
+      toast(`${which === 'from' ? '출발' : '도착'} 지점을 ${gr.name} 앞으로 정했습니다.`);
     };
     $('#btnFromHere').onclick = () => pick('from');
     $('#btnToHere').onclick = () => pick('to');
     return;
   }
   if (state.cmp) { const top = panel.scrollTop; panel.innerHTML = routeHTML(state.cmp); panel.scrollTop = top; return; }
-  panel.innerHTML = '<p class="note">출발과 도착을 고르면 거리만 본 경로와 신호를 본 경로를 비교합니다. 지도의 횡단보도를 누르면 그 신호의 잔여시간을 봅니다.</p>';
+  panel.innerHTML = state.from && state.to && state.from !== state.to
+    ? '<p class="note">두 지점을 잇는 길을 찾지 못했습니다. 지도에 보도 정보가 없는 곳일 수 있습니다. 다른 지점을 골라보세요.</p>'
+    : '<p class="note">출발과 도착을 고르면 거리만 본 경로와 신호를 본 경로를 비교합니다. 지도의 횡단보도를 누르면 그 신호의 잔여시간을 봅니다.</p>';
 }
+
+// ---------- 지도 바꾸기(개략도 ↔ 실제 지도) ----------
+const osm = { loading: false, status: '' };
+function setMapStatus(msg) { osm.status = msg; const el = $('#mapStatus'); if (el) el.textContent = msg; }
+function renderMapNow() {
+  const el = $('#mapNow'); if (!el) return;
+  const G = world.graph;
+  el.innerHTML = world.kind === 'schematic'
+    ? `<span class="pill">개략도</span><b>${esc(G.area.name)}</b><span class="status">실제 거리로 그린 격자. 신호는 시뮬레이션.</span>`
+    : `<span class="pill osm">실제 지도</span><b>${esc(world.meta.label || G.area.name)}</b><span class="status">길 ${G.stats.edges}개 · 횡단보도 ${G.stats.crossings}개(신호 ${G.stats.signalized}) · 교차로 ${G.stats.intersections}곳 · 출입구 ${G.stats.pois}곳</span>`;
+  $('#attrib').hidden = world.kind !== 'osm';
+  $('#areaNote').textContent = `${world.kind === 'schematic' ? '데모 지역' : '지도'}: ${G.area.name}. ${G.area.note}`;
+}
+function pickDefaultEndpoints(opts = {}) {
+  const G = world.graph;
+  if (world.kind === 'schematic') {
+    state.from = 'gangnamdaero|teheranro#SW'; state.fromLabel = '강남역';
+    state.to = 'nonhyeonro|bongeunsaro#NE'; state.toLabel = '언주역';
+    return;
+  }
+  const center = opts.userPos || { x: 0, y: 0 };
+  let from = null, to = null;
+  if (opts.userPos) { const nn = nearestNode(G, opts.userPos); if (nn) from = { node: nn.node.id, name: '내 위치' }; }
+  const pois = G.pois.slice();
+  if (!from && pois.length) { pois.sort((a, b) => dist(a, center) - dist(b, center)); from = { node: pois[0].node, name: pois[0].name }; }
+  if (!from) { const nn = nearestNode(G, center); from = nn ? { node: nn.node.id, name: nn.node.label } : null; }
+  if (from) {
+    const fp = G.nodes.get(from.node);
+    const far = pois.filter((p) => p.node !== from.node).sort((a, b) => dist(b, fp) - dist(a, fp))[0];
+    if (far) to = { node: far.node, name: far.name };
+    else { let best = null, bd = -1; for (const n of G.nodes.values()) { const d = dist(n, fp); if (d > bd) { bd = d; best = n; } } if (best) to = { node: best.id, name: best.label }; }
+  }
+  state.from = from ? from.node : null; state.fromLabel = from ? from.name : '';
+  state.to = to ? to.node : null; state.toLabel = to ? to.name : '';
+}
+function setWorld(graph, meta = {}, opts = {}) {
+  world = makeWorld(graph, meta);
+  state.sel = null; state.cmp = null; setTapMode(null);
+  state.user = opts.userPos || null;
+  live.obs.clear();
+  pickDefaultEndpoints(opts);
+  buildSelects(); renderMapNow(); updateBadge();
+  recompute(); fitRoute();
+}
+async function fetchOsm(kind, bbox, onStatus) {
+  if (settings.apiBase) {
+    try {
+      onStatus('서버에서 지도 데이터를 받는 중…');
+      const u = `${settings.apiBase.replace(/\/+$/, '')}/api/osm?kind=${kind}&s=${bbox.s}&w=${bbox.w}&n=${bbox.n}&e=${bbox.e}`;
+      const r = await fetch(u, { cache: 'no-store' });
+      if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || `HTTP ${r.status}`); }
+      return await r.json();
+    } catch (e) { onStatus(`서버 실패(${e.message || e}), OpenStreetMap에 직접 요청…`); }
+  }
+  return fetchOverpass(kind === 'context' ? contextQuery(bbox) : networkQuery(bbox), { onStatus });
+}
+async function loadRealMap(center, radius, label, opts = {}) {
+  if (osm.loading) return;
+  osm.loading = true; $('#btnLoadMap').disabled = true;
+  const bbox = bboxAround(center.lat, center.lon, radius);
+  try {
+    const net = await fetchOsm('network', bbox, setMapStatus);
+    setMapStatus('보행 그래프를 만드는 중…');
+    await new Promise((r) => setTimeout(r, 20));
+    const graph = buildOsmWorld(net, null, { center, name: label });
+    if (graph.nodes.size < 20) throw new Error('이 지역에는 걸을 수 있는 길 데이터가 거의 없습니다.');
+    const userPos = opts.userLatLon ? graph.proj.toLocal(opts.userLatLon.lat, opts.userLatLon.lon) : null;
+    setWorld(graph, { label, center, radius }, { userPos });
+    setMapStatus(`불러왔습니다. 길 ${graph.stats.edges}개, 횡단보도 ${graph.stats.crossings}개(신호 ${graph.stats.signalized}), 교차로 ${graph.stats.intersections}곳.`);
+    toast(`실제 지도: ${label}. 횡단보도 ${graph.stats.crossings}개를 찾았습니다.`);
+    fetchOsm('context', bbox, () => {}).then((ctxData) => { if (world.graph === graph) { addContext(graph, ctxData); renderMapNow(); dirty = true; } }).catch(() => {});
+  } catch (e) {
+    const msg = e && e.name === 'AbortError' ? '응답이 너무 오래 걸립니다. 반경을 줄여보세요.' : (e && e.message) || String(e);
+    const blocked = /Failed to fetch|NetworkError|Load failed/i.test(msg);
+    setMapStatus(`실패: ${blocked ? '이 환경에서는 지도 서버에 접근할 수 없습니다. 넷리파이 같은 일반 웹 주소에서 열어주세요.' : msg}`);
+    toast('실제 지도를 불러오지 못했습니다.');
+  } finally {
+    osm.loading = false; $('#btnLoadMap').disabled = false;
+  }
+}
+function openMapSheet(open) { $('#mapsheet').hidden = !open; if (open) { renderMapNow(); setMapStatus(osm.status); } }
+$('#btnMap').addEventListener('click', () => openMapSheet(true));
+$('#btnCloseMap').addEventListener('click', () => openMapSheet(false));
+$('#btnSchematic').addEventListener('click', () => { setWorld(SCHEMATIC, { label: '개략도 · 강남 테헤란로 일대' }); setMapStatus(''); toast('개략도로 돌아왔습니다.'); });
+$('#btnLoadMap').addEventListener('click', async () => {
+  const which = $('#inCenter').value, radius = Number($('#inRadius').value) || 700;
+  if (which === 'user') {
+    const ll = await getPosition();
+    if (!ll) return;
+    await loadRealMap(ll, radius, '내 위치 주변', { userLatLon: ll });
+    return;
+  }
+  if (which === 'view') {
+    const c = world.graph.proj.toLatLon(cam.cx, cam.cy);
+    await loadRealMap(c, radius, '지금 보는 곳 주변');
+    return;
+  }
+  const pl = PLACES[which] || PLACES.gangnam;
+  await loadRealMap({ lat: pl.lat, lon: pl.lon }, radius, pl.name);
+});
 
 // ---------- 배지·설정·토스트 ----------
 function updateBadge() {
@@ -1249,7 +1953,7 @@ function updateBadge() {
 }
 function toast(msg) {
   const el = $('#toast'); el.textContent = msg; el.hidden = false;
-  clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 2800);
+  clearTimeout(toastT); toastT = setTimeout(() => { el.hidden = true; }, 3200);
 }
 function openSettings(open) { $('#settings').hidden = !open; }
 $('#btnSettings').addEventListener('click', () => openSettings(true));
@@ -1273,20 +1977,36 @@ $('#btnLive').addEventListener('click', async () => {
   updateBadge(); $('#liveStatus').textContent = '연결 중…';
   await liveConnect(settings.apiBase || '');
 });
-$('#areaNote').textContent = `데모 지역: ${graph.area.name}. ${graph.area.note} 교차로 ${[...graph.intersections.values()].filter((i) => i.kind === '4way').length}곳, 단일로 횡단보도 ${[...graph.intersections.values()].filter((i) => i.kind === 'midblock').length}곳.`;
+inApi.addEventListener('change', () => { settings.apiBase = inApi.value.trim(); saveSettings(); });
 
 // ---------- 내 위치 ----------
-function locate() {
-  if (!navigator.geolocation) { toast('이 환경에서는 위치를 쓸 수 없습니다.'); return; }
-  toast('위치를 확인하는 중…');
-  navigator.geolocation.getCurrentPosition((pos) => {
-    const p = toLocal(pos.coords.latitude, pos.coords.longitude);
-    const b = graph.bounds;
-    const inside = p.x > b.minX - 600 && p.x < b.maxX + 600 && p.y > b.minY - 600 && p.y < b.maxY + 600;
-    if (!inside) { state.user = null; toast(`데모 지역(강남) 밖입니다. 강남역에서 ${fmtDist(dist(p, { x: 0, y: 0 }))} 떨어져 있어요.`); dirty = true; return; }
-    state.user = p; panTo(p); buildSelects();
-    toast('내 위치를 표시했습니다. 출발 목록에서 "내 위치"를 고를 수 있어요.');
-  }, (err) => toast(`위치를 가져오지 못했습니다. ${err && err.message ? err.message : '권한이 없습니다.'}`), { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 });
+function getPosition() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { toast('이 환경에서는 위치를 쓸 수 없습니다.'); resolve(null); return; }
+    toast('위치를 확인하는 중…');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      (err) => { toast(`위치를 가져오지 못했습니다. ${err && err.message ? err.message : '권한이 없습니다.'}`); resolve(null); },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 });
+  });
+}
+async function locate() {
+  const ll = await getPosition();
+  if (!ll) return;
+  state.userLatLon = ll;
+  const G = world.graph;
+  const p = G.proj.toLocal(ll.lat, ll.lon);
+  const b = G.bounds;
+  const inside = p.x > b.minX - 400 && p.x < b.maxX + 400 && p.y > b.minY - 400 && p.y < b.maxY + 400;
+  if (!inside) {
+    state.user = null; dirty = true;
+    const d = dist(p, { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 });
+    toast(`지금 지도 범위 밖입니다 (약 ${fmtDist(d)} 떨어짐). 지도 버튼에서 '내 위치 주변'을 불러오세요.`);
+    $('#inCenter').value = 'user'; openMapSheet(true);
+    return;
+  }
+  state.user = p; panTo(p); buildSelects();
+  toast('내 위치를 표시했습니다. 출발 목록에서 "내 위치"를 고를 수 있어요.');
 }
 
 // ---------- 시작 ----------
@@ -1303,13 +2023,13 @@ if (window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEven
 new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { dirty = true; });
 
-readTheme(); resize(); buildSelects(); syncOutputs(); updateBadge(); recompute();
+readTheme(); resize(); buildSelects(); syncOutputs(); updateBadge(); renderMapNow(); recompute();
 requestAnimationFrame(() => { resize(); fitRoute(); });
 if (settings.apiBase) liveConnect(settings.apiBase);
 requestAnimationFrame(loop);
 
 // 테스트와 디버깅용 손잡이(화면 동작에는 쓰지 않음)
-window.__greenlight = { state, graph, cam, settings, live, w2s: (p) => w2s(p), recompute, selectCrossing };
+window.__greenlight = { get world() { return world; }, state, cam, settings, live, w2s: (p) => w2s(p), recompute, selectCrossing, loadRealMap, setWorld, SCHEMATIC };
 
 })();</script>
 

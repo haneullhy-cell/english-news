@@ -1,6 +1,6 @@
 // 데모 지역(강남 테헤란로 일대)의 개략 도로망과 보행 그래프.
 // 실제 역 사이 거리를 바탕으로 격자를 잡았고 도로는 직선으로 단순화했다. 신호 시간은 시뮬레이션 값이다.
-import { dist, pointToSegment } from './geo.js';
+import { dist, pointToSegment, makeProjection, ORIGIN } from './geo.js';
 import { makePlan, pedGreenFor } from './signal.js';
 
 const rad = (d) => (d * Math.PI) / 180;
@@ -91,6 +91,7 @@ export function buildDemo(area = DEMO_AREA) {
   const nodes = new Map();
   const edges = [];
   const intersections = new Map();
+  const crossings = new Map();
   const addNode = (id, p, kind, label) => { nodes.set(id, { id, x: p.x, y: p.y, kind, label }); return id; };
   const addEdge = (a, b, kind, extra = {}) => {
     const e = { id: `e${edges.length}`, a, b, kind, length: dist(nodes.get(a), nodes.get(b)), ...extra };
@@ -134,7 +135,12 @@ export function buildDemo(area = DEMO_AREA) {
       const it = { id, name, x: c.x, y: c.y, kind: '4way', ew: ew.id, ns: ns.id, legs, plan, corners: { NE, NW, SE, SW }, itstId: null };
       intersections.set(id, it);
       for (const [leg, L] of Object.entries(legs)) {
-        L.edge = addEdge(L.nodes[0], L.nodes[1], 'cross', { signal: { intersection: id, leg } }).id;
+        const gid = `${id}:${leg}`;
+        const e = addEdge(L.nodes[0], L.nodes[1], 'cross', { signal: { intersection: id, leg }, group: gid, delay: 0 });
+        e.crossTotal = e.length;
+        L.edge = e.id; L.crossings = [gid];
+        const A = nodes.get(L.nodes[0]), B = nodes.get(L.nodes[1]);
+        crossings.set(gid, { id: gid, nodes: [...L.nodes], edges: [e.id], length: e.length, mid: { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 }, kind: 'signals', across: L.across, intersection: id, leg, name: `${name} ${L.name}` });
       }
       if ((area.underpasses || []).includes(id)) {
         it.underpass = true;
@@ -164,10 +170,12 @@ export function buildDemo(area = DEMO_AREA) {
         const N = addNode(`${mb.id}#N`, shift(c, 0, hv), 'mid', `${mb.name} 북측`);
         const S = addNode(`${mb.id}#S`, shift(c, 0, -hv), 'mid', `${mb.name} 남측`);
         walk(prevN, N, ew); walk(prevS, S, ew);
-        const leg = { name: LEG_NAMES.xw, across: ew.name, length: 2 * hv, nodes: [N, S] };
+        const leg = { name: LEG_NAMES.xw, across: ew.name, length: 2 * hv, nodes: [N, S], crossings: [`${mb.id}:xw`] };
         const it = { id: mb.id, name: mb.name, x: c.x, y: c.y, kind: 'midblock', ew: ew.id, legs: { xw: leg }, plan: midblockPlan(area, ew, leg, mb.a), itstId: null };
         intersections.set(mb.id, it);
-        leg.edge = addEdge(N, S, 'cross', { signal: { intersection: mb.id, leg: 'xw' } }).id;
+        const ce = addEdge(N, S, 'cross', { signal: { intersection: mb.id, leg: 'xw' }, group: `${mb.id}:xw`, delay: 0 });
+        ce.crossTotal = ce.length; leg.edge = ce.id;
+        crossings.set(`${mb.id}:xw`, { id: `${mb.id}:xw`, nodes: [N, S], edges: [ce.id], length: ce.length, mid: { x: c.x, y: c.y }, kind: 'signals', across: ew.name, intersection: mb.id, leg: 'xw', name: mb.name });
         prevN = N; prevS = S;
       }
       walk(prevN, I2.corners.NW, ew); walk(prevS, I2.corners.SW, ew);
@@ -196,7 +204,7 @@ export function buildDemo(area = DEMO_AREA) {
 
   const pois = [...intersections.values()].filter((it) => it.kind === '4way').map((it) => ({ id: it.id, name: it.name, node: it.corners.SW }));
 
-  return { area, nodes, edges, intersections, streets, bounds, pois, u, v };
+  return { kind: 'schematic', proj: makeProjection(ORIGIN.lat, ORIGIN.lon), area, nodes, edges, intersections, crossings, streets, bounds, pois, u, v, draw: null, labels: [] };
 }
 
 export function nearestNode(graph, p) {
@@ -208,18 +216,18 @@ export function nearestNode(graph, p) {
   return best ? { node: best, d: bd } : null;
 }
 
+// 가장 가까운 횡단보도(묶음). 간선 하나가 아니라 횡단보도 전체(group)를 돌려준다.
 export function nearestCrossing(graph, p, maxDist) {
   let best = null, bd = Infinity;
   for (const e of graph.edges) {
-    if (e.kind !== 'cross') continue;
+    if (e.kind !== 'cross' || !e.group) continue;
     const { d } = pointToSegment(p, graph.nodes.get(e.a), graph.nodes.get(e.b));
     if (d < bd) { bd = d; best = e; }
   }
-  return best && bd <= maxDist ? { edge: best, d: bd } : null;
+  return best && bd <= maxDist ? { edge: best, group: graph.crossings.get(best.group), d: bd } : null;
 }
 
-export function crossingName(graph, edge) {
-  const it = graph.intersections.get(edge.signal.intersection);
-  const leg = it.legs[edge.signal.leg];
-  return it.kind === 'midblock' ? it.name : `${it.name} ${leg.name}`;
+export function crossingName(graph, edgeOrGroup) {
+  const g = edgeOrGroup.group ? graph.crossings.get(edgeOrGroup.group) : edgeOrGroup;
+  return g ? g.name : '횡단보도';
 }
