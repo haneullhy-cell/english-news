@@ -563,7 +563,7 @@ function featuresHTML(gr, it) {
 }
 function crossingHTML(groupId) {
   const { gr, it, s, need, plan } = crossingInfo(groupId);
-  const sub = `${gr.across} 건너기 · ${Math.round(gr.length)} m · ${settings.speed.toFixed(1)} m/s로 ${fmtDur(need)}`;
+  const sub = `${gr.across ? `${gr.across} 건너기 · ` : ''}${Math.round(gr.length)} m · ${settings.speed.toFixed(1)} m/s로 ${fmtDur(need)}`;
   if (!it) {
     return `<div class="xcard">
 <div class="xhead"><div><div class="xname">${esc(gr.name)}</div><div class="xsub">${esc(sub)}</div></div><button class="btn" id="btnCloseX" type="button">닫기</button></div>

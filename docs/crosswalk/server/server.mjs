@@ -75,6 +75,11 @@ function mockData() {
 // OpenStreetMap(Overpass) 프록시. 같은 영역은 하루 동안 디스크에 캐시한다. --mock 이면 합성 데이터를 준다.
 async function osmData(kind, bbox) {
   if (MOCK) {
+    // 대전(위도 37도 아래) 영역이면 실제 대전 시청역 주변 OSM 데이터, 아니면 합성 데이터
+    if ((bbox.s + bbox.n) / 2 < 37) {
+      const dj = JSON.parse(fs.readFileSync(path.join(ROOT, 'test', 'fixtures', 'daejeon-cityhall.json'), 'utf8'));
+      return kind === 'context' ? { elements: [] } : dj;
+    }
     const fx = JSON.parse(fs.readFileSync(path.join(ROOT, 'test', 'fixtures', 'osm-sample.json'), 'utf8'));
     return kind === 'context' ? fx.context : fx.network;
   }

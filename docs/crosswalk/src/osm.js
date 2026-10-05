@@ -197,7 +197,7 @@ export function buildOsmWorld(net, ctxData, opts = {}) {
   function makeGroup(id, ids, edges, length, kind, across, features) {
     const pts = ids.map((k) => graph.nodes.get(k));
     const mid = chainMidpoint(pts);
-    const g = { id, nodes: ids, edges: edges.map((e) => e.id), length, mid, kind, features: features || null, across: across ? roadName(across.tags) : '길', acrossClass: across ? across.tags.highway : null, acrossWidth: across ? roadWidth(across.tags) : 8, intersection: null, leg: null, name: '' };
+    const g = { id, nodes: ids, edges: edges.map((e) => e.id), length, mid, kind, features: features || null, across: across ? roadName(across.tags) : '', acrossClass: across ? across.tags.highway : null, acrossWidth: across ? roadWidth(across.tags) : 8, intersection: null, leg: null, name: '' };
     const ends = [ids[0], ids[ids.length - 1]];
     for (const e of edges) { e.group = id; e.crossTotal = length; e.groupEnds = ends; e.delay = kind === 'signals' ? 0 : kind === 'marked' ? 4 : 2; e.signal = null; }
     graph.crossings.set(id, g);
@@ -392,14 +392,14 @@ function buildIntersections(graph, nodesRaw, coord) {
     for (const j of junctions) { const d = dist(j.p, center); if (d < bd) { bd = d; name = j.name; } }
     if (!name) {
       const names = [...new Set(groups.map((g) => g.across))];
-      name = groups.length === 1 ? `${groups[0].across} 횡단보도` : names.slice(0, 2).join('·');
+      name = groups.length === 1 ? `${groups[0].across ? `${groups[0].across} ` : ''}횡단보도` : names.filter(Boolean).slice(0, 2).join('·') || '교차로';
     }
     graph.intersections.set(id, { id, name, x: cx, y: cy, kind: groups.length === 1 ? 'midblock' : 'osm', legs, plan, itstId: null });
     for (const g of groups) g.name = groups.length === 1 ? name : `${name} ${LEG_NAMES[g.leg]}`;
   }
   const edgeById = new Map(graph.edges.map((e) => [e.id, e]));
   for (const g of graph.crossings.values()) {
-    if (!g.name) g.name = `${g.across} ${g.kind === 'marked' ? '횡단보도' : '비신호 횡단'}`;
+    if (!g.name) g.name = `${g.across ? `${g.across} ` : ''}${g.kind === 'marked' ? '횡단보도' : g.kind === 'signals' ? '신호 횡단보도' : '표시 없는 횡단'}`;
     if (!g.intersection) continue;
     for (const eid of g.edges) { const e = edgeById.get(eid); if (e) e.signal = { intersection: g.intersection, leg: g.leg }; }
   }
