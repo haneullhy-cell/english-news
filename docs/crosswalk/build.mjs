@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const ORDER = ['geo.js', 'signal.js', 'network.js', 'routing.js', 'osm.js', 'app.js'];
+const ORDER = ['geo.js', 'signal.js', 'network.js', 'routing.js', 'osm.js', 'places.js', 'app.js'];
 const strip = (src) => src
   .replace(/^import[^\n]*\n/gm, '')
   .replace(/^export\s+(?=(const|let|function|class|async)\b)/gm, '');

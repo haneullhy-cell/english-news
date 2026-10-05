@@ -60,7 +60,12 @@ OpenStreetMap에서 그 영역의 길·횡단보도·신호등·지하철 출입
 실제 지도에서도 신호 시간은 시뮬레이션입니다(횡단 길이로 보행 녹색을 정하고, 교차로마다 옵셋을 다르게 둡니다).
 실시간 서버를 연결하면 `server/intersections.json`에서 OSM 교차로 id(`i…`)에 `itstId`를 붙여 같은 방식으로 실제 신호를 넣을 수 있습니다.
 
-데이터는 브라우저가 Overpass API에 직접 요청합니다(claude.ai 아티팩트 링크에서는 외부 요청이 막혀 있어 넷리파이 같은 일반 주소에서 열어야 합니다).
+**미리 받아 둔 지도.** 공개 Overpass 서버는 자주 바빠서(HTTP 503·504) 휴대폰에서 바로 받으면 실패할 때가 많습니다.
+그래서 넷리파이 빌드 때 `tools/fetch-osm.mjs`가 목록(`src/places.js`)의 장소마다 반경 700 m 지도를 받아 `data/`에 둡니다.
+앱은 목록의 장소를 고르면 이 파일을 먼저 읽고, 없을 때만 Overpass에 직접 요청합니다. 빌드 때 받지 못한 장소는 빌드를 멈추지 않고 건너뜁니다.
+어떤 장소가 준비됐는지는 배포된 사이트의 `data/index.json`에서 볼 수 있습니다. 새로 받으려면 다시 배포하면 됩니다.
+
+'내 위치'와 '지금 보는 곳'은 브라우저가 Overpass API에 직접 요청합니다(claude.ai 아티팩트 링크에서는 외부 요청이 막혀 있어 넷리파이 같은 일반 주소에서 열어야 합니다). 실패하면 서버별 이유(HTTP 504, 시간 초과 등)를 지도 창에 보여줍니다.
 `server/server.mjs`가 떠 있으면 `/api/osm`을 통해 받아오고 같은 영역을 하루 동안 디스크에 캐시합니다. `--mock`이면 대전 영역은 실제 대전 시청역 데이터(`test/fixtures/daejeon-cityhall.json`), 그 밖은 합성 데이터(`test/fixtures/osm-sample.json`)를 줍니다.
 
 ## 실행
@@ -105,9 +110,12 @@ docs/crosswalk/
     network.js        데모 도로망(교차로·보도·횡단보도·지하보도) 생성
     routing.js        시간 의존 다익스트라, 경로 평가, 횡단 순서 안내, 출발 여유
     osm.js            OpenStreetMap(Overpass) 질의와 보행 그래프·교차로·그리기 레이어 생성
+    places.js         불러오기 장소 목록(앱과 미리 받기 스크립트가 같이 씀)
     app.js            지도 그리기, 상호작용, 패널, 지도 바꾸기
     page.html         마크업과 스타일
   build.mjs           src/ 를 index.html 로 묶기 (node build.mjs)
+  tools/fetch-osm.mjs 넷리파이 빌드 때 장소별 지도를 data/ 에 미리 받기
+  netlify.toml        빌드 명령(미리 받기), 게시 폴더
   server/
     server.mjs        정적 파일 + /api/signals 프록시 + /api/osm 프록시(캐시) (--mock 지원)
     tdata.js          T-Data 응답 정리

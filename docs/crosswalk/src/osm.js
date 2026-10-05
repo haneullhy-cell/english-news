@@ -11,6 +11,14 @@ export const OVERPASS_ENDPOINTS = [
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
 ];
+// 빌드 때(서버에서) 쓰는 목록. overpass-api.de 의 두 서버를 따로 부른다.
+export const OVERPASS_ENDPOINTS_BUILD = [
+  'https://lz4.overpass-api.de/api/interpreter',
+  'https://z.overpass-api.de/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
+];
 // 차도만 있어 걷지 않는 길. 횡단보도로만 건넌다.
 const MAJOR = new Set(['motorway', 'motorway_link', 'trunk', 'trunk_link', 'primary', 'primary_link', 'secondary', 'secondary_link']);
 // 걸을 수 있는 길
@@ -54,30 +62,59 @@ export function contextQuery(b) {
 out geom;`;
 }
 
-// Overpass 서버에 차례로 물어본다. 실패하면 다음 서버.
+// Overpass 서버에 차례로 물어본다. 실패하면 다음 서버. 모두 실패하면 서버별 이유를 담은 오류를 던진다.
+// err.kind: 'blocked'(브라우저가 요청 자체를 못 보냄) | 'busy'(429·5xx·시간 초과) | 'other'
 export async function fetchOverpass(query, opts = {}) {
   const endpoints = opts.endpoints || OVERPASS_ENDPOINTS;
   const f = opts.fetchImpl || globalThis.fetch;
-  const timeoutMs = opts.timeoutMs || 35000;
-  let lastErr = null;
+  const timeoutMs = opts.timeoutMs || 45000;
+  const details = [];
   for (const url of endpoints) {
+    const host = new URL(url).host;
     const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), timeoutMs);
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; ctl.abort(); }, timeoutMs);
     try {
-      if (opts.onStatus) opts.onStatus(`${new URL(url).host} 에 요청 중…`);
-      const r = await f(url, { method: 'POST', body: `data=${encodeURIComponent(query)}`, headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctl.signal });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      if (opts.onStatus) opts.onStatus(`${host} 에 요청 중…`);
+      const r = await f(url, { method: 'POST', body: `data=${encodeURIComponent(query)}`, headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...(opts.headers || {}) }, signal: ctl.signal });
+      if (!r.ok) throw Object.assign(new Error(`HTTP ${r.status}`), { kind: r.status === 429 || r.status >= 500 ? 'busy' : 'other' });
       const json = await r.json();
-      if (!json || !Array.isArray(json.elements)) throw new Error('응답 형식이 다릅니다');
-      if (!json.elements.length && json.remark && /error|timeout|runtime/i.test(json.remark)) throw new Error(json.remark);
+      if (!json || !Array.isArray(json.elements)) throw Object.assign(new Error('응답 형식이 다릅니다'), { kind: 'other' });
+      // 서버가 시간 초과·메모리 부족으로 중간에 멈추면 200 과 함께 일부만 주고 remark 에 이유를 적는다
+      if (json.remark && /runtime error|timed out|out of memory|runtime remark/i.test(json.remark)) throw Object.assign(new Error('서버가 처리 중에 멈췄습니다'), { kind: 'busy' });
       return json;
     } catch (e) {
-      lastErr = e;
+      const kind = timedOut ? 'busy' : e.kind || (e.name === 'TypeError' ? 'blocked' : 'other');
+      details.push({ host, kind, message: timedOut ? `${Math.round(timeoutMs / 1000)}초 동안 응답 없음` : e.message || String(e) });
     } finally {
       clearTimeout(timer);
     }
   }
-  throw lastErr || new Error('Overpass 서버에 연결하지 못했습니다');
+  const kinds = new Set(details.map((d) => d.kind));
+  const err = new Error(details.map((d) => `${d.host}: ${d.message}`).join(' · ') || 'Overpass 서버가 없습니다');
+  err.kind = kinds.size === 1 ? [...kinds][0] : kinds.has('busy') ? 'busy' : 'other';
+  err.details = details;
+  throw err;
+}
+
+// 미리 받아 둘 때 크기를 줄인다: 앱이 쓰는 태그만 남기고 좌표는 소수 7자리로.
+const KEEP_NETWORK_TAGS = new Set(['highway', 'footway', 'path', 'cycleway', 'crossing', 'crossing:signals', 'crossing:markings', 'crossing:island', 'button_operated', 'tactile_paving', 'traffic_signals', 'traffic_signals:countdown', 'traffic_signals:sound', 'traffic_signals:vibration', 'foot', 'access', 'segregated', 'indoor', 'tunnel', 'layer', 'name', 'lanes', 'service', 'railway', 'description', 'ref', 'junction', 'public_transport', 'station']);
+const KEEP_CONTEXT_TAGS = new Set(['building', 'name', 'leisure', 'landuse', 'natural', 'waterway']);
+export function slimOsm(json, kind = 'network') {
+  const keep = kind === 'context' ? KEEP_CONTEXT_TAGS : KEEP_NETWORK_TAGS;
+  const r7 = (v) => Math.round(v * 1e7) / 1e7;
+  const tags = (t) => { const o = {}; for (const [k, v] of Object.entries(t || {})) if (keep.has(k)) o[k] = v; return o; };
+  const elements = [];
+  for (const el of (json && json.elements) || []) {
+    if (el.type === 'node') {
+      if (el.lat == null) continue;
+      const t = tags(el.tags);
+      elements.push(Object.keys(t).length ? { type: 'node', id: el.id, lat: r7(el.lat), lon: r7(el.lon), tags: t } : { type: 'node', id: el.id, lat: r7(el.lat), lon: r7(el.lon) });
+    } else if (el.type === 'way' && el.geometry) {
+      elements.push({ type: 'way', id: el.id, nodes: kind === 'context' ? undefined : el.nodes, geometry: el.geometry.map((g) => (g ? { lat: r7(g.lat), lon: r7(g.lon) } : g)), tags: tags(el.tags) });
+    }
+  }
+  return { version: 0.6, generator: 'chorokbul-navi slimOsm', osm3s: { copyright: 'The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.' }, elements };
 }
 
 function walkable(t) {
@@ -223,10 +260,10 @@ export function buildOsmWorld(net, ctxData, opts = {}) {
   // 8) 그리기 레이어와 도로명
   buildDrawLayers(graph, roadWays, ctxData, proj);
 
-  const xs = [...coord.values()];
-  graph.bounds = xs.length
-    ? { minX: Math.min(...xs.map((p) => p.x)), maxX: Math.max(...xs.map((p) => p.x)), minY: Math.min(...xs.map((p) => p.y)), maxY: Math.max(...xs.map((p) => p.y)) }
-    : { minX: -100, maxX: 100, minY: -100, maxY: 100 };
+  // 좌표가 수만 개일 수 있어 Math.min(...배열) 대신 반복문으로 범위를 잰다(사파리의 인자 개수 한도)
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const p of coord.values()) { if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x; if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y; }
+  graph.bounds = Number.isFinite(minX) ? { minX, maxX, minY, maxY } : { minX: -100, maxX: 100, minY: -100, maxY: 100 };
   graph.stats = { nodes: graph.nodes.size, edges: graph.edges.length, crossings: graph.crossings.size, signalized: [...graph.crossings.values()].filter((g) => g.kind === 'signals').length, intersections: graph.intersections.size, pois: graph.pois.length, buildings: graph.draw.buildings.length };
   return graph;
 }

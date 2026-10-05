@@ -6,19 +6,12 @@ import { legState, nextGreenStart, anchorPlan, extrapolate } from './signal.js';
 import { buildDemo, nearestNode, nearestCrossing, crossingName, LEG_SHORT } from './network.js';
 import { adjacency, compare } from './routing.js';
 import { bboxAround, networkQuery, contextQuery, fetchOverpass, buildOsmWorld, addContext } from './osm.js';
+import { PLACES, PREBUILT_RADIUS } from './places.js';
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const FONT = '"IBM Plex Sans KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif';
 const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const PLACES = {
-  dj_cityhall: { lat: 36.351406, lon: 127.3867, name: '대전 시청역·둔산 주변' },
-  dj_complex: { lat: 36.357675, lon: 127.381019, name: '대전 정부청사역 주변' },
-  dj_station: { lat: 36.331331, lon: 127.433019, name: '대전역 주변' },
-  dj_yuseong: { lat: 36.353707, lon: 127.341349, name: '대전 유성온천역 주변' },
-  gangnam: { lat: 37.49795, lon: 127.02764, name: '강남역 주변' },
-  yeoksam: { lat: 37.50062, lon: 127.03644, name: '역삼역 주변' },
-};
 
 // ---------- 설정(이 기기에만 저장) ----------
 const DEFAULTS = { speed: 1.2, margin: 2, speedup: 1, apiBase: '', lastMap: null };
@@ -669,6 +662,18 @@ function setWorld(graph, meta = {}, opts = {}) {
   buildSelects(); renderMapNow(); updateBadge();
   recompute(); fitRoute();
 }
+// 넷리파이 빌드 때 미리 받아 둔 지도(data/<장소>.network.json). 없거나 못 읽으면 null.
+async function fetchPrebuilt(key, kind) {
+  try {
+    const r = await fetch(new URL(`data/${key}.${kind}.json`, location.href), { cache: 'no-cache' });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j && Array.isArray(j.elements) && j.elements.length ? j : null;
+  } catch { return null; }
+}
+async function prebuiltInfo() {
+  try { const r = await fetch(new URL('data/index.json', location.href), { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch { return null; }
+}
 async function fetchOsm(kind, bbox, onStatus) {
   if (settings.apiBase) {
     try {
@@ -686,7 +691,13 @@ async function loadRealMap(center, radius, label, opts = {}) {
   osm.loading = true; $('#btnLoadMap').disabled = true;
   const bbox = bboxAround(center.lat, center.lon, radius);
   try {
-    const net = await fetchOsm('network', bbox, setMapStatus);
+    let net = null, prebuilt = false, fetchedAt = '';
+    if (opts.key && PLACES[opts.key] && radius <= PREBUILT_RADIUS) {
+      setMapStatus('미리 받아 둔 지도를 여는 중…');
+      net = await fetchPrebuilt(opts.key, 'network');
+      if (net) { prebuilt = true; const info = await prebuiltInfo(); fetchedAt = (info && info.fetchedAt || '').slice(0, 10); }
+    }
+    if (!net) net = await fetchOsm('network', bbox, setMapStatus);
     setMapStatus('보행 그래프를 만드는 중…');
     await new Promise((r) => setTimeout(r, 20));
     const graph = buildOsmWorld(net, null, { center, name: label });
@@ -694,14 +705,16 @@ async function loadRealMap(center, radius, label, opts = {}) {
     const userPos = opts.userLatLon ? graph.proj.toLocal(opts.userLatLon.lat, opts.userLatLon.lon) : null;
     setWorld(graph, { label, center, radius }, { userPos });
     if (!opts.userLatLon) { settings.lastMap = { lat: center.lat, lon: center.lon, radius, label, key: opts.key || null }; saveSettings(); }
-    setMapStatus(`불러왔습니다. 길 ${graph.stats.edges}개, 횡단보도 ${graph.stats.crossings}개(신호 ${graph.stats.signalized}), 교차로 ${graph.stats.intersections}곳.`);
+    setMapStatus(`불러왔습니다${prebuilt ? ` (미리 받아 둔 지도${fetchedAt ? `, ${fetchedAt} 기준` : ''})` : ''}. 길 ${graph.stats.edges}개, 횡단보도 ${graph.stats.crossings}개(신호 ${graph.stats.signalized}), 교차로 ${graph.stats.intersections}곳.`);
     toast(`실제 지도: ${label}. 횡단보도 ${graph.stats.crossings}개를 찾았습니다.`);
-    fetchOsm('context', bbox, () => {}).then((ctxData) => { if (world.graph === graph) { addContext(graph, ctxData); worldVer++; renderMapNow(); dirty = true; } }).catch(() => {});
+    const ctxPromise = prebuilt ? fetchPrebuilt(opts.key, 'context').then((c) => c || fetchOsm('context', bbox, () => {})) : fetchOsm('context', bbox, () => {});
+    ctxPromise.then((ctxData) => { if (ctxData && world.graph === graph) { addContext(graph, ctxData); worldVer++; renderMapNow(); dirty = true; } }).catch(() => {});
   } catch (e) {
-    const msg = e && e.name === 'AbortError' ? '지도 서버가 응답하지 않습니다. 잠시 뒤 다시 불러오거나 반경을 줄여보세요.' : (e && e.message) || String(e);
-    const blocked = /Failed to fetch|NetworkError|Load failed/i.test(msg);
-    const busy = /HTTP (429|5\d\d)/.test(msg);
-    setMapStatus(`실패: ${blocked ? '지도 서버에 접근할 수 없습니다. 인터넷 연결을 확인하거나 넷리파이 같은 일반 웹 주소에서 열어주세요.' : busy ? '지도 서버들이 지금 바쁩니다. 잠시 뒤 다시 불러오기를 눌러주세요.' : msg}`);
+    const kind = e && e.kind;
+    const head = kind === 'blocked' ? '지도 서버에 요청을 보내지 못했습니다. 인터넷 연결을 확인해 주세요.'
+      : kind === 'busy' ? '지도 서버들이 지금 바빠 응답하지 않습니다. 잠시 뒤 다시 불러오기를 눌러주세요.'
+      : '지도를 불러오지 못했습니다.';
+    setMapStatus(`실패: ${head} (${(e && e.message) || e})`);
     toast('실제 지도를 불러오지 못했습니다.');
     if (opts.auto) openMapSheet(true);
   } finally {

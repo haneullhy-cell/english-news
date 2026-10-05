@@ -1,2 +1,12 @@
 [build]
 publish = "."
+# 대전·강남 주요 지점의 OpenStreetMap 데이터를 data/ 에 미리 받아 둔다(실패해도 빌드는 계속).
+command = "node tools/fetch-osm.mjs"
+
+[build.environment]
+NODE_VERSION = "22"
+
+[[headers]]
+for = "/data/*"
+  [headers.values]
+  Cache-Control = "public, max-age=600"
