@@ -1,0 +1,13 @@
+{
+  "name": "chorokbul-navi",
+  "private": true,
+  "type": "module",
+  "description": "횡단보도 보행 신호 잔여시간을 보고 걷는 길찾기 프로토타입",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test 'test/*.test.mjs'",
+    "prefetch": "node tools/fetch-osm.mjs",
+    "serve": "node server/server.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

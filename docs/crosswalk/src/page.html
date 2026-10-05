@@ -1,0 +1,222 @@
+<title>초록불 내비</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+/* 레이아웃: 상단 바 · 전체 화면 개략 지도 · 하단 시트(경로 비교 또는 횡단보도 카드).
+   횡단보도 잔여시간 표시기의 LED 숫자를 카드 가운데에 둔다. 넓은 화면에서는 시트가 오른쪽 패널이 된다. */
+:root{
+  --bg:#eceee8; --surface:#ffffff; --surface-2:#f4f6f1; --ink:#1b2420; --ink-2:#56615b; --ink-3:#8b958f; --line:#d8ddd6;
+  --road:#ffffff; --road-edge:#c3cac1; --road-center:#dde2db;
+  --accent:#2b5bd7; --accent-ink:#ffffff; --accent-soft:#e3eafb;
+  --green:#149a52; --green-soft:#dcf2e3; --red:#d33f3a; --red-soft:#fae1df;
+  --led-bg:#15181b; --led-off:rgba(255,255,255,.07); --led-red:#ff4a3d; --led-green:#2ee06f;
+  --park:#d9ead3; --water:#c9dcec; --building:#e2e4de; --building-edge:#cdd1c9; --path:#b9c1b7; --cross-none:#9aa39d;
+  --shadow:0 1px 2px rgba(20,30,25,.06),0 10px 24px -14px rgba(20,30,25,.35);
+  --font:"IBM Plex Sans KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141716; --surface:#1d2120; --surface-2:#252a28; --ink:#e9ece7; --ink-2:#b1b9b3; --ink-3:#7f8882; --line:#353b38;
+    --road:#2b3130; --road-edge:#3d4441; --road-center:#394140;
+    --accent:#7d9eff; --accent-ink:#0f1626; --accent-soft:#223050;
+    --green:#36c571; --green-soft:#1b3a29; --red:#f0675f; --red-soft:#47241f;
+    --led-bg:#0d0f11;
+    --park:#1f2e23; --water:#1b2a38; --building:#262c2a; --building-edge:#333a37; --path:#4a534e; --cross-none:#6b746e;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -14px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141716; --surface:#1d2120; --surface-2:#252a28; --ink:#e9ece7; --ink-2:#b1b9b3; --ink-3:#7f8882; --line:#353b38;
+  --road:#2b3130; --road-edge:#3d4441; --road-center:#394140;
+  --accent:#7d9eff; --accent-ink:#0f1626; --accent-soft:#223050;
+  --green:#36c571; --green-soft:#1b3a29; --red:#f0675f; --red-soft:#47241f;
+  --led-bg:#0d0f11;
+  --park:#1f2e23; --water:#1b2a38; --building:#262c2a; --building-edge:#333a37; --path:#4a534e; --cross-none:#6b746e;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 24px -14px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+button,select,input{font:inherit;color:inherit}
+.app{height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.top{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--line);flex:none}
+.brand{display:flex;align-items:center;gap:8px;min-width:0}
+.brand .lamp{width:14px;height:14px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-soft);flex:none}
+.brand h1{font-size:17px;margin:0;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.tag{font-size:11px;color:var(--ink-3);border:1px solid var(--line);border-radius:999px;padding:1px 7px;white-space:nowrap}
+.spacer{flex:1}
+.badge{border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap}
+.badge::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex:none}
+.badge.live::before{background:var(--green)}
+.badge.fail::before{background:var(--red)}
+.icon-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;padding:0;flex:none;color:var(--ink)}
+.icon-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.map{flex:1;position:relative;min-height:0;background:var(--bg)}
+.map canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block;cursor:grab}
+.map canvas.aim{cursor:crosshair}
+.map-ctl{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px}
+.map-ctl .icon-btn{box-shadow:var(--shadow)}
+.legend{position:absolute;left:12px;bottom:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:11px;color:var(--ink-2);display:grid;grid-template-columns:auto auto;gap:3px 12px;box-shadow:var(--shadow)}
+.legend span{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.legend i{display:inline-block;width:14px;height:0;border-top:3px solid;flex:none}
+.legend i.g{border-color:var(--green)}
+.legend i.r{border-color:var(--red)}
+.legend i.f{border-color:var(--accent);border-top-width:4px}
+.legend i.d{border-color:var(--ink-3);border-top-style:dashed}
+.legend .attrib{grid-column:1 / -1;font-size:10px;color:var(--ink-3)}
+.legend .attrib a{color:inherit}
+.btn.sm{padding:6px 10px;font-size:12px}
+.mapnow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mapnow b{font-weight:600}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:var(--accent-soft);color:var(--accent)}
+.pill.osm{background:var(--green-soft);color:var(--green)}
+.xfeat{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.xfeat .pill{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--line)}
+.xsrc{font-size:11px;color:var(--ink-3)}
+.hint{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:7px 12px;border-radius:999px;font-size:12px;font-weight:600;box-shadow:var(--shadow);max-width:calc(100% - 130px);text-align:center}
+.sheet{flex:none;background:var(--surface);border-top:1px solid var(--line);max-height:52%;display:flex;flex-direction:column;box-shadow:0 -6px 24px -18px rgba(0,0,0,.4)}
+.routebar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:end;padding:10px 16px;border-bottom:1px solid var(--line)}
+.field{display:flex;flex-direction:column;gap:2px;min-width:0}
+.field label{font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.02em}
+.field select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:8px 28px 8px 10px;appearance:none;-webkit-appearance:none;font-weight:600;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b958f' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:16px;text-overflow:ellipsis}
+.sheet-body{overflow:auto;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));min-height:0;-webkit-overflow-scrolling:touch}
+.route-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;font-size:12px;color:var(--ink-3)}
+.route-head b{color:var(--ink);font-size:13px}
+.cmp{display:grid;gap:8px}
+.cmp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;align-items:center;padding:10px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface-2)}
+.cmp-row.fast{border-color:var(--accent);background:var(--accent-soft)}
+.cmp-h{display:flex;align-items:center;gap:8px;font-weight:600;min-width:0}
+.cmp-h .sw{width:16px;height:0;border-top:4px solid var(--accent);border-radius:2px;flex:none}
+.cmp-row.dist .cmp-h .sw{border-top:3px dashed var(--ink-3)}
+.cmp-time{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;grid-row:span 2;text-align:right;white-space:nowrap}
+.cmp-meta{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.verdict{margin:12px 0 0;font-size:15px;font-weight:600;text-wrap:balance}
+.verdict strong{color:var(--accent)}
+.note{margin:8px 0 0;padding:9px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);font-size:13px;color:var(--ink-2)}
+.note b{color:var(--ink)}
+h2.sec{font-size:12px;color:var(--ink-3);letter-spacing:.06em;margin:14px 0 6px;font-weight:600}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.step{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;font-size:13px}
+.step .meta{color:var(--ink-3);font-size:12px;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;justify-content:center;min-width:72px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;margin-top:1px}
+.chip.walk{background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2)}
+.chip.go{background:var(--green-soft);color:var(--green)}
+.chip.wait{background:var(--red-soft);color:var(--red)}
+.xcard{display:grid;gap:10px}
+.xhead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.xname{font-size:16px;font-weight:700;text-wrap:balance}
+.xsub{font-size:12px;color:var(--ink-2)}
+.ledwrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;padding:12px 14px;border-radius:var(--r);background:var(--led-bg);color:#fff}
+.led{width:124px;max-width:100%;display:block}
+.led rect.off{fill:var(--led-off)}
+.led.red rect.on{fill:var(--led-red)}
+.led.green rect.on,.led.flash rect.on{fill:var(--led-green)}
+.led.flash rect.on{animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{opacity:.25}}
+@media (prefers-reduced-motion: reduce){.led.flash rect.on{animation:none}}
+.ledlabel{font-size:13px;font-weight:600;line-height:1.35}
+.ledlabel small{display:block;font-weight:400;opacity:.7;font-size:12px;margin-top:2px}
+.xverdict{font-size:14px;font-weight:600}
+.xverdict.ok{color:var(--green)}
+.xverdict.no{color:var(--red)}
+.xplan{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.xactions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:8px 12px;font-weight:600;cursor:pointer;color:var(--ink)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.settings{position:absolute;left:0;right:0;bottom:0;max-height:85%;overflow:auto;background:var(--surface);border-top:1px solid var(--line);border-radius:18px 18px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 40px -20px rgba(0,0,0,.6);display:grid;gap:14px;z-index:5}
+.settings-head{display:flex;justify-content:space-between;align-items:center}
+.settings h2{margin:0;font-size:16px}
+.srow{display:grid;gap:6px}
+.srow label{font-weight:600;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+.srow label output{color:var(--ink-2);font-weight:500;font-variant-numeric:tabular-nums}
+.srow input[type=range]{width:100%;accent-color:var(--accent)}
+.srow select,.srow input[type=url]{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:8px 10px;width:100%;min-width:0;box-sizing:border-box}
+.srow .row{display:flex;gap:8px}
+.srow .row input{flex:1;min-width:0}
+.status{font-size:12px;color:var(--ink-2)}
+.help{font-size:12px;color:var(--ink-3);margin:0}
+.toast{position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:9px 14px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:6;max-width:calc(100% - 32px);text-align:center;text-wrap:balance}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (min-width:900px){
+  .app{display:grid;grid-template-rows:auto minmax(0,1fr);grid-template-columns:minmax(0,1fr) 420px}
+  .top{grid-column:1 / -1}
+  .map{grid-row:2;grid-column:1}
+  .sheet{grid-row:2;grid-column:2;max-height:none;border-top:0;border-left:1px solid var(--line);box-shadow:none}
+  .settings{left:auto;width:420px;border-radius:0;top:0;max-height:none;border-left:1px solid var(--line)}
+  .toast{left:auto;right:440px;transform:none;bottom:16px;max-width:360px}
+}
+</style>
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand"><span class="lamp" aria-hidden="true"></span><h1>초록불 내비</h1><span class="tag">프로토타입</span></div>
+    <div class="spacer"></div>
+    <button class="badge" id="badge" type="button" title="신호 데이터 출처. 누르면 설정이 열립니다.">시뮬레이션</button>
+    <button class="icon-btn" id="btnSettings" type="button" aria-label="설정"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg></button>
+  </header>
+  <div class="map" id="map">
+    <canvas id="cv" aria-label="강남 테헤란로 일대 개략 지도"></canvas>
+    <div class="map-ctl">
+      <button class="icon-btn" id="zin" type="button" aria-label="확대"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button class="icon-btn" id="zout" type="button" aria-label="축소"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <button class="icon-btn" id="fit" type="button" aria-label="전체 보기"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="icon-btn" id="loc" type="button" aria-label="내 위치"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></button>
+      <button class="icon-btn" id="btnMap" type="button" aria-label="지도 바꾸기"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></button>
+    </div>
+    <div class="legend"><span><i class="g"></i>초록불</span><span><i class="r"></i>빨간불</span><span><i class="f"></i>신호 보고 걷기</span><span><i class="d"></i>거리만 보고 걷기</span><span class="attrib" id="attrib" hidden>지도 데이터 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> 기여자</span></div>
+    <div class="hint" id="hint" hidden></div>
+  </div>
+  <section class="sheet" id="sheet" aria-label="경로와 신호">
+    <div class="routebar">
+      <div class="field"><label for="selFrom">출발</label><select id="selFrom"></select></div>
+      <button class="icon-btn" id="swap" type="button" aria-label="출발과 도착 바꾸기"><svg viewBox="0 0 24 24"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg></button>
+      <div class="field"><label for="selTo">도착</label><select id="selTo"></select></div>
+    </div>
+    <div class="sheet-body" id="panel"></div>
+  </section>
+  <div class="settings" id="mapsheet" hidden>
+    <div class="settings-head"><h2>지도</h2><button class="icon-btn" id="btnCloseMap" type="button" aria-label="지도 설정 닫기"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="srow"><label>지금 보는 지도</label><div class="mapnow" id="mapNow"></div></div>
+    <div class="srow">
+      <label for="inCenter">실제 지도 불러오기 (OpenStreetMap)</label>
+      <div class="row">
+        <select id="inCenter">
+          <optgroup label="대전"><option value="dj_cityhall" selected>시청역 · 둔산</option><option value="dj_complex">정부청사역</option><option value="dj_station">대전역</option><option value="dj_yuseong">유성온천역</option></optgroup>
+          <optgroup label="서울"><option value="gangnam">강남역</option><option value="yeoksam">역삼역</option></optgroup>
+          <optgroup label="내 주변"><option value="user">내 위치</option><option value="view">지금 보는 곳</option></optgroup>
+        </select>
+        <select id="inRadius"><option value="500">반경 500 m</option><option value="700" selected>반경 700 m</option><option value="1000">반경 1 km</option></select>
+      </div>
+      <div class="row"><button class="btn primary" id="btnLoadMap" type="button">불러오기</button><button class="btn" id="btnSchematic" type="button">개략도로 돌아가기</button></div>
+      <div class="status" id="mapStatus"></div>
+      <p class="help">보도·횡단보도·신호등 위치를 OpenStreetMap에서 받아옵니다. 큰길은 횡단보도로만 건너는 것으로 보고, 신호 시간은 시뮬레이션입니다. 보도 정보가 없는 곳에서는 경로가 골목으로 돌아갈 수 있습니다. 한 번 불러온 지도는 다음에 열 때 다시 불러옵니다.</p>
+    </div>
+  </div>
+  <div class="settings" id="settings" hidden>
+    <div class="settings-head"><h2>설정</h2><button class="icon-btn" id="btnCloseSettings" type="button" aria-label="설정 닫기"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="srow">
+      <label for="inSpeed">보행 속도 <output id="outSpeed" for="inSpeed">1.2 m/s</output></label>
+      <input type="range" id="inSpeed" min="0.8" max="1.6" step="0.1" value="1.2">
+      <p class="help">보행 신호 시간은 1.0 m/s 기준으로 설계됩니다. 보통 성인은 1.2~1.4 m/s로 걷습니다.</p>
+    </div>
+    <div class="srow">
+      <label for="inMargin">건너기 여유 <output id="outMargin" for="inMargin">2초</output></label>
+      <input type="range" id="inMargin" min="0" max="8" step="1" value="2">
+      <p class="help">남은 초록불이 '횡단 시간 + 여유'보다 짧으면 다음 신호를 기다리는 것으로 계산합니다. 뛰어서 건너는 경로는 만들지 않습니다.</p>
+    </div>
+    <div class="srow">
+      <label for="inSpeedup">시뮬레이션 배속</label>
+      <select id="inSpeedup"><option value="1">1배 (실제 시간)</option><option value="3">3배</option><option value="10">10배</option></select>
+    </div>
+    <div class="srow">
+      <label for="inApi">실시간 신호 서버</label>
+      <div class="row"><input type="url" id="inApi" placeholder="http://localhost:8787" inputmode="url" autocomplete="off"><button class="btn" id="btnLive" type="button">연결</button></div>
+      <div class="status" id="liveStatus">시뮬레이션 신호를 쓰고 있습니다.</div>
+      <p class="help">server/server.mjs 를 서울 T-Data 인증키로 실행하면 실제 교차로의 보행 신호 잔여시간을 받아옵니다. 방법은 README에 있습니다.</p>
+    </div>
+    <p class="help" id="areaNote"></p>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+</div>
+<script>/*__BUNDLE__*/</script>
