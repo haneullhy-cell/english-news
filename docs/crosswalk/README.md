@@ -41,6 +41,10 @@ OpenStreetMap에서 그 영역의 길·횡단보도·신호등·지하철 출입
 
 한 번 불러온 지도는 이 기기에 기억해 두었다가 다음에 열 때 다시 불러옵니다. 개략도로 돌아가면 기억을 지웁니다.
 
+주소 끝에 장소 이름을 붙이면 그 곳의 실제 지도로 바로 열립니다. `#dunsan`(시청역·둔산), `#complex`(정부청사역), `#daejeon`(대전역), `#yuseong`(유성온천역), `#gangnam`, `#yeoksam`.
+
+배포: https://chorokbul-navi.netlify.app (대전 둔산: https://chorokbul-navi.netlify.app/#dunsan)
+
 ## 대전
 
 | 항목 | 상황 |

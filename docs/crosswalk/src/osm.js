@@ -7,6 +7,7 @@ import { LEG_NAMES } from './network.js';
 
 export const OVERPASS_ENDPOINTS = [
   'https://overpass-api.de/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
   'https://overpass.private.coffee/api/interpreter',
 ];
@@ -57,7 +58,7 @@ out geom;`;
 export async function fetchOverpass(query, opts = {}) {
   const endpoints = opts.endpoints || OVERPASS_ENDPOINTS;
   const f = opts.fetchImpl || globalThis.fetch;
-  const timeoutMs = opts.timeoutMs || 70000;
+  const timeoutMs = opts.timeoutMs || 35000;
   let lastErr = null;
   for (const url of endpoints) {
     const ctl = new AbortController();

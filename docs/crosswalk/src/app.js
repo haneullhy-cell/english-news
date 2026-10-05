@@ -698,10 +698,12 @@ async function loadRealMap(center, radius, label, opts = {}) {
     toast(`실제 지도: ${label}. 횡단보도 ${graph.stats.crossings}개를 찾았습니다.`);
     fetchOsm('context', bbox, () => {}).then((ctxData) => { if (world.graph === graph) { addContext(graph, ctxData); worldVer++; renderMapNow(); dirty = true; } }).catch(() => {});
   } catch (e) {
-    const msg = e && e.name === 'AbortError' ? '응답이 너무 오래 걸립니다. 반경을 줄여보세요.' : (e && e.message) || String(e);
+    const msg = e && e.name === 'AbortError' ? '지도 서버가 응답하지 않습니다. 잠시 뒤 다시 불러오거나 반경을 줄여보세요.' : (e && e.message) || String(e);
     const blocked = /Failed to fetch|NetworkError|Load failed/i.test(msg);
-    setMapStatus(`실패: ${blocked ? '이 환경에서는 지도 서버에 접근할 수 없습니다. 넷리파이 같은 일반 웹 주소에서 열어주세요.' : msg}`);
+    const busy = /HTTP (429|5\d\d)/.test(msg);
+    setMapStatus(`실패: ${blocked ? '지도 서버에 접근할 수 없습니다. 인터넷 연결을 확인하거나 넷리파이 같은 일반 웹 주소에서 열어주세요.' : busy ? '지도 서버들이 지금 바쁩니다. 잠시 뒤 다시 불러오기를 눌러주세요.' : msg}`);
     toast('실제 지도를 불러오지 못했습니다.');
+    if (opts.auto) openMapSheet(true);
   } finally {
     osm.loading = false; $('#btnLoadMap').disabled = false;
   }
@@ -819,12 +821,20 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { di
 readTheme(); resize(); buildSelects(); syncOutputs(); updateBadge(); renderMapNow(); recompute();
 requestAnimationFrame(() => { resize(); fitRoute(); });
 if (settings.apiBase) liveConnect(settings.apiBase);
-if (settings.lastMap && Number.isFinite(settings.lastMap.lat)) {
+// 주소 끝의 #dunsan 같은 이름으로 열면 그 곳의 실제 지도를 바로 불러온다. 없으면 지난번 지도.
+const HASH_PLACES = { dunsan: 'dj_cityhall', cityhall: 'dj_cityhall', complex: 'dj_complex', daejeon: 'dj_station', yuseong: 'dj_yuseong', gangnam: 'gangnam', yeoksam: 'yeoksam' };
+const hashKey = HASH_PLACES[(location.hash || '').replace(/^#/, '').toLowerCase()];
+if (hashKey) {
+  const pl = PLACES[hashKey];
+  $('#inCenter').value = hashKey;
+  toast(`${pl.name} 실제 지도를 불러오는 중…`);
+  loadRealMap({ lat: pl.lat, lon: pl.lon }, Number($('#inRadius').value) || 700, pl.name, { key: hashKey, auto: true });
+} else if (settings.lastMap && Number.isFinite(settings.lastMap.lat)) {
   const lm = settings.lastMap;
   if (lm.key && PLACES[lm.key]) $('#inCenter').value = lm.key;
   $('#inRadius').value = String(lm.radius || 700);
   toast(`지난번 지도(${lm.label})를 불러오는 중…`);
-  loadRealMap({ lat: lm.lat, lon: lm.lon }, lm.radius || 700, lm.label, { key: lm.key });
+  loadRealMap({ lat: lm.lat, lon: lm.lon }, lm.radius || 700, lm.label, { key: lm.key, auto: true });
 }
 requestAnimationFrame(loop);
 
