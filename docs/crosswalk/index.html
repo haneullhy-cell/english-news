@@ -237,6 +237,7 @@ h2.sec{font-size:12px;color:var(--ink-3);letter-spacing:.06em;margin:14px 0 6px;
 </div>
 <script>(() => {
 'use strict';
+const BUILD = '2026-10-05 21:21';
 // ---- geo.js ----
 // 좌표 도우미. 데모 지역은 강남역 사거리를 원점(0,0)으로 하는 로컬 미터 좌표(x: 동, y: 북)를 쓴다.
 const ORIGIN = { lat: 37.49795, lon: 127.02764 };
@@ -315,7 +316,8 @@ function makePlan({ cycle, offset = 0, phases, pedGreen = {} }) {
   for (const p of phases) {
     for (const leg of p.ped) {
       const dur = Math.min(pedGreen[leg] ?? p.dur, p.dur);
-      (starts[leg] ||= []).push({ at: acc, dur });
+      if (!starts[leg]) starts[leg] = [];
+      starts[leg].push({ at: acc, dur });
     }
     acc += p.dur;
   }
@@ -1345,8 +1347,21 @@ const PLACES = {
   gangnam: { lat: 37.49795, lon: 127.02764, name: '강남역 주변' },
   yeoksam: { lat: 37.50062, lon: 127.03644, name: '역삼역 주변' },
 };
-// 미리 받아 두는 반경(m). 이보다 작거나 같은 반경을 고르면 미리 받아 둔 지도를 쓴다.
+// 미리 받아 두는 반경(m). 목록의 장소는 고른 반경과 상관없이 미리 받아 둔 지도를 먼저 쓴다.
 const PREBUILT_RADIUS = 700;
+
+// 좌표가 어느 장소의 미리 받아 둔 범위 안에 있으면 그 장소 키(가장 가까운 것), 없으면 null.
+// margin 은 범위 가장자리에서 안쪽으로 남겨 둘 여유(m): 내 위치 주변이 지도 밖으로 너무 잘리지 않게.
+function placeCovering(lat, lon, available = null, margin = 250) {
+  let best = null, bd = Infinity;
+  for (const [key, pl] of Object.entries(PLACES)) {
+    if (available && !available.includes(key)) continue;
+    const dy = (lat - pl.lat) * 110574, dx = (lon - pl.lon) * 111320 * Math.cos((pl.lat * Math.PI) / 180);
+    const d = Math.hypot(dx, dy);
+    if (d <= PREBUILT_RADIUS - margin && d < bd) { bd = d; best = key; }
+  }
+  return best;
+}
 
 // ---- app.js ----
 // 초록불 내비 – 화면과 상호작용. build.mjs 가 geo/signal/network/routing/osm 과 함께 하나의 스크립트로 묶는다.
@@ -1528,7 +1543,9 @@ function polyPath(pts) { g2.beginPath(); pts.forEach((p, i) => { const s = w2s(p
 function strokePts(pts, color, width, dash) { g2.strokeStyle = color; g2.lineWidth = width; g2.setLineDash(dash || []); polyPath(pts); g2.stroke(); g2.setLineDash([]); }
 function fillPts(pts, fill, stroke) { polyPath(pts); g2.closePath(); g2.fillStyle = fill; g2.fill(); if (stroke) { g2.strokeStyle = stroke; g2.lineWidth = 1; g2.stroke(); } }
 function rrect(x, y, w, h, r, fill, stroke) {
-  g2.beginPath(); g2.roundRect(x, y, w, h, r);
+  g2.beginPath();
+  if (g2.roundRect) g2.roundRect(x, y, w, h, r);
+  else { g2.moveTo(x + r, y); g2.arcTo(x + w, y, x + w, y + h, r); g2.arcTo(x + w, y + h, x, y + h, r); g2.arcTo(x, y + h, x, y, r); g2.arcTo(x, y, x + w, y, r); g2.closePath(); }
   if (fill) { g2.fillStyle = fill; g2.fill(); }
   if (stroke) { g2.strokeStyle = stroke; g2.lineWidth = 1.5; g2.stroke(); }
 }
@@ -1983,7 +2000,7 @@ function renderMapNow() {
     ? `<span class="pill">개략도</span><b>${esc(G.area.name)}</b><span class="status">실제 거리로 그린 격자. 신호는 시뮬레이션.</span>`
     : `<span class="pill osm">실제 지도</span><b>${esc(world.meta.label || G.area.name)}</b><span class="status">길 ${G.stats.edges}개 · 횡단보도 ${G.stats.crossings}개(신호 ${G.stats.signalized}) · 교차로 ${G.stats.intersections}곳 · 출입구 ${G.stats.pois}곳</span>`;
   $('#attrib').hidden = world.kind !== 'osm';
-  $('#areaNote').textContent = `${world.kind === 'schematic' ? '데모 지역' : '지도'}: ${G.area.name}. ${G.area.note}`;
+  $('#areaNote').textContent = `${world.kind === 'schematic' ? '데모 지역' : '지도'}: ${G.area.name}. ${G.area.note} 앱 버전 ${BUILD}.`;
 }
 function pickDefaultEndpoints(opts = {}) {
   const G = world.graph;
@@ -2017,17 +2034,23 @@ function setWorld(graph, meta = {}, opts = {}) {
   recompute(); fitRoute();
 }
 // 넷리파이 빌드 때 미리 받아 둔 지도(data/<장소>.network.json). 없거나 못 읽으면 null.
+const prebuilt = { index: undefined, note: '' };
 async function fetchPrebuilt(key, kind) {
   try {
     const r = await fetch(new URL(`data/${key}.${kind}.json`, location.href), { cache: 'no-cache' });
-    if (!r.ok) return null;
+    if (!r.ok) { prebuilt.note = `${key}: HTTP ${r.status}`; return null; }
     const j = await r.json();
-    return j && Array.isArray(j.elements) && j.elements.length ? j : null;
-  } catch { return null; }
+    if (j && Array.isArray(j.elements) && j.elements.length) return j;
+    prebuilt.note = `${key}: 내용 없음`; return null;
+  } catch (e) { prebuilt.note = `${key}: ${(e && e.message) || e}`; return null; }
 }
 async function prebuiltInfo() {
-  try { const r = await fetch(new URL('data/index.json', location.href), { cache: 'no-cache' }); return r.ok ? await r.json() : null; } catch { return null; }
+  if (prebuilt.index !== undefined) return prebuilt.index;
+  try { const r = await fetch(new URL('data/index.json', location.href), { cache: 'no-cache' }); prebuilt.index = r.ok ? await r.json() : null; }
+  catch { prebuilt.index = null; }
+  return prebuilt.index;
 }
+const inArtifact = !/^https?:$/.test(location.protocol) || /claude/.test(location.hostname);
 async function fetchOsm(kind, bbox, onStatus) {
   if (settings.apiBase) {
     try {
@@ -2044,12 +2067,20 @@ async function loadRealMap(center, radius, label, opts = {}) {
   if (osm.loading) return;
   osm.loading = true; $('#btnLoadMap').disabled = true;
   const bbox = bboxAround(center.lat, center.lon, radius);
+  let usedKey = null;
+  prebuilt.note = '';
   try {
-    let net = null, prebuilt = false, fetchedAt = '';
-    if (opts.key && PLACES[opts.key] && radius <= PREBUILT_RADIUS) {
+    let net = null, isPrebuilt = false, fetchedAt = '';
+    const info = inArtifact ? null : await prebuiltInfo();
+    const available = info && info.places ? Object.keys(info.places) : [];
+    // 목록의 장소는 반경과 상관없이, 내 위치·지금 보는 곳은 미리 받아 둔 장소 안이면 그 지도를 쓴다
+    usedKey = opts.key && available.includes(opts.key) ? opts.key : placeCovering(center.lat, center.lon, available);
+    if (usedKey) {
       setMapStatus('미리 받아 둔 지도를 여는 중…');
-      net = await fetchPrebuilt(opts.key, 'network');
-      if (net) { prebuilt = true; const info = await prebuiltInfo(); fetchedAt = (info && info.fetchedAt || '').slice(0, 10); }
+      net = await fetchPrebuilt(usedKey, 'network');
+      if (net) { isPrebuilt = true; fetchedAt = ((info.places[usedKey] && info.places[usedKey].fetchedAt) || info.fetchedAt || '').slice(0, 10); }
+    } else if (opts.key && !inArtifact) {
+      prebuilt.note = info ? `${opts.key}: 아직 준비 안 됨` : '목록을 읽지 못함';
     }
     if (!net) net = await fetchOsm('network', bbox, setMapStatus);
     setMapStatus('보행 그래프를 만드는 중…');
@@ -2059,16 +2090,17 @@ async function loadRealMap(center, radius, label, opts = {}) {
     const userPos = opts.userLatLon ? graph.proj.toLocal(opts.userLatLon.lat, opts.userLatLon.lon) : null;
     setWorld(graph, { label, center, radius }, { userPos });
     if (!opts.userLatLon) { settings.lastMap = { lat: center.lat, lon: center.lon, radius, label, key: opts.key || null }; saveSettings(); }
-    setMapStatus(`불러왔습니다${prebuilt ? ` (미리 받아 둔 지도${fetchedAt ? `, ${fetchedAt} 기준` : ''})` : ''}. 길 ${graph.stats.edges}개, 횡단보도 ${graph.stats.crossings}개(신호 ${graph.stats.signalized}), 교차로 ${graph.stats.intersections}곳.`);
+    setMapStatus(`불러왔습니다${isPrebuilt ? ` (미리 받아 둔 지도${usedKey !== opts.key ? `: ${PLACES[usedKey].name}` : ''}${fetchedAt ? `, ${fetchedAt} 기준` : ''})` : ''}. 길 ${graph.stats.edges}개, 횡단보도 ${graph.stats.crossings}개(신호 ${graph.stats.signalized}), 교차로 ${graph.stats.intersections}곳.`);
     toast(`실제 지도: ${label}. 횡단보도 ${graph.stats.crossings}개를 찾았습니다.`);
-    const ctxPromise = prebuilt ? fetchPrebuilt(opts.key, 'context').then((c) => c || fetchOsm('context', bbox, () => {})) : fetchOsm('context', bbox, () => {});
+    const ctxPromise = isPrebuilt ? fetchPrebuilt(usedKey, 'context').then((c) => c || fetchOsm('context', bbox, () => {})) : fetchOsm('context', bbox, () => {});
     ctxPromise.then((ctxData) => { if (ctxData && world.graph === graph) { addContext(graph, ctxData); worldVer++; renderMapNow(); dirty = true; } }).catch(() => {});
   } catch (e) {
     const kind = e && e.kind;
     const head = kind === 'blocked' ? '지도 서버에 요청을 보내지 못했습니다. 인터넷 연결을 확인해 주세요.'
       : kind === 'busy' ? '지도 서버들이 지금 바빠 응답하지 않습니다. 잠시 뒤 다시 불러오기를 눌러주세요.'
       : '지도를 불러오지 못했습니다.';
-    setMapStatus(`실패: ${head} (${(e && e.message) || e})`);
+    const why = inArtifact ? '이 화면(claude.ai 미리보기)에서는 외부 지도를 받을 수 없습니다. https://chorokbul-navi.netlify.app/#dunsan 에서 열어주세요.' : head;
+    setMapStatus(`실패: ${why} (${(e && e.message) || e})${prebuilt.note ? ` · 미리 받아 둔 지도: ${prebuilt.note}` : ''} · 앱 버전 ${BUILD}`);
     toast('실제 지도를 불러오지 못했습니다.');
     if (opts.auto) openMapSheet(true);
   } finally {
@@ -2195,12 +2227,18 @@ requestAnimationFrame(() => { resize(); fitRoute(); });
 if (settings.apiBase) liveConnect(settings.apiBase);
 // 주소 끝의 #dunsan 같은 이름으로 열면 그 곳의 실제 지도를 바로 불러온다. 없으면 지난번 지도.
 const HASH_PLACES = { dunsan: 'dj_cityhall', cityhall: 'dj_cityhall', complex: 'dj_complex', daejeon: 'dj_station', yuseong: 'dj_yuseong', gangnam: 'gangnam', yeoksam: 'yeoksam' };
-const hashKey = HASH_PLACES[(location.hash || '').replace(/^#/, '').toLowerCase()];
-if (hashKey) {
-  const pl = PLACES[hashKey];
-  $('#inCenter').value = hashKey;
+function loadFromHash() {
+  const key = HASH_PLACES[(location.hash || '').replace(/^#/, '').toLowerCase()];
+  if (!key) return false;
+  const pl = PLACES[key];
+  $('#inCenter').value = key;
   toast(`${pl.name} 실제 지도를 불러오는 중…`);
-  loadRealMap({ lat: pl.lat, lon: pl.lon }, Number($('#inRadius').value) || 700, pl.name, { key: hashKey, auto: true });
+  loadRealMap({ lat: pl.lat, lon: pl.lon }, Number($('#inRadius').value) || 700, pl.name, { key, auto: true });
+  return true;
+}
+window.addEventListener('hashchange', loadFromHash);
+if (loadFromHash()) {
+  // 주소로 연 곳을 불러오는 중
 } else if (settings.lastMap && Number.isFinite(settings.lastMap.lat)) {
   const lm = settings.lastMap;
   if (lm.key && PLACES[lm.key]) $('#inCenter').value = lm.key;

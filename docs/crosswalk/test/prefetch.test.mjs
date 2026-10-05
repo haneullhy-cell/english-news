@@ -115,3 +115,16 @@ test('tools/fetch-osm.mjs: 배포된 사이트에 2주 안의 지도가 있으�
   assert.equal(overpassCalls, 2);                          // dj_station 의 길·건물 두 번뿐
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(out, 'dj_cityhall.network.json'), 'utf8')), slim);
 });
+
+test('placeCovering: 좌표가 미리 받아 둔 장소 범위 안이면 그 장소', async () => {
+  const { placeCovering, PLACES } = await import('../src/places.js');
+  const c = PLACES.dj_cityhall;
+  assert.equal(placeCovering(c.lat, c.lon), 'dj_cityhall');
+  assert.equal(placeCovering(c.lat + 0.002, c.lon), 'dj_cityhall');           // 북쪽 약 220 m
+  assert.equal(placeCovering(c.lat + 0.006, c.lon, ['dj_cityhall']), null);    // 약 660 m: 가장자리 여유 밖
+  assert.equal(placeCovering(c.lat, c.lon, ['dj_station']), null);            // 준비된 목록에 없으면
+  assert.equal(placeCovering(37.0, 127.0), null);
+  // 시청역과 정부청사역 사이(둘 다 범위 안)면 더 가까운 쪽
+  const m = PLACES.dj_complex;
+  assert.equal(placeCovering(m.lat - 0.0005, m.lon), 'dj_complex');
+});

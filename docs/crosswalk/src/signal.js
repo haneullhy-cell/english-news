@@ -19,7 +19,8 @@ export function makePlan({ cycle, offset = 0, phases, pedGreen = {} }) {
   for (const p of phases) {
     for (const leg of p.ped) {
       const dur = Math.min(pedGreen[leg] ?? p.dur, p.dur);
-      (starts[leg] ||= []).push({ at: acc, dur });
+      if (!starts[leg]) starts[leg] = [];
+      starts[leg].push({ at: acc, dur });
     }
     acc += p.dur;
   }

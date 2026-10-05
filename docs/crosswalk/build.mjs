@@ -11,7 +11,8 @@ const strip = (src) => src
   .replace(/^import[^\n]*\n/gm, '')
   .replace(/^export\s+(?=(const|let|function|class|async)\b)/gm, '');
 
-const bundle = ORDER
+const kst = new Date(Date.now() + 9 * 3600 * 1000).toISOString().replace('T', ' ').slice(0, 16);
+const bundle = `const BUILD = '${kst}';\n` + ORDER
   .map((f) => `// ---- ${f} ----\n${strip(fs.readFileSync(path.join(here, 'src', f), 'utf8'))}`)
   .join('\n');
 const page = fs.readFileSync(path.join(here, 'src', 'page.html'), 'utf8');
