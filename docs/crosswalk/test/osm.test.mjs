@@ -173,3 +173,22 @@ test('횡단보도 시설 태그: 잔여시간 표시기·음향신호기·보�
   const f = crossingFeatures({ highway: 'footway', footway: 'crossing' }, [{ button_operated: 'yes', crossing: 'traffic_signals', 'traffic_signals:countdown': 'yes', 'traffic_signals:sound': 'walk', 'traffic_signals:vibration': 'no', tactile_paving: 'no', 'crossing:island': 'no' }]);
   assert.deepEqual(f, { countdown: true, sound: true, vibration: false, button: true, island: false, tactile: false });
 });
+
+test('신호 없는 횡단보도를 지나는 경로도 계산된다 (실제 둔산 지도에서 난 오류)', () => {
+  const from = `n${fx.nodeAt(140, 100)}`, to = `n${fx.nodeAt(160, 100)}`;
+  for (const t0 of [0, 33, 77]) {
+    const c = compare(g, adj, from, to, t0, ctx);
+    assert.ok(c, '경로 없음');
+    const cross = c.fast.steps.find((s) => s.kind === 'cross');
+    assert.ok(cross, '횡단보도를 지나지 않았습니다');
+    assert.equal(cross.edge.signal, null);
+    assert.equal(cross.intersection, undefined);
+    assert.ok(cross.wait >= 4 - 1e-9); // 마킹 횡단보도 4초
+  }
+});
+
+test('교차로 이름: 이름 없는 길은 빼고 역 이름에는 역을 붙인다', () => {
+  const it = [...g.intersections.values()].find((i) => i.kind === 'osm');
+  assert.equal(it.name, '테스트사거리'); // junction 이름이 있으면 그대로
+  assert.ok(g.pois.some((p) => p.name === '테스트역'));
+});

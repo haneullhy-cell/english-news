@@ -18,6 +18,32 @@ const ENDPOINTS = process.env.PREFETCH_ENDPOINTS ? process.env.PREFETCH_ENDPOINT
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const DEADLINE = Date.now() + 9 * 60 * 1000; // 넷리파이 빌드 시간 안에서 끝낸다
 const HEADERS = { 'User-Agent': 'chorokbul-navi/1.0 (+https://chorokbul-navi.netlify.app) build prefetch' };
+// 이미 배포된 사이트의 지도가 이만큼 새것이면 Overpass 에 다시 묻지 않고 그대로 쓴다(넷리파이가 URL 을 넣어 준다).
+const SITE = (process.env.PREFETCH_SITE || process.env.URL || '').replace(/\/+$/, '');
+const MAX_AGE_MS = 14 * 24 * 3600 * 1000;
+const FORCE = !!process.env.PREFETCH_FORCE;
+
+async function getJson(url) {
+  const r = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(30000) });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+let deployed = null;
+if (SITE && !FORCE) {
+  try { deployed = await getJson(`${SITE}/data/index.json`); console.log(`배포된 사이트(${SITE})의 지도 목록을 읽었습니다.`); }
+  catch (e) { console.log(`배포된 사이트의 지도 목록이 없습니다 (${e.message}).`); }
+}
+async function reuseDeployed(key) {
+  const prev = deployed && deployed.places && deployed.places[key];
+  if (!prev || prev.radius !== PREBUILT_RADIUS || !(Date.now() - Date.parse(prev.fetchedAt) < MAX_AGE_MS)) return null;
+  const net = await getJson(`${SITE}/data/${key}.network.json`);
+  if (!net || !Array.isArray(net.elements) || net.elements.length < 20) return null;
+  fs.writeFileSync(path.join(outDir, `${key}.network.json`), JSON.stringify(net));
+  if (prev.context > 0) {
+    try { fs.writeFileSync(path.join(outDir, `${key}.context.json`), JSON.stringify(await getJson(`${SITE}/data/${key}.context.json`))); } catch { /* 건물은 없어도 된다 */ }
+  }
+  return prev;
+}
 
 async function fetchWithRetry(query, label) {
   let last = null;
@@ -46,6 +72,10 @@ for (const [key, pl] of Object.entries(PLACES)) {
   if (Date.now() > DEADLINE) { console.log(`${key}: 시간이 모자라 건너뜀`); fail++; continue; }
   const bbox = bboxAround(pl.lat, pl.lon, PREBUILT_RADIUS);
   const t0 = Date.now();
+  try {
+    const reused = await reuseDeployed(key);
+    if (reused) { index.places[key] = reused; ok++; console.log(`${key}: 배포된 사이트의 지도를 다시 씀 (${reused.fetchedAt.slice(0, 10)} 기준)`); continue; }
+  } catch (e) { console.log(`  ${key}: 배포된 지도를 다시 쓰지 못함 (${e.message}), 새로 받습니다`); }
   try {
     const net = slimOsm(await fetchWithRetry(networkQuery(bbox), `${key} 길`), 'network');
     if (net.elements.length < 20) throw new Error(`요소가 너무 적습니다(${net.elements.length})`);

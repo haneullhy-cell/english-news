@@ -235,7 +235,7 @@ export function buildOsmWorld(net, ctxData, opts = {}) {
   function makeGroup(id, ids, edges, length, kind, across, features) {
     const pts = ids.map((k) => graph.nodes.get(k));
     const mid = chainMidpoint(pts);
-    const g = { id, nodes: ids, edges: edges.map((e) => e.id), length, mid, kind, features: features || null, across: across ? roadName(across.tags) : '', acrossClass: across ? across.tags.highway : null, acrossWidth: across ? roadWidth(across.tags) : 8, intersection: null, leg: null, name: '' };
+    const g = { id, nodes: ids, edges: edges.map((e) => e.id), length, mid, kind, features: features || null, across: across ? roadName(across.tags) : '', acrossNamed: !!(across && across.tags.name), acrossClass: across ? across.tags.highway : null, acrossWidth: across ? roadWidth(across.tags) : 8, intersection: null, leg: null, name: '' };
     const ends = [ids[0], ids[ids.length - 1]];
     for (const e of edges) { e.group = id; e.crossTotal = length; e.groupEnds = ends; e.delay = kind === 'signals' ? 0 : kind === 'marked' ? 4 : 2; e.signal = null; }
     graph.crossings.set(id, g);
@@ -429,8 +429,9 @@ function buildIntersections(graph, nodesRaw, coord) {
     let name = null, bd = 70;
     for (const j of junctions) { const d = dist(j.p, center); if (d < bd) { bd = d; name = j.name; } }
     if (!name) {
-      const names = [...new Set(groups.map((g) => g.across))];
-      name = groups.length === 1 ? `${groups[0].across ? `${groups[0].across} ` : ''}횡단보도` : names.filter(Boolean).slice(0, 2).join('·') || '교차로';
+      const named = [...new Set(groups.filter((g) => g.acrossNamed).map((g) => g.across))];
+      if (groups.length === 1) name = `${groups[0].across ? `${groups[0].across} ` : ''}횡단보도`;
+      else name = named.length >= 2 ? named.slice(0, 2).join('·') : named.length === 1 ? `${named[0]} 교차로` : '교차로';
     }
     graph.intersections.set(id, { id, name, x: cx, y: cy, kind: groups.length === 1 ? 'midblock' : 'osm', legs, plan, itstId: null });
     for (const g of groups) g.name = groups.length === 1 ? name : `${name} ${LEG_NAMES[g.leg]}`;
@@ -475,7 +476,8 @@ function planFor(id, legs) {
 function buildPois(graph, nodesRaw, coord) {
   const nodes = [...graph.nodes.values()];
   const stations = [];
-  for (const [id, n] of nodesRaw) { const t = n.tags || {}; if ((t.railway === 'station' || t.public_transport === 'station') && t.name && coord.has(id)) stations.push({ name: t.name, p: coord.get(id) }); }
+  const stationName = (t) => (t.station === 'subway' || t.railway === 'station') && !/역$/.test(t.name) ? `${t.name}역` : t.name;
+  for (const [id, n] of nodesRaw) { const t = n.tags || {}; if ((t.railway === 'station' || t.public_transport === 'station') && t.name && coord.has(id)) stations.push({ name: stationName(t), p: coord.get(id) }); }
   const nearestNode = (p) => { let best = null, bd = POI_SNAP_M; for (const n of nodes) { const d = dist(n, p); if (d < bd) { bd = d; best = n; } } return best; };
   const seen = new Set();
   const push = (name, p) => { if (!name || seen.has(name)) return; const n = nearestNode(p); if (!n) return; seen.add(name); graph.pois.push({ id: `poi${graph.pois.length}`, name, node: n.id, x: p.x, y: p.y }); };

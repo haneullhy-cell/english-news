@@ -456,8 +456,15 @@ $('#swap').addEventListener('click', () => {
 function recompute() {
   lastCmp = Date.now(); cmpDirty = false;
   const G = world.graph;
-  state.cmp = state.from && state.to && state.from !== state.to && G.nodes.has(state.from) && G.nodes.has(state.to)
-    ? compare(G, world.adj, state.from, state.to, clock.now(), routeCtx()) : null;
+  state.cmpError = '';
+  try {
+    state.cmp = state.from && state.to && state.from !== state.to && G.nodes.has(state.from) && G.nodes.has(state.to)
+      ? compare(G, world.adj, state.from, state.to, clock.now(), routeCtx()) : null;
+  } catch (e) {
+    // 경로 계산이 실패해도 지도와 횡단보도 카드는 계속 쓸 수 있게 한다
+    state.cmp = null; state.cmpError = (e && e.message) || String(e);
+    if (window.console) console.error(e);
+  }
   dirty = true;
   if (!state.sel) renderPanel();
 }
@@ -614,7 +621,9 @@ function renderPanel() {
     return;
   }
   if (state.cmp) { const top = panel.scrollTop; panel.innerHTML = routeHTML(state.cmp); panel.scrollTop = top; return; }
-  panel.innerHTML = state.from && state.to && state.from !== state.to
+  panel.innerHTML = state.cmpError
+    ? `<p class="note">경로를 계산하다 오류가 났습니다. 다른 출발·도착을 골라보세요. (${esc(state.cmpError)})</p>`
+    : state.from && state.to && state.from !== state.to
     ? '<p class="note">두 지점을 잇는 길을 찾지 못했습니다. 지도에 보도 정보가 없는 곳일 수 있습니다. 다른 지점을 골라보세요.</p>'
     : '<p class="note">출발과 도착을 고르면 거리만 본 경로와 신호를 본 경로를 비교합니다. 지도의 횡단보도를 누르면 그 신호의 잔여시간을 봅니다.</p>';
 }
@@ -819,11 +828,16 @@ async function locate() {
 
 // ---------- 시작 ----------
 function loop() {
-  const now = Date.now();
-  if (cmpDirty || now - lastCmp > 5000) recompute();
-  if (dirty || now - lastDraw > 250) draw();
-  if (state.sel) updateCrossingCard();
+  // 한 번의 오류로 그리기가 멈추지 않도록 다음 프레임을 먼저 예약한다
   requestAnimationFrame(loop);
+  const now = Date.now();
+  try {
+    if (cmpDirty || now - lastCmp > 5000) recompute();
+    if (dirty || now - lastDraw > 250) draw();
+    if (state.sel) updateCrossingCard();
+  } catch (e) {
+    if (now - (loop.lastErr || 0) > 5000) { loop.lastErr = now; if (window.console) console.error(e); }
+  }
 }
 window.addEventListener('resize', resize);
 if (window.ResizeObserver) new ResizeObserver(() => { resize(); }).observe(mapEl);

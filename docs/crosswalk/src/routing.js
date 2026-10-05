@@ -100,7 +100,9 @@ export function evaluate(graph, edgesPath, from, t0, ctx) {
     const r = traverseEdge(e, t, ctx, cur);
     const step = { edge: e, from: cur, to: next, kind: e.kind, tArrive: t, tExit: r.tExit, wait: r.wait, length: e.length, walkSec: r.walkSec };
     if (e.kind === 'cross') {
-      step.intersection = e.signal.intersection; step.leg = e.signal.leg; step.crossAt = r.crossAt; step.signalAtArrival = r.signal;
+      step.crossAt = r.crossAt; step.signalAtArrival = r.signal;
+      // 신호 없는 횡단보도에는 교차로·방향이 없다
+      if (e.signal) { step.intersection = e.signal.intersection; step.leg = e.signal.leg; }
     }
     steps.push(step);
     length += e.length; wait += r.wait; walk += r.walkSec; t = r.tExit; cur = next;

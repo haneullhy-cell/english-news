@@ -89,3 +89,29 @@ test('좌표가 아주 많아도 범위 계산이 터지지 않는다', () => {
   const g = buildOsmWorld({ elements: [{ type: 'way', id: 1, nodes, geometry, tags: { highway: 'footway' } }] }, null, { center: { lat: 36.35, lon: 127.38 } });
   assert.ok(Number.isFinite(g.bounds.minX) && g.bounds.maxX > g.bounds.minX);
 });
+
+test('tools/fetch-osm.mjs: 배포된 사이트에 2주 안의 지도가 있으면 Overpass 에 묻지 않고 다시 쓴다', async () => {
+  const slim = slimOsm(dj, 'network');
+  let overpassCalls = 0;
+  const site = http.createServer((req, res) => {
+    const send = (code, body) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); };
+    if (req.url === '/data/index.json') return send(200, { radius: 700, places: {
+      dj_cityhall: { name: '대전 시청역·둔산 주변', radius: 700, network: slim.elements.length, context: 0, fetchedAt: new Date().toISOString() },
+      dj_station: { name: '대전역 주변', radius: 700, network: 999, context: 0, fetchedAt: '2020-01-01T00:00:00Z' },
+    } });
+    if (req.url === '/data/dj_cityhall.network.json') return send(200, slim);
+    if (req.method === 'POST') { overpassCalls++; return send(200, dj); }
+    send(404, {});
+  });
+  await new Promise((r) => site.listen(0, r));
+  const base = `http://127.0.0.1:${site.address().port}`;
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'prefetch-reuse-'));
+  const log = await new Promise((resolve, reject) => execFile(process.execPath, [path.join(here, '..', 'tools', 'fetch-osm.mjs'), 'dj_cityhall', 'dj_station'], {
+    env: { ...process.env, PREFETCH_OUT: out, PREFETCH_SITE: base, PREFETCH_ENDPOINTS: `${base}/api/interpreter`, PREFETCH_RETRY_MS: '1', PREFETCH_PAUSE_MS: '1' },
+  }, (err, stdout) => (err ? reject(err) : resolve(stdout))));
+  site.close();
+  assert.match(log, /dj_cityhall: 배포된 사이트의 지도를 다시 씀/);
+  assert.match(log, /dj_station: 길·노드 \d+개/);          // 오래된 지도는 새로 받는다
+  assert.equal(overpassCalls, 2);                          // dj_station 의 길·건물 두 번뿐
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(out, 'dj_cityhall.network.json'), 'utf8')), slim);
+});

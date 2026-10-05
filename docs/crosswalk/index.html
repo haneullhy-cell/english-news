@@ -720,7 +720,9 @@ function evaluate(graph, edgesPath, from, t0, ctx) {
     const r = traverseEdge(e, t, ctx, cur);
     const step = { edge: e, from: cur, to: next, kind: e.kind, tArrive: t, tExit: r.tExit, wait: r.wait, length: e.length, walkSec: r.walkSec };
     if (e.kind === 'cross') {
-      step.intersection = e.signal.intersection; step.leg = e.signal.leg; step.crossAt = r.crossAt; step.signalAtArrival = r.signal;
+      step.crossAt = r.crossAt; step.signalAtArrival = r.signal;
+      // 신호 없는 횡단보도에는 교차로·방향이 없다
+      if (e.signal) { step.intersection = e.signal.intersection; step.leg = e.signal.leg; }
     }
     steps.push(step);
     length += e.length; wait += r.wait; walk += r.walkSec; t = r.tExit; cur = next;
@@ -1030,7 +1032,7 @@ function buildOsmWorld(net, ctxData, opts = {}) {
   function makeGroup(id, ids, edges, length, kind, across, features) {
     const pts = ids.map((k) => graph.nodes.get(k));
     const mid = chainMidpoint(pts);
-    const g = { id, nodes: ids, edges: edges.map((e) => e.id), length, mid, kind, features: features || null, across: across ? roadName(across.tags) : '', acrossClass: across ? across.tags.highway : null, acrossWidth: across ? roadWidth(across.tags) : 8, intersection: null, leg: null, name: '' };
+    const g = { id, nodes: ids, edges: edges.map((e) => e.id), length, mid, kind, features: features || null, across: across ? roadName(across.tags) : '', acrossNamed: !!(across && across.tags.name), acrossClass: across ? across.tags.highway : null, acrossWidth: across ? roadWidth(across.tags) : 8, intersection: null, leg: null, name: '' };
     const ends = [ids[0], ids[ids.length - 1]];
     for (const e of edges) { e.group = id; e.crossTotal = length; e.groupEnds = ends; e.delay = kind === 'signals' ? 0 : kind === 'marked' ? 4 : 2; e.signal = null; }
     graph.crossings.set(id, g);
@@ -1224,8 +1226,9 @@ function buildIntersections(graph, nodesRaw, coord) {
     let name = null, bd = 70;
     for (const j of junctions) { const d = dist(j.p, center); if (d < bd) { bd = d; name = j.name; } }
     if (!name) {
-      const names = [...new Set(groups.map((g) => g.across))];
-      name = groups.length === 1 ? `${groups[0].across ? `${groups[0].across} ` : ''}횡단보도` : names.filter(Boolean).slice(0, 2).join('·') || '교차로';
+      const named = [...new Set(groups.filter((g) => g.acrossNamed).map((g) => g.across))];
+      if (groups.length === 1) name = `${groups[0].across ? `${groups[0].across} ` : ''}횡단보도`;
+      else name = named.length >= 2 ? named.slice(0, 2).join('·') : named.length === 1 ? `${named[0]} 교차로` : '교차로';
     }
     graph.intersections.set(id, { id, name, x: cx, y: cy, kind: groups.length === 1 ? 'midblock' : 'osm', legs, plan, itstId: null });
     for (const g of groups) g.name = groups.length === 1 ? name : `${name} ${LEG_NAMES[g.leg]}`;
@@ -1270,7 +1273,8 @@ function planFor(id, legs) {
 function buildPois(graph, nodesRaw, coord) {
   const nodes = [...graph.nodes.values()];
   const stations = [];
-  for (const [id, n] of nodesRaw) { const t = n.tags || {}; if ((t.railway === 'station' || t.public_transport === 'station') && t.name && coord.has(id)) stations.push({ name: t.name, p: coord.get(id) }); }
+  const stationName = (t) => (t.station === 'subway' || t.railway === 'station') && !/역$/.test(t.name) ? `${t.name}역` : t.name;
+  for (const [id, n] of nodesRaw) { const t = n.tags || {}; if ((t.railway === 'station' || t.public_transport === 'station') && t.name && coord.has(id)) stations.push({ name: stationName(t), p: coord.get(id) }); }
   const nearestNode = (p) => { let best = null, bd = POI_SNAP_M; for (const n of nodes) { const d = dist(n, p); if (d < bd) { bd = d; best = n; } } return best; };
   const seen = new Set();
   const push = (name, p) => { if (!name || seen.has(name)) return; const n = nearestNode(p); if (!n) return; seen.add(name); graph.pois.push({ id: `poi${graph.pois.length}`, name, node: n.id, x: p.x, y: p.y }); };
@@ -1797,8 +1801,15 @@ $('#swap').addEventListener('click', () => {
 function recompute() {
   lastCmp = Date.now(); cmpDirty = false;
   const G = world.graph;
-  state.cmp = state.from && state.to && state.from !== state.to && G.nodes.has(state.from) && G.nodes.has(state.to)
-    ? compare(G, world.adj, state.from, state.to, clock.now(), routeCtx()) : null;
+  state.cmpError = '';
+  try {
+    state.cmp = state.from && state.to && state.from !== state.to && G.nodes.has(state.from) && G.nodes.has(state.to)
+      ? compare(G, world.adj, state.from, state.to, clock.now(), routeCtx()) : null;
+  } catch (e) {
+    // 경로 계산이 실패해도 지도와 횡단보도 카드는 계속 쓸 수 있게 한다
+    state.cmp = null; state.cmpError = (e && e.message) || String(e);
+    if (window.console) console.error(e);
+  }
   dirty = true;
   if (!state.sel) renderPanel();
 }
@@ -1955,7 +1966,9 @@ function renderPanel() {
     return;
   }
   if (state.cmp) { const top = panel.scrollTop; panel.innerHTML = routeHTML(state.cmp); panel.scrollTop = top; return; }
-  panel.innerHTML = state.from && state.to && state.from !== state.to
+  panel.innerHTML = state.cmpError
+    ? `<p class="note">경로를 계산하다 오류가 났습니다. 다른 출발·도착을 골라보세요. (${esc(state.cmpError)})</p>`
+    : state.from && state.to && state.from !== state.to
     ? '<p class="note">두 지점을 잇는 길을 찾지 못했습니다. 지도에 보도 정보가 없는 곳일 수 있습니다. 다른 지점을 골라보세요.</p>'
     : '<p class="note">출발과 도착을 고르면 거리만 본 경로와 신호를 본 경로를 비교합니다. 지도의 횡단보도를 누르면 그 신호의 잔여시간을 봅니다.</p>';
 }
@@ -2160,11 +2173,16 @@ async function locate() {
 
 // ---------- 시작 ----------
 function loop() {
-  const now = Date.now();
-  if (cmpDirty || now - lastCmp > 5000) recompute();
-  if (dirty || now - lastDraw > 250) draw();
-  if (state.sel) updateCrossingCard();
+  // 한 번의 오류로 그리기가 멈추지 않도록 다음 프레임을 먼저 예약한다
   requestAnimationFrame(loop);
+  const now = Date.now();
+  try {
+    if (cmpDirty || now - lastCmp > 5000) recompute();
+    if (dirty || now - lastDraw > 250) draw();
+    if (state.sel) updateCrossingCard();
+  } catch (e) {
+    if (now - (loop.lastErr || 0) > 5000) { loop.lastErr = now; if (window.console) console.error(e); }
+  }
 }
 window.addEventListener('resize', resize);
 if (window.ResizeObserver) new ResizeObserver(() => { resize(); }).observe(mapEl);
