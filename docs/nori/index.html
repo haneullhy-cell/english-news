@@ -141,6 +141,7 @@ details.more li{margin:4px 0}
 .bnav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .bnav button[aria-pressed="true"]{color:var(--accent);background:var(--accent-soft)}
 .badge{position:absolute;top:1px;left:calc(50% + 6px);min-width:17px;height:17px;border-radius:9px;background:var(--heart);color:#fff;font-size:10.5px;line-height:17px;padding:0 4px}
+.steplink{display:block;margin:14px 0 4px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;font-weight:700;color:var(--ink);text-decoration:none;box-shadow:var(--shadow)}.steplink span{display:block;font-size:12.5px;font-weight:500;color:var(--ink-3);margin-top:2px}
 #toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:#2b2620;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:90;max-width:90vw;text-align:center}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 </style></head><body>
@@ -265,6 +266,7 @@ details.more li{margin:4px 0}
       <div class="birth"><label for="birth">생일로 찾기</label><input type="date" id="birth"><span class="now" id="birthNow"></span></div>
     </div>
     <div class="grid" id="grid"></div>
+    <a class="steplink" href="steps.html">📋 분야별 단계·준비물 한눈에 보기 <span>오리기 · 연필 잡기 · 그리기 · 수 감각 ›</span></a>
   </section>
   <section id="list" hidden></section>
 </main>
@@ -340,6 +342,7 @@ function renderCart(){ var ks=cartKeys().sort(function(a,b){ return st.cart[b].a
 var WSL=null;
 function wsList(){ if(WSL) return WSL; var m={}; P.forEach(function(p){ (p.ws||[]).forEach(function(w){ var e=m[w.f]||(m[w.f]={f:w.f,t:w.t,lo:p.lo,hi:p.hi}); e.lo=Math.min(e.lo,p.lo); e.hi=Math.max(e.hi,p.hi); }); }); WSL=Object.keys(m).map(function(k){ return m[k]; }).sort(function(a,b){ return a.lo-b.lo||a.hi-b.hi; }); return WSL; }
 function renderWs(){ var h='<div class="dhead"><h2>활동지</h2><span>누르면 PDF로 저장돼요</span></div>';
+  h+='<a class="steplink" href="steps.html">📋 분야별 단계·준비물 한눈에 보기 <span>활동지랑 준비물을 단계 순서로 ›</span></a>';
   h+=wsList().map(function(w){ if(w.f==='name') return '<div class="card" id="nameCard"><div class="wsitem"><div class="c1"><b>'+esc(w.t)+'</b><span>'+w.lo+'~'+w.hi+'개월 · 아이 이름으로 바로 만들어요</span></div></div><div class="namebox"><input id="nameIn" placeholder="아이 이름 (예: 김하늘)" maxlength="8" autocomplete="off"><button type="button" class="btn" id="nameGo">PDF 만들기</button></div></div>'; return '<div class="card"><div class="wsitem"><div class="c1"><b>'+esc(w.t)+'</b><span>'+w.lo+'~'+w.hi+'개월</span></div><a class="wsbtn" href="ws/'+w.f+'.pdf" download="nori_'+w.f+'.pdf">⬇ PDF</a></div></div>'; }).join('');
   h+='<p class="disc">A4로 인쇄해서 써요. 오리기 활동지는 도화지처럼 두꺼운 종이에 인쇄하면 잘 잘려요.</p>';
   $('pWs').innerHTML=h; }
