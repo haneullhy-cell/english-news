@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>공구 모아</title>
+<meta name="description" content="인스타그램·네이버에 흩어진 육아 공동구매 글을 매일 아침 한곳에 모아 마감 순으로 보여 주는 앱">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="공구 모아">
+<meta name="theme-color" content="#faf4ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171310" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+@font-face{font-family:"Cafe24Ssurround";font-weight:400 800;font-display:swap;src:url(fonts/Cafe24Ssurround.woff) format("woff")}
+:root{
+  --bg:#faf4ee; --surface:#ffffff; --surface-2:#f5ede4; --surface-3:#ece1d5;
+  --line:#eadfd2; --line-soft:#f2e9df;
+  --ink:#2d2621; --ink-2:#675c52; --ink-3:#9a8d80;
+  --accent:#e0613f; --accent-ink:#ffffff; --accent-soft:#fde6dd; --accent-deep:#b3442a;
+  --sun:#ffd84a; --sun-soft:#fff5cc; --sun-ink:#7a5c00;
+  --urgent:#d9352b; --urgent-ink:#ffffff; --urgent-soft:#fde2df;
+  --soon:#b5670a; --soon-soft:#fdeed3;
+  --live:#1f8a4d; --live-soft:#def3e3;
+  --open:#2f68c8; --open-soft:#e1ebfb;
+  --muted-soft:#efe8df;
+  --shadow:0 1px 2px rgba(80,50,30,.05),0 12px 26px -16px rgba(80,50,30,.3);
+  --radius:20px;
+  --display:"Cafe24Ssurround","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171310; --surface:#211c18; --surface-2:#29231e; --surface-3:#352d27;
+    --line:#41382f; --line-soft:#2f2823;
+    --ink:#f3ece4; --ink-2:#c7bcaf; --ink-3:#918578;
+    --accent:#ff8a66; --accent-ink:#2a120a; --accent-soft:#40231a; --accent-deep:#ffb39b;
+    --sun:#f2d24a; --sun-soft:#3a3212; --sun-ink:#ffe99a;
+    --urgent:#ff6b5f; --urgent-ink:#2a0d0a; --urgent-soft:#45201c;
+    --soon:#f2b45c; --soon-soft:#3a2e17;
+    --live:#66d493; --live-soft:#1d3527;
+    --open:#8db4ff; --open-soft:#1e2c45;
+    --muted-soft:#2c2620;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 12px 26px -16px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171310; --surface:#211c18; --surface-2:#29231e; --surface-3:#352d27;
+  --line:#41382f; --line-soft:#2f2823;
+  --ink:#f3ece4; --ink-2:#c7bcaf; --ink-3:#918578;
+  --accent:#ff8a66; --accent-ink:#2a120a; --accent-soft:#40231a; --accent-deep:#ffb39b;
+  --sun:#f2d24a; --sun-soft:#3a3212; --sun-ink:#ffe99a;
+  --urgent:#ff6b5f; --urgent-ink:#2a0d0a; --urgent-soft:#45201c;
+  --soon:#f2b45c; --soon-soft:#3a2e17;
+  --live:#66d493; --live-soft:#1d3527;
+  --open:#8db4ff; --open-soft:#1e2c45;
+  --muted-soft:#2c2620;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 12px 26px -16px rgba(0,0,0,.7);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px calc(40px + env(safe-area-inset-bottom,0px))}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;cursor:pointer}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+a{color:var(--accent-deep)}
+
+/* 상단 */
+.apphead{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -16px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 8px}
+.apphead-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:20px;color:var(--accent-deep)}
+.brand img{width:30px;height:30px;border-radius:9px;box-shadow:0 4px 10px -4px rgba(150,60,30,.55)}
+.status{font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+.search{display:block;margin-top:10px;position:relative}
+.search input{width:100%;height:44px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:15px;padding:0 40px 0 40px;-webkit-appearance:none;appearance:none}
+.search input::placeholder{color:var(--ink-3)}
+.search svg{position:absolute;left:13px;top:12px;width:20px;height:20px;color:var(--ink-3)}
+.search .clear{position:absolute;right:6px;top:6px;width:32px;height:32px;border:0;border-radius:10px;background:transparent;color:var(--ink-3);font-size:18px;line-height:1}
+
+/* 탭 */
+.tabs{display:flex;gap:4px;margin-top:10px;padding:4px;background:var(--surface-2);border-radius:14px}
+.tab{flex:1;min-width:0;height:38px;border:0;border-radius:10px;background:transparent;color:var(--ink-2);font-size:13.5px;font-weight:600;white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:4px}
+.tab b{font-weight:600;font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(60,40,20,.12)}
+.tab[aria-selected="true"] b{color:var(--accent)}
+
+/* 분류 */
+.cats{display:flex;gap:6px;overflow-x:auto;margin:12px -16px 0;padding:0 16px 2px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex:none;height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-size:13px;font-weight:500;white-space:nowrap}
+.cat b{font-weight:500;color:var(--ink-3);margin-left:3px;font-variant-numeric:tabular-nums}
+.cat[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.cat[aria-pressed="true"] b{color:inherit;opacity:.7}
+
+/* 알림 띠 */
+.notice{margin-top:14px;padding:11px 14px;border-radius:14px;background:var(--sun-soft);color:var(--sun-ink);font-size:13px;line-height:1.5}
+
+/* 카드 */
+.list{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px 16px 12px}
+.card.ended{opacity:.6}
+.card-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-right:40px;position:relative;min-height:26px}
+.badge{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:8px;font-size:12px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.b-urgent{background:var(--urgent);color:var(--urgent-ink)}
+.b-soon{background:var(--soon-soft);color:var(--soon)}
+.b-live{background:var(--live-soft);color:var(--live)}
+.b-open{background:var(--open-soft);color:var(--open)}
+.b-muted{background:var(--muted-soft);color:var(--ink-2)}
+.b-new{background:var(--accent);color:var(--accent-ink);font-size:10.5px;height:20px;padding:0 6px;border-radius:6px;letter-spacing:.03em}
+.period{font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.heart{position:absolute;right:-8px;top:-8px;width:44px;height:44px;border:0;background:transparent;border-radius:12px;display:grid;place-items:center;color:var(--ink-3)}
+.heart svg{width:24px;height:24px}
+.heart[aria-pressed="true"]{color:var(--urgent)}
+.heart[aria-pressed="true"] svg path{fill:currentColor}
+.title{margin:8px 0 2px;font-size:17px;font-weight:700;line-height:1.4;letter-spacing:-.01em;word-break:keep-all;overflow-wrap:anywhere}
+.meta{font-size:12.5px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:0 6px}
+.meta span+span::before{content:"·";margin-right:6px}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.fact{font-size:13px;padding:4px 10px;border-radius:9px;background:var(--surface-2);color:var(--ink-2)}
+.fact.price{background:var(--accent-soft);color:var(--accent-deep);font-weight:700}
+.excerpt{margin:10px 0 0;font-size:13.5px;color:var(--ink-2);white-space:pre-line;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.excerpt.open{display:block}
+.more{border:0;background:none;padding:2px 0;color:var(--ink-3);font-size:12.5px;text-decoration:underline;text-underline-offset:2px}
+.actions{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-soft)}
+.go{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:42px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:14px;text-decoration:none}
+.go svg{width:16px;height:16px}
+.hide{height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--ink-3);font-size:13px}
+
+/* 빈 화면 */
+.empty{text-align:center;padding:48px 20px 36px;color:var(--ink-2)}
+.empty .big{font-size:40px;line-height:1}
+.empty h2{font-family:var(--display);font-weight:400;font-size:19px;margin:14px 0 6px;color:var(--ink)}
+.empty p{margin:0;font-size:13.5px}
+.retry{margin-top:14px;height:40px;padding:0 18px;border-radius:12px;border:0;background:var(--accent);color:var(--accent-ink);font-weight:700}
+
+.unhide{display:block;margin:18px auto 0;border:0;background:none;color:var(--ink-3);font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.foot{margin-top:28px;padding:16px;border-radius:16px;background:var(--surface-2);font-size:12.5px;color:var(--ink-2);line-height:1.65}
+.foot p{margin:0}
+.foot p+p{margin-top:6px}
+.foot strong{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="apphead">
+    <div class="apphead-row">
+      <div class="brand"><img src="icon-192.png" alt="">공구 모아</div>
+      <span class="status" id="status">불러오는 중…</span>
+    </div>
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="상품·브랜드·계정 찾기" autocomplete="off" enterkeyhint="search">
+      <button class="clear" id="clear" type="button" aria-label="검색어 지우기" hidden>×</button>
+    </label>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="all" aria-selected="true">전체 <b id="n-all"></b></button>
+      <button class="tab" role="tab" data-tab="soon" aria-selected="false">마감 임박 <b id="n-soon"></b></button>
+      <button class="tab" role="tab" data-tab="open" aria-selected="false">오픈 예정 <b id="n-open"></b></button>
+      <button class="tab" role="tab" data-tab="saved" aria-selected="false">찜 <b id="n-saved"></b></button>
+    </div>
+  </header>
+
+  <div class="cats" id="cats"></div>
+  <div class="notice" id="notice" hidden></div>
+  <div class="list" id="list"></div>
+  <button class="unhide" id="unhide" type="button" hidden></button>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<script>
+(function(){
+  var CAT_ICON={"아기옷·신발":"👶","장난감·교구":"🧸","책·학습":"📚","수유·위생":"🍼","먹거리":"🍚","가구·침구":"🛏️","외출용품":"🚼","주방·생활":"🍳","엄마 뷰티·패션":"💄","기타":"🛍️"};
+  var SRC={insta:"인스타",blog:"블로그",cafe:"카페"};
+  var GO={insta:"인스타에서 보기",blog:"블로그에서 보기",cafe:"카페에서 보기"};
+  var DOW="일월화수목금토";
+  var SOON_DAYS=3;
+
+  var data={items:[],sources:{},hashtags:[]};
+  var state={tab:"all",cat:"",q:""};
+  var saved=load("gg.saved",{});    // id → 찜할 때 공구 정보 (목록에서 빠져도 남도록)
+  var hidden=load("gg.hidden",{});  // id → 숨긴 날
+  var openText={};
+
+  function load(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v&&typeof v==="object"?v:d}catch(e){return d}}
+  function store(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  function $(id){return document.getElementById(id)}
+
+  function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+  var TODAY=iso(new Date());
+  function days(a,b){return Math.round((Date.parse(b)-Date.parse(a))/864e5)}   // b - a (일)
+  function md(s){var d=new Date(s+"T00:00:00");return (d.getMonth()+1)+"/"+d.getDate()+"("+DOW[d.getDay()]+")"}
+
+  // 공구 상태 — 오픈 예정 / 오늘 마감 / D-n / 진행 중 / 끝남
+  function phase(it){
+    if(it.end&&it.end<TODAY) return {k:"ended",cls:"b-muted",label:"끝남"};
+    if(it.start&&it.start>TODAY){var o=days(TODAY,it.start);return {k:"open",cls:"b-open",label:o===1?"내일 오픈":md(it.start)+" 오픈"}}
+    if(it.end){
+      var d=days(TODAY,it.end);
+      if(d===0) return {k:"soon",cls:"b-urgent",label:"오늘 마감"};
+      if(d<=SOON_DAYS) return {k:"soon",cls:d===1?"b-urgent":"b-soon",label:"D-"+d};
+      return {k:"live",cls:"b-live",label:"D-"+d};
+    }
+    return {k:"live",cls:"b-muted",label:"진행 중"};
+  }
+  function period(it){
+    if(it.start&&it.end) return md(it.start)+" ~ "+md(it.end);
+    if(it.end) return "~ "+md(it.end)+" 마감";
+    if(it.start) return md(it.start)+" 오픈";
+    return "기간은 글에서 확인";
+  }
+
+  function pool(){
+    if(state.tab==="saved") return Object.keys(saved).map(function(id){
+      var live=data.items.find(function(x){return x.id===id});
+      return live||saved[id];
+    });
+    return data.items.filter(function(it){
+      if(hidden[it.id]) return false;
+      var p=phase(it).k;
+      if(p==="ended") return false;
+      if(state.tab==="soon") return p==="soon";
+      if(state.tab==="open") return p==="open";
+      return true;
+    });
+  }
+  function matches(it){
+    if(!state.q) return true;
+    var hay=[it.title,it.seller,it.cat,it.price,it.text,SRC[it.src]].join(" ").toLowerCase();
+    return state.q.toLowerCase().split(/\s+/).every(function(w){return hay.indexOf(w)>=0});
+  }
+  function sortList(list){
+    var endKey=function(it){return it.end||"9999"};
+    var by={
+      all:function(a,b){return (b.found||"").localeCompare(a.found||"")||endKey(a).localeCompare(endKey(b))||(b.posted||"").localeCompare(a.posted||"")},
+      soon:function(a,b){return endKey(a).localeCompare(endKey(b))},
+      open:function(a,b){return (a.start||"").localeCompare(b.start||"")},
+      saved:function(a,b){var ea=phase(a).k==="ended",eb=phase(b).k==="ended";return (ea-eb)||endKey(a).localeCompare(endKey(b))}
+    }[state.tab];
+    return list.sort(by);
+  }
+
+  var HEART='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.3C1.4 7.6 3.6 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.6 3.1 4.3 6.7-1.8 4.7-9.3 9.3-9.3 9.3z"/></svg>';
+  var OUT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+
+  function card(it){
+    var ph=phase(it), isSaved=!!saved[it.id];
+    var isNew=it.found&&data.updated&&it.found>=data.updated.slice(0,10)&&ph.k!=="ended";
+    var facts=[];
+    if(it.price) facts.push('<span class="fact price">'+esc(it.price)+'</span>');
+    if(it.how) facts.push('<span class="fact">'+esc(it.how)+'</span>');
+    var meta=[it.seller,SRC[it.src],(CAT_ICON[it.cat]||"")+" "+(it.cat||"기타")].filter(Boolean)
+      .map(function(m){return "<span>"+esc(m)+"</span>"}).join("");
+    var txt=it.text||"";
+    return '<article class="card'+(ph.k==="ended"?" ended":"")+'" data-id="'+esc(it.id)+'">'
+      +'<div class="card-top">'
+      +'<span class="badge '+ph.cls+'">'+esc(ph.label)+'</span>'
+      +(isNew?'<span class="badge b-new">NEW</span>':'')
+      +'<span class="period">'+esc(period(it))+'</span>'
+      +'<button class="heart" type="button" data-act="save" aria-pressed="'+isSaved+'" aria-label="'+(isSaved?"찜 빼기":"찜하기")+'">'+HEART+'</button>'
+      +'</div>'
+      +'<h3 class="title">'+esc(it.title)+'</h3>'
+      +'<div class="meta">'+meta+'</div>'
+      +(facts.length?'<div class="facts">'+facts.join("")+'</div>':'')
+      +(txt?'<p class="excerpt'+(openText[it.id]?" open":"")+'">'+esc(txt)+'</p>'
+        +(txt.length>90||txt.split("\n").length>3?'<button class="more" type="button" data-act="more">'+(openText[it.id]?"접기":"더보기")+'</button>':''):'')
+      +'<div class="actions">'
+      +'<a class="go" href="'+esc(it.url)+'" target="_blank" rel="noopener">'+(GO[it.src]||"글 보러 가기")+OUT+'</a>'
+      +(state.tab==="saved"?'':'<button class="hide" type="button" data-act="hide">숨기기</button>')
+      +'</div></article>';
+  }
+
+  function render(){
+    var base=pool();
+    // 탭 숫자
+    var live=data.items.filter(function(it){return !hidden[it.id]&&phase(it).k!=="ended"});
+    $("n-all").textContent=live.length||"";
+    $("n-soon").textContent=live.filter(function(it){return phase(it).k==="soon"}).length||"";
+    $("n-open").textContent=live.filter(function(it){return phase(it).k==="open"}).length||"";
+    $("n-saved").textContent=Object.keys(saved).length||"";
+
+    // 분류 칩 — 지금 탭에 있는 분류만
+    var counts={};
+    base.filter(matches).forEach(function(it){var c=it.cat||"기타";counts[c]=(counts[c]||0)+1});
+    if(state.cat&&!counts[state.cat]) state.cat="";
+    var cats=Object.keys(CAT_ICON).filter(function(c){return counts[c]});
+    var total=base.filter(matches).length;
+    $("cats").innerHTML=cats.length>1?['<button class="cat" type="button" data-cat="" aria-pressed="'+!state.cat+'">전체<b>'+total+'</b></button>']
+      .concat(cats.map(function(c){return '<button class="cat" type="button" data-cat="'+esc(c)+'" aria-pressed="'+(state.cat===c)+'">'+CAT_ICON[c]+" "+esc(c)+"<b>"+counts[c]+"</b></button>"})).join(""):"";
+
+    var list=sortList(base.filter(function(it){return matches(it)&&(!state.cat||(it.cat||"기타")===state.cat)}));
+    $("list").innerHTML=list.length?list.map(card).join(""):emptyView(base.length);
+
+    var nh=Object.keys(hidden).length;
+    $("unhide").hidden=!nh||state.tab==="saved";
+    $("unhide").textContent="숨긴 글 "+nh+"개 다시 보기";
+  }
+
+  function emptyView(baseLen){
+    if(state.q||state.cat) return '<div class="empty"><div class="big">🔍</div><h2>찾는 공구가 없어요</h2><p>다른 말로 찾아보세요.</p></div>';
+    if(state.tab==="saved") return '<div class="empty"><div class="big">🤍</div><h2>찜한 공구가 없어요</h2><p>마음에 드는 공구의 하트를 누르면<br>마감 순으로 여기 모여요.</p></div>';
+    if(state.tab==="soon") return '<div class="empty"><div class="big">⏰</div><h2>3일 안에 끝나는 공구가 없어요</h2></div>';
+    if(state.tab==="open") return '<div class="empty"><div class="big">📅</div><h2>오픈 날짜가 정해진 공구가 없어요</h2></div>';
+    if(!data.updated) return '<div class="empty"><div class="big">🛒</div><h2>아직 모은 공구가 없어요</h2><p>매일 아침 8시쯤 새로 모아 와요.</p></div>';
+    return '<div class="empty"><div class="big">🛒</div><h2>지금 진행 중인 공구가 없어요</h2><p>내일 아침에 다시 모아 올게요.</p></div>';
+  }
+
+  function header(){
+    var st="";
+    if(data.updated){
+      var d=data.updated.slice(0,10), t=data.updated.slice(11,16).replace(/^0/,"");
+      st=(d===TODAY?"오늘 "+t:d===iso(new Date(Date.now()-864e5))?"어제 "+t:md(d))+" 모음";
+    }
+    $("status").textContent=st||"매일 아침 모아요";
+
+    var s=data.sources||{}, msg="";
+    if(data.updated&&s.insta!=="ok"&&s.naver==="ok") msg=s.insta==="error"?"오늘은 인스타그램 글을 못 가져와서 네이버 블로그·카페 글만 새로 모았어요.":"지금은 네이버 블로그·카페 글만 모으고 있어요. 인스타그램은 곧 연결돼요.";
+    else if(data.updated&&s.naver==="error"&&s.insta==="ok") msg="오늘은 네이버 글을 못 가져와서 인스타그램 글만 새로 모았어요.";
+    $("notice").hidden=!msg; $("notice").textContent=msg;
+
+    var tags=(data.hashtags||[]).map(function(t){return "#"+t}).join(" ");
+    $("foot").innerHTML='<p><strong>매일 아침 8시쯤</strong> 인스타그램 '+esc(tags||"공구 해시태그")+'와 네이버 블로그·카페에 새로 올라온 공구 글을 모아요. 끝난 공구는 저절로 빠져요.</p>'
+      +'<p>상품·가격·기간은 글에서 자동으로 읽어 낸 거라 틀릴 수 있어요. 사기 전에 꼭 원래 글에서 확인하세요.</p>'
+      +'<p>찜·숨기기는 이 폰에만 저장돼요.</p>';
+  }
+
+  // 이벤트
+  document.querySelector(".tabs").addEventListener("click",function(e){
+    var b=e.target.closest(".tab"); if(!b) return;
+    state.tab=b.dataset.tab; state.cat="";
+    document.querySelectorAll(".tab").forEach(function(t){t.setAttribute("aria-selected",t===b)});
+    render(); window.scrollTo({top:0});
+  });
+  $("cats").addEventListener("click",function(e){
+    var b=e.target.closest(".cat"); if(!b) return;
+    state.cat=b.dataset.cat; render();
+  });
+  var qt;
+  $("q").addEventListener("input",function(){
+    clearTimeout(qt); var v=this.value.trim();
+    $("clear").hidden=!this.value;
+    qt=setTimeout(function(){state.q=v;render()},150);
+  });
+  $("clear").addEventListener("click",function(e){
+    e.preventDefault(); $("q").value=""; this.hidden=true; state.q=""; render(); $("q").focus();
+  });
+  $("list").addEventListener("click",function(e){
+    var b=e.target.closest("[data-act]"); if(!b) return;
+    var id=b.closest(".card").dataset.id, act=b.dataset.act;
+    var it=data.items.find(function(x){return x.id===id})||saved[id];
+    if(act==="save"){
+      if(saved[id]) delete saved[id]; else saved[id]=it;
+      store("gg.saved",saved);
+      if(state.tab==="saved") render();
+      else { var on=!!saved[id]; b.setAttribute("aria-pressed",on); b.setAttribute("aria-label",on?"찜 빼기":"찜하기");
+        $("n-saved").textContent=Object.keys(saved).length||""; }
+    } else if(act==="hide"){
+      hidden[id]=TODAY; store("gg.hidden",hidden); render();
+    } else if(act==="more"){
+      openText[id]=!openText[id];
+      b.previousElementSibling.classList.toggle("open",openText[id]);
+      b.textContent=openText[id]?"접기":"더보기";
+    }
+  });
+  $("unhide").addEventListener("click",function(){hidden={};store("gg.hidden",hidden);render()});
+
+  function tidy(){
+    // 목록에서 빠진 지 오래된 숨김 기록은 지운다
+    var ids={}; data.items.forEach(function(it){ids[it.id]=1});
+    Object.keys(hidden).forEach(function(id){if(!ids[id]) delete hidden[id]});
+    store("gg.hidden",hidden);
+    // 찜한 공구는 최신 정보로 바꿔 둔다 (끝나도 찜 탭에는 남음)
+    Object.keys(saved).forEach(function(id){var live=data.items.find(function(x){return x.id===id});if(live) saved[id]=live});
+    store("gg.saved",saved);
+  }
+
+  function start(){
+    fetch("data/deals.json",{cache:"no-cache"}).then(function(r){if(!r.ok) throw r;return r.json()}).then(function(d){
+      data=d; data.items=data.items||[]; tidy(); header(); render();
+    }).catch(function(){
+      $("status").textContent="";
+      $("list").innerHTML='<div class="empty"><div class="big">📡</div><h2>목록을 불러오지 못했어요</h2><p>인터넷 연결을 확인해 주세요.</p><button class="retry" type="button" id="retry">다시 불러오기</button></div>';
+      $("retry").onclick=start;
+    });
+  }
+  start();
+
+  if("serviceWorker" in navigator) window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
+})();
+</script>
+</body>
+</html>
