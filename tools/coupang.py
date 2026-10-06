@@ -121,7 +121,7 @@ def main() -> int:
             else:
                 for i, r in enumerate(rows, 1):
                     tag = " 로켓" if r["rocket"] else ""
-                    print(f"{i}. {r['name']} — {r['price']:,}원{tag}\n   {r['link']}")
+                    print(f"{i}. {r['name']} — {int(r['price'] or 0):,}원{tag}\n   {r['link']}")
                 if not rows:
                     print("검색 결과가 없어요.")
         else:
