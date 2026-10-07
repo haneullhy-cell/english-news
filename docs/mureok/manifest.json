@@ -1,0 +1,29 @@
+{
+ "name": "무럭무럭 올인원 – 놀이·단계·성장",
+ "short_name": "무럭무럭",
+ "start_url": "./",
+ "display": "standalone",
+ "background_color": "#f6f1e7",
+ "theme_color": "#f6f1e7",
+ "lang": "ko",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
