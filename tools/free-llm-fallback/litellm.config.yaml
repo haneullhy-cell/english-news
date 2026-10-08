@@ -1,0 +1,103 @@
+# Claude Code ← LiteLLM 프록시 ← 무료 AI API 16곳
+#
+# 한도(429)·장애(5xx)가 나면 아래 fallbacks 순서대로 다음 모델로 넘어갑니다.
+# 키는 .env 에만 넣고, 여기서는 os.environ/... 로 읽습니다. 키가 없는 줄은 지우거나 주석 처리하세요.
+# 출처 목록: https://github.com/mnfst/awesome-free-llm-apis
+
+model_list:
+  # ── 1순위: Groq (빠름, 30 RPM / 1,000 RPD) ──────────────────────────
+  - model_name: free
+    litellm_params:
+      model: groq/openai/gpt-oss-120b
+      api_key: os.environ/GROQ_API_KEY
+      max_tokens: 16000
+
+  # ── 2순위: Google Gemini (1M 컨텍스트, 15 RPM / 1,500 RPD) ───────────
+  - model_name: free-gemini
+    litellm_params:
+      model: gemini/gemini-2.5-flash
+      api_key: os.environ/GEMINI_API_KEY
+
+  # ── 3순위: OpenRouter 무료 모델 (20 RPM / 50 RPD) ───────────────────
+  - model_name: free-openrouter
+    litellm_params:
+      model: openrouter/nvidia/nemotron-3-super-120b-a12b:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+  # ── 4순위: Mistral (코드 특화 Codestral 포함) ────────────────────────
+  - model_name: free-mistral
+    litellm_params:
+      model: mistral/mistral-medium-latest
+      api_key: os.environ/MISTRAL_API_KEY
+
+  # ── 5순위: NVIDIA NIM (40 RPM / 10,000 RPD) ──────────────────────────
+  - model_name: free-nvidia
+    litellm_params:
+      model: openai/openai/gpt-oss-120b
+      api_base: https://integrate.api.nvidia.com/v1
+      api_key: os.environ/NVIDIA_API_KEY
+
+  # ── 6순위: Z AI GLM-4.7-Flash (영구 무료, 200K) ─────────────────────
+  - model_name: free-zai
+    litellm_params:
+      model: openai/glm-4.7-flash
+      api_base: https://api.z.ai/api/paas/v4
+      api_key: os.environ/ZAI_API_KEY
+
+  # ── 7순위: Ollama Cloud (OpenAI 호환 엔드포인트) ─────────────────────
+  - model_name: free-ollama
+    litellm_params:
+      model: openai/gpt-oss:120b
+      api_base: https://ollama.com/v1
+      api_key: os.environ/OLLAMA_API_KEY
+
+  # ── 8순위: Cohere (월 1,000회, 비상업용) ─────────────────────────────
+  - model_name: free-cohere
+    litellm_params:
+      model: cohere/command-a-03-2025
+      api_key: os.environ/COHERE_API_KEY
+
+  # ── 9순위(마지막): Kilo Code 무료 풀 자동 라우터, 200 req/hr ─────────
+  #    (키 없이도 되는 서비스지만 LiteLLM 은 토큰을 꼭 보내므로 무료 키를 받아 넣으세요)
+  - model_name: free-kilo
+    litellm_params:
+      model: openai/kilo-auto/free
+      api_base: https://api.kilo.ai/api/gateway
+      api_key: os.environ/KILO_API_KEY
+
+  # ── 가벼운 작업용(Claude Code의 small/fast 모델) ─────────────────────
+  - model_name: free-fast
+    litellm_params:
+      model: groq/openai/gpt-oss-20b
+      api_key: os.environ/GROQ_API_KEY
+  - model_name: free-fast-2
+    litellm_params:
+      model: gemini/gemini-2.5-flash-lite
+      api_key: os.environ/GEMINI_API_KEY
+  - model_name: free-fast-3
+    litellm_params:
+      model: openrouter/openai/gpt-oss-20b:free
+      api_key: os.environ/OPENROUTER_API_KEY
+
+router_settings:
+  # 한도·에러가 나면 이 순서로 넘어감
+  fallbacks:
+    - free: [free-gemini, free-openrouter, free-mistral, free-nvidia, free-zai, free-ollama, free-cohere, free-kilo]
+    - free-fast: [free-fast-2, free-fast-3, free-gemini, free-kilo]
+  # 컨텍스트가 너무 길면 1M짜리 Gemini로
+  context_window_fallbacks:
+    - free: [free-gemini]
+    - free-fast: [free-gemini]
+  num_retries: 1
+  retry_after: 2
+  allowed_fails: 1
+  cooldown_time: 60          # 한 번 막힌 모델은 60초 쉬게
+  routing_strategy: simple-shuffle
+
+litellm_settings:
+  drop_params: true          # 공급자가 모르는 파라미터는 버리고 진행
+  request_timeout: 180
+  set_verbose: false
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
