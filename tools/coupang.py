@@ -9,6 +9,8 @@
   python tools/coupang.py search "유아 안전가위" --limit 5
   python tools/coupang.py link "https://www.coupang.com/vp/products/123456"
   python tools/coupang.py search "피스카스 유아 가위" --json   # 다른 스크립트에서 쓰기 좋게
+  python tools/coupang.py link "https://www.coupang.com/vp/products/123456" --sub th_ab_songcard
+      # --sub 를 붙이면 파트너스 리포트 > 서브ID별 에서 이 링크의 클릭·주문만 따로 보인다
 
 검색 API는 쿠팡이 호출 횟수를 제한한다(대략 분당 몇 번 수준). 같은 검색어를 반복해서 부르지 말 것.
 """
@@ -75,9 +77,13 @@ def _call(method: str, path: str, params: dict | None = None, body: dict | None 
     return out
 
 
-def search(keyword: str, limit: int = 5) -> list[dict]:
-    """검색어로 상품을 찾는다. 결과의 productUrl 은 이미 파트너스 링크다."""
-    out = _call("GET", f"{BASE}/products/search", {"keyword": keyword, "limit": max(1, min(limit, 10))})
+def search(keyword: str, limit: int = 5, sub_id: str | None = None) -> list[dict]:
+    """검색어로 상품을 찾는다. 결과의 productUrl 은 이미 파트너스 링크다.
+    sub_id 를 주면 그 링크의 클릭·주문이 파트너스 리포트 '서브ID별'에 따로 잡힌다."""
+    params = {"keyword": keyword, "limit": max(1, min(limit, 10))}
+    if sub_id:
+        params["subId"] = sub_id
+    out = _call("GET", f"{BASE}/products/search", params)
     items = (out.get("data") or {}).get("productData") or []
     return [
         {
@@ -93,9 +99,14 @@ def search(keyword: str, limit: int = 5) -> list[dict]:
     ]
 
 
-def deeplink(urls: list[str]) -> list[dict]:
-    """일반 쿠팡 상품 주소를 파트너스 링크로 바꾼다."""
-    out = _call("POST", f"{BASE}/v1/deeplink", body={"coupangUrls": urls})
+def deeplink(urls: list[str], sub_id: str | None = None) -> list[dict]:
+    """일반 쿠팡 상품 주소를 파트너스 링크로 바꾼다.
+    sub_id (영문·숫자·_ 만, 50자 이하) 를 주면 글마다·상품마다 클릭 수를 따로 셀 수 있다.
+    예: 스레드 알파블럭스 글의 송카드 링크 → sub_id="th_ab_songcard" """
+    body = {"coupangUrls": urls}
+    if sub_id:
+        body["subId"] = sub_id
+    out = _call("POST", f"{BASE}/v1/deeplink", body=body)
     return [
         {"original": d.get("originalUrl"), "short": d.get("shortenUrl"), "landing": d.get("landingUrl")}
         for d in (out.get("data") or [])
@@ -108,14 +119,16 @@ def main() -> int:
     s = sub.add_parser("search", help="상품 검색")
     s.add_argument("keyword")
     s.add_argument("--limit", type=int, default=5)
+    s.add_argument("--sub", help="서브ID (리포트에서 이 링크만 따로 집계)")
     s.add_argument("--json", action="store_true")
     l = sub.add_parser("link", help="쿠팡 주소 → 파트너스 링크")
     l.add_argument("urls", nargs="+")
+    l.add_argument("--sub", help="서브ID (리포트에서 이 링크만 따로 집계). 예: th_ab_songcard")
     l.add_argument("--json", action="store_true")
     a = ap.parse_args()
     try:
         if a.cmd == "search":
-            rows = search(a.keyword, a.limit)
+            rows = search(a.keyword, a.limit, a.sub)
             if a.json:
                 print(json.dumps(rows, ensure_ascii=False, indent=2))
             else:
@@ -125,7 +138,7 @@ def main() -> int:
                 if not rows:
                     print("검색 결과가 없어요.")
         else:
-            rows = deeplink(a.urls)
+            rows = deeplink(a.urls, a.sub)
             if a.json:
                 print(json.dumps(rows, ensure_ascii=False, indent=2))
             else:
