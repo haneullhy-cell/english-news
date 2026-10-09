@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>공공데이터 API 찾기</title>
+<meta name="description" content="공공데이터포털(data.go.kr) 오픈 API 전체를 이름·기관·설명·키워드로 검색하고, 분야·지역·자동승인·상업 이용 가능 여부로 거르고, 활용신청 많은 순으로 비교해요.">
+<meta property="og:title" content="공공데이터 API 찾기">
+<meta property="og:description" content="공공데이터포털 오픈 API 전체를 한곳에서 검색하고 비교해요.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111312" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E7C66'/%3E%3Ccircle cx='28' cy='28' r='13' fill='none' stroke='white' stroke-width='6'/%3E%3Cpath d='M38 38l12 12' stroke='white' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+[hidden]{display:none!important}
+:root{
+  --bg:#F4F5F1; --surface:#FFFFFF; --surface-2:#EEF0EA; --ink:#141614; --ink-2:#4D534D; --ink-3:#848A83;
+  --line:#DFE2DA; --line-2:#CDD2C7;
+  --accent:#0E7C66; --accent-ink:#FFFFFF; --accent-soft:#DDF1EA; --accent-deep:#095A4A;
+  --ok:#17784A; --ok-soft:#E1F3E8; --warn:#9A5A00; --warn-soft:#FBEFD9; --bad:#B23A30; --bad-soft:#FBE4E0;
+  --star:#E0A100; --mark:#FFE58A; --mark-ink:#141614;
+  --shadow:0 1px 2px rgba(20,30,20,.05),0 8px 24px -16px rgba(20,30,20,.25);
+  --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111312; --surface:#181B19; --surface-2:#202421; --ink:#ECEFEA; --ink-2:#B5BBB3; --ink-3:#7F877E;
+  --line:#2A2F2B; --line-2:#363C37;
+  --accent:#4FD1AE; --accent-ink:#06231C; --accent-soft:#143229; --accent-deep:#9BE8D2;
+  --ok:#6FD39B; --ok-soft:#15291E; --warn:#F0B45A; --warn-soft:#2C2214; --bad:#F08B80; --bad-soft:#2E1714;
+  --star:#F5C542; --mark:#5B4A10; --mark-ink:#FFF4C8;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 26px -18px rgba(0,0,0,.8);
+  color-scheme:dark;
+}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:980px;margin:0 auto;padding:28px 16px 72px}
+
+/* ── 머리 ── */
+header{display:flex;gap:14px;align-items:flex-start}
+.logo{flex:none;width:44px;height:44px;border-radius:12px;background:var(--accent);display:grid;place-items:center}
+.logo svg{width:26px;height:26px}
+h1{margin:0;font-size:26px;line-height:1.2;letter-spacing:-.02em;font-weight:800}
+.lead{margin:4px 0 0;color:var(--ink-2);font-size:14.5px}
+.lead b{color:var(--ink)}
+
+/* ── 처음이라면 ── */
+.guide{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.guide summary{cursor:pointer;padding:12px 16px;font-weight:700;font-size:14px;list-style:none;display:flex;align-items:center;gap:8px}
+.guide summary::-webkit-details-marker{display:none}
+.guide summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(-45deg);transition:transform .15s}
+.guide[open] summary::before{transform:rotate(45deg)}
+.guide ol{margin:0;padding:0 16px 14px 36px;color:var(--ink-2);font-size:14px}
+.guide li{margin:4px 0}
+.guide li b{color:var(--ink)}
+
+/* ── 검색·필터 ── */
+.controls{position:sticky;top:0;z-index:10;background:var(--bg);margin:14px -16px 0;padding:12px 16px 10px;border-bottom:1px solid var(--line);display:grid;gap:9px}
+.search{position:relative}
+.search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--ink-3);pointer-events:none}
+#q{width:100%;font-size:16px;padding:12px 44px 12px 42px;border:1.5px solid var(--line-2);border-radius:12px;background:var(--surface);outline:none;-webkit-appearance:none;appearance:none}
+#q:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+#q::-webkit-search-cancel-button{display:none}
+#clearQ{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;width:34px;height:34px;border-radius:8px;cursor:pointer;color:var(--ink-3);font-size:20px;line-height:1}
+#clearQ:hover{background:var(--surface-2);color:var(--ink)}
+.selects{display:flex;flex-wrap:wrap;gap:6px}
+select{padding:8px 30px 8px 11px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23848A83' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 11px center;-webkit-appearance:none;appearance:none;font-size:14px;min-width:0;max-width:100%;cursor:pointer}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:1px 16px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font-size:13.5px;padding:6px 11px;border:1px solid var(--line-2);border-radius:999px;background:var(--surface);color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.chip .c{margin-left:4px;color:var(--ink-3);font-size:12px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.chip[aria-pressed="true"] .c{color:inherit;opacity:.65}
+.chips.sub .chip{font-size:12.5px;padding:4px 10px}
+.chips.sub{padding-left:16px}
+.chips.sub .lab{flex:none;align-self:center;font-size:12px;color:var(--ink-3);margin-right:2px}
+.toggles{display:flex;flex-wrap:wrap;gap:6px}
+.tg{font-size:13px;padding:5px 10px 5px 8px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.tg::before{content:"";width:14px;height:14px;border-radius:4px;border:1.5px solid var(--line-2);background:var(--surface);flex:none}
+.tg[aria-pressed="true"]{border-color:var(--accent);color:var(--ink);background:var(--accent-soft)}
+.tg[aria-pressed="true"]::before{border-color:var(--accent);background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.2l2.6 2.6L11 4.4' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E") center/12px no-repeat}
+.tg.star[aria-pressed="true"]::before{background-color:var(--star);border-color:var(--star)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.statusbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:16px 0 8px;font-size:13.5px;color:var(--ink-2)}
+#status b{color:var(--ink);font-size:15px}
+.statusbar .sp{flex:1}
+.link{border:0;background:none;padding:2px 0;color:var(--accent);cursor:pointer;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+
+/* ── 목록 ── */
+ol#list{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px 12px;box-shadow:var(--shadow)}
+.top{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:start}
+.name{font-size:16.5px;font-weight:700;line-height:1.4;text-decoration:none;word-break:keep-all;overflow-wrap:anywhere}
+.name:hover{text-decoration:underline;text-underline-offset:3px}
+.name .ext{display:inline-block;width:12px;height:12px;margin-left:4px;vertical-align:1px;opacity:.45}
+.side{display:flex;align-items:center;gap:4px}
+.uses{text-align:right;font-size:12px;color:var(--ink-3);line-height:1.2;white-space:nowrap}
+.uses b{display:block;font-size:16px;color:var(--ink);font-weight:700}
+.starbtn{border:0;background:none;width:34px;height:34px;border-radius:8px;cursor:pointer;display:grid;place-items:center;color:var(--ink-3)}
+.starbtn:hover{background:var(--surface-2)}
+.starbtn svg{width:20px;height:20px}
+.starbtn[aria-pressed="true"]{color:var(--star)}
+.starbtn[aria-pressed="true"] path{fill:currentColor}
+.org{font-size:13px;color:var(--ink-2);margin-top:2px;grid-column:1/-1}
+.org .dot{color:var(--ink-3);margin:0 5px}
+.desc{margin:8px 0 0;color:var(--ink-2);font-size:14px;word-break:keep-all;overflow-wrap:anywhere}
+mark{background:var(--mark);color:var(--mark-ink);border-radius:3px;padding:0 1px}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;align-items:center}
+.tag{font-size:12px;padding:2px 8px;border-radius:6px;background:var(--surface-2);color:var(--ink-2);white-space:nowrap}
+.tag.acc{background:var(--accent-soft);color:var(--accent-deep);font-weight:600}
+.tag.ok{background:var(--ok-soft);color:var(--ok)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)}
+.tag.new{background:var(--ink);color:var(--bg);font-weight:700}
+.more-btn{margin-left:auto;border:0;background:none;color:var(--ink-3);font-size:12.5px;cursor:pointer;padding:3px 4px;display:inline-flex;align-items:center;gap:4px}
+.more-btn:hover{color:var(--ink)}
+.more-btn::after{content:"";width:6px;height:6px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translate(-1px,-1px);transition:transform .15s}
+.more-btn[aria-expanded="true"]::after{transform:rotate(-135deg)}
+.detail{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line-2);font-size:13.5px;color:var(--ink-2)}
+.detail dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0}
+.detail dt{color:var(--ink-3)}
+.detail dd{margin:0;overflow-wrap:anywhere}
+.kw{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;font-size:12px;padding:1px 8px;margin:0 4px 4px 0;cursor:pointer;color:var(--ink-2)}
+.kw:hover{border-color:var(--accent);color:var(--accent)}
+.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;padding:7px 12px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface);text-decoration:none;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:hover{filter:brightness(.97)}
+.empty{text-align:center;padding:48px 16px;color:var(--ink-2);background:var(--surface);border:1px dashed var(--line-2);border-radius:14px}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+#moreList{display:block;margin:16px auto 0;padding:11px 20px;font-size:14px;font-weight:600;border:1px solid var(--line-2);border-radius:12px;background:var(--surface);cursor:pointer}
+.loading{padding:40px 0;text-align:center;color:var(--ink-3)}
+.loading i{display:inline-block;width:18px;height:18px;border:2px solid var(--line-2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-4px;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.loading i{animation-duration:3s}}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--bg);font-size:14px;padding:10px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:.2s;z-index:30}
+.toast.on{opacity:1;transform:translateX(-50%)}
+footer{margin-top:40px;font-size:12.5px;color:var(--ink-3);line-height:1.7}
+footer a{color:var(--ink-2)}
+
+@media (min-width:700px){
+  .chips{flex-wrap:wrap;overflow:visible;margin:0;padding:0}
+  .chips.sub{padding-left:12px;border-left:2px solid var(--line-2)}
+}
+/* 휴대폰: 검색창만 위에 붙이고 나머지 조건은 함께 스크롤 */
+@media (max-width:699px){
+  .controls{display:contents}
+  .search{position:sticky;top:0;z-index:10;background:var(--bg);margin:14px -16px 0;padding:10px 16px;border-bottom:1px solid var(--line)}
+  .search svg{left:30px}
+  #clearQ{right:22px}
+  .selects{margin-top:6px}
+  .chips{margin-top:9px}
+  .toggles{margin-top:9px}
+}
+@media (max-width:560px){
+  h1{font-size:22px}
+  .logo{width:38px;height:38px;border-radius:10px}
+  .item{padding:13px 13px 11px}
+  .name{font-size:15.5px}
+  .uses b{font-size:14.5px}
+  .selects select{flex:1 1 auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg></div>
+    <div>
+      <h1>공공데이터 API 찾기</h1>
+      <p class="lead">공공데이터포털 오픈 API <b class="num" id="total">…</b>개를 한곳에서 검색해요. <span id="srcLine"></span></p>
+    </div>
+  </header>
+
+  <details class="guide">
+    <summary>처음이라면: 인증키 받는 법</summary>
+    <ol>
+      <li><b>공공데이터포털(data.go.kr)에 회원가입</b>하고 로그인해요.</li>
+      <li>여기서 쓸 API를 찾아 이름을 누르면 포털의 API 페이지가 열려요. <b>활용신청</b> 버튼을 눌러요.</li>
+      <li><b>운영 자동승인</b> 표시가 있으면 신청 즉시 쓸 수 있고, <b>운영 심의</b>는 실서비스 단계에서 기관 심의를 거쳐요. 개발계정은 대부분 바로 승인돼요.</li>
+      <li>포털 <b>마이페이지 › 데이터활용 › Open API</b>에서 인증키(serviceKey)를 확인해 요청 주소에 붙여 써요.</li>
+      <li>상업 서비스에 쓸 거라면 <b>상업 이용 가능</b>만 켜서 찾으세요. 출처표시가 붙은 것은 화면에 출처를 적어야 해요.</li>
+    </ol>
+  </details>
+
+  <div class="controls" id="controls">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5l5 5"/></svg>
+      <input id="q" type="search" placeholder="예: 날씨, 미세먼지, 버스 도착, 사업자등록" autocomplete="off" enterkeyhint="search" aria-label="API 검색">
+      <button id="clearQ" type="button" aria-label="검색어 지우기" hidden>×</button>
+    </div>
+    <div class="selects">
+      <select id="sort" aria-label="정렬">
+        <option value="rel">관련도 순</option>
+        <option value="uses">활용신청 많은 순</option>
+        <option value="views">조회 많은 순</option>
+        <option value="mod">최근 수정 순</option>
+        <option value="reg">새로 등록된 순</option>
+      </select>
+      <select id="reg" aria-label="지역"></select>
+      <select id="sgg" aria-label="시·군·구" hidden></select>
+    </div>
+    <div class="chips" id="cats" role="group" aria-label="분야"></div>
+    <div class="chips sub" id="subs" role="group" aria-label="세부 분야" hidden></div>
+    <div class="toggles" role="group" aria-label="조건">
+      <button class="tg" type="button" data-f="rest" aria-pressed="true">REST만</button>
+      <button class="tg" type="button" data-f="auto" aria-pressed="false">운영 자동승인</button>
+      <button class="tg" type="button" data-f="comm" aria-pressed="false">상업 이용 가능</button>
+      <button class="tg" type="button" data-f="fresh" aria-pressed="false">새로 나온 것</button>
+      <button class="tg star" type="button" data-f="fav" aria-pressed="false">즐겨찾기 <span class="num" id="favN"></span></button>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span id="status" class="num"></span>
+    <span class="sp"></span>
+    <button class="link" id="reset" type="button" hidden>조건 모두 지우기</button>
+    <button class="link" id="share" type="button">이 검색 링크 복사</button>
+  </div>
+  <ol id="list"><li class="loading"><i></i>목록을 불러오는 중…</li></ol>
+  <button id="moreList" type="button" hidden>더 보기</button>
+
+  <footer>
+    데이터 출처: <a href="https://www.data.go.kr/data/15062804/fileData.do" target="_blank" rel="noopener">공공데이터활용지원센터_공공데이터포털 목록개방현황</a>(공공데이터포털, 매달 갱신). 이 페이지는 그 파일을 자동으로 받아 정리해요.<br>
+    지역은 제공기관 이름으로 추정한 값이라 틀릴 수 있어요. 활용신청 수는 포털 집계 기준이에요.<br>
+    공공데이터포털과 관계없는 개인 도구예요. 신청과 이용은 각 API의 포털 페이지에서 하세요.
+  </footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+  // apis.json 한 줄 = [0 목록키, 1 이름, 2 기관, 3 대분류, 4 중분류, 5 REST/SOAP/LINK, 6 운영자동승인, 7 이용허락,
+  //   8 활용신청, 9 조회, 10 수정일, 11 등록일, 12 설명, 13 키워드, 14 시·도, 15 시·군·구, 16 트래픽, 17 부서, 18 유료, 19 국가중점, 20 개발자동승인]
+  var LIC={free:["이용 제한 없음","ok"],by:["출처표시","ok"],nc:["상업 이용금지","bad"],nd:["변경금지","warn"],ncnd:["상업 이용금지·변경금지","bad"]};
+  var COMM_OK={free:1,by:1,nd:1};
+  var PAGE=40, FRESH_DAYS=90;
+  var D=[], H=[], cur=[], shown=0, cat="", sub="", META={};
+  var F={rest:true,auto:false,comm:false,fresh:false,fav:false};
+  var FAV=loadFav(), freshFrom="";
+  var $=function(id){return document.getElementById(id)};
+  var q=$("q"), sortSel=$("sort"), regSel=$("reg"), sggSel=$("sgg");
+
+  function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  function fmt(n){return Number(n||0).toLocaleString("ko-KR")}
+  function terms(){return q.value.trim().toLowerCase().split(/\s+/).filter(Boolean)}
+  function hl(s,ts){
+    s=String(s||""); if(!ts.length)return esc(s);
+    var low=s.toLowerCase(), marks=[];
+    ts.forEach(function(t){var i=low.indexOf(t);while(i>=0){marks.push([i,i+t.length]);i=low.indexOf(t,i+t.length)}});
+    if(!marks.length)return esc(s);
+    marks.sort(function(a,b){return a[0]-b[0]});
+    var out="",p=0;marks.forEach(function(m){if(m[0]<p)return;out+=esc(s.slice(p,m[0]))+"<mark>"+esc(s.slice(m[0],m[1]))+"</mark>";p=m[1]});
+    return out+esc(s.slice(p));
+  }
+  function loadFav(){try{return JSON.parse(localStorage.getItem("pubapi-fav")||"{}")||{}}catch(e){return {}}}
+  function saveFav(){try{localStorage.setItem("pubapi-fav",JSON.stringify(FAV))}catch(e){}}
+  function favCount(){return Object.keys(FAV).length}
+  function toast(msg){var t=$("toast");t.textContent=msg;t.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove("on")},1800)}
+  function copy(text,msg){
+    function done(){toast(msg||"복사했어요")}
+    if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(text).then(done,fallback)}else fallback();
+    function fallback(){var ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done()}catch(e){prompt("이 주소를 복사하세요",text)}ta.remove()}
+  }
+  function portal(id){return "https://www.data.go.kr/data/"+id+"/openapi.do"}
+  function daysBefore(iso,n){var d=new Date(iso+"T00:00:00");if(isNaN(d))return "";d.setDate(d.getDate()-n);return d.toISOString().slice(0,10)}
+
+  // ── 필터 ──
+  function passBase(r){
+    if(F.rest&&r[5]!=="REST")return false;
+    if(F.auto&&!r[6])return false;
+    if(F.comm&&!COMM_OK[r[7]])return false;
+    if(F.fresh&&!(r[11]>=freshFrom))return false;
+    if(F.fav&&!FAV[r[0]])return false;
+    var rg=regSel.value;
+    if(rg==="@nat"&&r[14])return false;
+    if(rg==="@loc"&&!r[14])return false;
+    if(rg&&rg[0]!=="@"&&r[14]!==rg)return false;
+    var sg=sggSel.value; if(sg&&r[15]!==sg)return false;
+    return true;
+  }
+  // 검색어마다 이름·키워드·기관·분야·설명 중 어디에 있는지 보고 점수를 매겨요. 하나라도 없으면 제외.
+  function score(i,ts){
+    var h=H[i], s=0;
+    for(var k=0;k<ts.length;k++){
+      var t=ts[k], v=0;
+      if(h[0].indexOf(t)>=0)v=h[0].indexOf(t)===0?14:10;
+      else if(h[1].indexOf(t)>=0)v=6;
+      else if(h[2].indexOf(t)>=0)v=5;
+      else if(h[3].indexOf(t)>=0)v=3;
+      else if(h[4].indexOf(t)>=0)v=1;
+      if(!v)return -1;
+      s+=v;
+    }
+    return s;
+  }
+
+  function run(keepScroll){
+    var ts=terms(), base=[], sc={};
+    for(var i=0;i<D.length;i++){
+      var r=D[i]; if(!passBase(r))continue;
+      if(ts.length){var v=score(i,ts);if(v<0)continue;sc[r[0]]=v}
+      base.push(r);
+    }
+    renderCats(base);
+    cur=base.filter(function(r){return (!cat||r[3]===cat)&&(!sub||r[4]===sub)});
+    var s=sortSel.value;
+    var by={
+      uses:function(a,b){return b[8]-a[8]||b[9]-a[9]},
+      views:function(a,b){return b[9]-a[9]||b[8]-a[8]},
+      mod:function(a,b){return a[10]<b[10]?1:a[10]>b[10]?-1:b[8]-a[8]},
+      reg:function(a,b){return a[11]<b[11]?1:a[11]>b[11]?-1:b[8]-a[8]},
+      rel:function(a,b){return (sc[b[0]]||0)-(sc[a[0]]||0)||b[8]-a[8]}
+    };
+    cur.sort(by[s]||by.uses);
+    shown=0;$("list").innerHTML="";more();
+    var sortName=sortSel.options[sortSel.selectedIndex].text;
+    $("status").innerHTML="<b>"+fmt(cur.length)+"</b>개 · "+esc(sortName);
+    $("reset").hidden=!(ts.length||cat||regSel.value||F.auto||F.comm||F.fresh||F.fav||!F.rest);
+    writeHash();
+    if(!keepScroll)toTop();
+  }
+
+  function renderCats(base){
+    var cc={}; base.forEach(function(r){cc[r[3]]=(cc[r[3]]||0)+1});
+    var keys=Object.keys(cc).sort(function(a,b){return cc[b]-cc[a]});
+    if(cat&&!cc[cat])keys.push(cat);
+    var h='<button class="chip" type="button" data-c="" aria-pressed="'+(!cat)+'">전체<span class="c num">'+fmt(base.length)+'</span></button>';
+    keys.forEach(function(k){h+='<button class="chip" type="button" data-c="'+esc(k)+'" aria-pressed="'+(k===cat)+'">'+esc(k)+'<span class="c num">'+fmt(cc[k]||0)+'</span></button>'});
+    $("cats").innerHTML=h;
+    var el=$("subs");
+    if(!cat){el.hidden=true;el.innerHTML="";return}
+    var sc={}; base.forEach(function(r){if(r[3]===cat&&r[4])sc[r[4]]=(sc[r[4]]||0)+1});
+    var sk=Object.keys(sc).sort(function(a,b){return sc[b]-sc[a]});
+    if(sub&&!sc[sub])sk.push(sub);
+    if(sk.length<2&&!sub){el.hidden=true;el.innerHTML="";return}
+    var s='<span class="lab">세부</span><button class="chip" type="button" data-s="" aria-pressed="'+(!sub)+'">전체</button>';
+    sk.forEach(function(k){s+='<button class="chip" type="button" data-s="'+esc(k)+'" aria-pressed="'+(k===sub)+'">'+esc(k)+'<span class="c num">'+fmt(sc[k]||0)+'</span></button>'});
+    el.innerHTML=s;el.hidden=false;
+  }
+
+  var EXT='<svg class="ext" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 2H2v8h8V7.5M7 2h3v3M10 2L5.5 6.5"/></svg>';
+  var STAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>';
+  function card(r,ts){
+    var region=r[14]?(r[14]+(r[15]?" "+r[15]:"")):"전국";
+    var lic=LIC[r[7]]||LIC.free;
+    var meta=[hl(r[2],ts),esc(region),hl(r[3]+(r[4]?" › "+r[4]:""),ts)];
+    if(r[10])meta.push("수정 "+esc(r[10]));
+    var tags='<span class="tag acc">'+esc(r[5])+'</span>'
+      +'<span class="tag '+(r[6]?"ok":"warn")+'">'+(r[6]?"운영 자동승인":"운영 심의")+'</span>'
+      +'<span class="tag '+lic[1]+'">'+lic[0]+'</span>'
+      +(r[18]?'<span class="tag bad">유료</span>':'')
+      +(r[19]?'<span class="tag">국가중점</span>':'')
+      +(freshFrom&&r[11]>=freshFrom?'<span class="tag new">NEW</span>':'');
+    return '<li class="item" data-id="'+esc(r[0])+'"><div class="top">'
+      +'<a class="name" href="'+portal(r[0])+'" target="_blank" rel="noopener">'+hl(r[1],ts)+EXT+'</a>'
+      +'<div class="side"><div class="uses num"><b>'+fmt(r[8])+'</b>활용신청</div>'
+      +'<button class="starbtn" type="button" data-star aria-pressed="'+(!!FAV[r[0]])+'" aria-label="즐겨찾기">'+STAR+'</button></div>'
+      +'<div class="org">'+meta.join('<span class="dot">·</span>')+'</div></div>'
+      +(r[12]?'<p class="desc">'+hl(r[12],ts)+'</p>':'')
+      +'<div class="tags">'+tags+'<button class="more-btn" type="button" data-more aria-expanded="false">자세히</button></div>'
+      +'</li>';
+  }
+  function detail(r){
+    var kws=(r[13]||"").split(/\s*,\s*/).filter(Boolean).slice(0,14);
+    var rows=[
+      ["개발계정",r[20]?"신청 즉시 자동승인":"심의 후 승인"],
+      ["운영계정",r[6]?"자동승인":"기관 심의 필요"],
+      ["하루 트래픽",r[16]?"개발계정 "+fmt(r[16])+"건 (운영계정은 활용사례를 등록하면 늘릴 수 있어요)":"제공 기관 정책에 따라 달라요"],
+      ["조회수",fmt(r[9])+"회"],
+      ["등록·수정",esc(r[11]||"-")+" / "+esc(r[10]||"-")],
+      r[17]?["담당 부서",esc(r[2]+" "+r[17])]:null,
+      kws.length?["키워드",kws.map(function(k){return '<button class="kw" type="button" data-kw="'+esc(k)+'">'+esc(k)+'</button>'}).join("")]:null
+    ].filter(Boolean);
+    return '<div class="detail"><dl>'+rows.map(function(x){return "<dt>"+x[0]+"</dt><dd>"+x[1]+"</dd>"}).join("")+'</dl>'
+      +'<div class="actions"><a class="btn pri" href="'+portal(r[0])+'" target="_blank" rel="noopener">포털에서 활용신청</a>'
+      +'<button class="btn" type="button" data-copy>포털 링크 복사</button></div></div>';
+  }
+  function more(){
+    var ts=terms(), h="";
+    cur.slice(shown,shown+PAGE).forEach(function(r){h+=card(r,ts)});
+    if(!cur.length){
+      h='<li class="empty"><b>조건에 맞는 API가 없어요</b>'+(F.fav&&!favCount()?"별표를 눌러 즐겨찾기를 먼저 담아 보세요.":"검색어를 줄이거나 조건을 꺼 보세요."+(F.rest?" ‘REST만’을 끄면 외부 링크형도 보여요.":""))+'</li>';
+    }
+    $("list").insertAdjacentHTML("beforeend",h);
+    shown+=PAGE;
+    var left=Math.max(0,cur.length-shown);
+    $("moreList").hidden=!left;
+    $("moreList").textContent="더 보기 ("+fmt(left)+"개 남음)";
+  }
+  function toTop(){
+    var c=$("controls"), sticky=getComputedStyle(c).display==="contents"?document.querySelector(".search").offsetHeight:c.offsetHeight;
+    var y=$("list").getBoundingClientRect().top+window.scrollY-sticky-60;
+    if(window.scrollY>y)window.scrollTo({top:Math.max(0,y)});
+  }
+
+  // ── 지역 ──
+  function buildReg(){
+    var c={},nat=0;D.forEach(function(r){if(r[14])c[r[14]]=(c[r[14]]||0)+1;else nat++});
+    var keys=Object.keys(c).sort(function(a,b){return c[b]-c[a]});
+    var h='<option value="">지역 전체</option><option value="@nat">전국 단위 '+fmt(nat)+'</option><option value="@loc">지자체·지방기관 '+fmt(D.length-nat)+'</option>';
+    keys.forEach(function(k){h+='<option value="'+esc(k)+'">　'+esc(k)+' '+fmt(c[k])+'</option>'});
+    regSel.innerHTML=h;
+  }
+  function buildSgg(){
+    var rg=regSel.value;
+    if(!rg||rg[0]==="@"){sggSel.hidden=true;sggSel.innerHTML="";return}
+    var c={};D.forEach(function(r){if(r[14]===rg&&r[15])c[r[15]]=(c[r[15]]||0)+1});
+    var keys=Object.keys(c).sort(function(a,b){return c[b]-c[a]});
+    if(!keys.length){sggSel.hidden=true;sggSel.innerHTML="";return}
+    var h='<option value="">'+esc(rg)+' 전체</option>';
+    keys.forEach(function(k){h+='<option value="'+esc(k)+'">'+esc(k)+' '+fmt(c[k])+'</option>'});
+    sggSel.innerHTML=h;sggSel.hidden=false;
+  }
+
+  // ── 주소(#)에 검색 조건 저장 → 링크로 공유 ──
+  var hashLock=false;
+  function writeHash(){
+    var p=new URLSearchParams();
+    if(q.value.trim())p.set("q",q.value.trim());
+    if(cat)p.set("c",cat); if(sub)p.set("s",sub);
+    if(regSel.value)p.set("r",regSel.value); if(sggSel.value)p.set("g",sggSel.value);
+    var def=q.value.trim()?"rel":"uses"; if(sortSel.value!==def)p.set("o",sortSel.value);
+    var f=Object.keys(F).filter(function(k){return k!=="rest"&&F[k]}); if(!F.rest)f.push("all");
+    if(f.length)p.set("f",f.join(","));
+    var h=p.toString(); hashLock=true;
+    history.replaceState(null,"",h?"#"+h:location.pathname+location.search);
+    setTimeout(function(){hashLock=false},0);
+  }
+  function readHash(){
+    var p=new URLSearchParams(location.hash.slice(1));
+    q.value=p.get("q")||""; cat=p.get("c")||""; sub=p.get("s")||"";
+    var f=(p.get("f")||"").split(",");
+    F.rest=f.indexOf("all")<0; ["auto","comm","fresh","fav"].forEach(function(k){F[k]=f.indexOf(k)>=0});
+    regSel.value=p.get("r")||""; if(regSel.selectedIndex<0)regSel.value="";
+    buildSgg(); if(!sggSel.hidden){sggSel.value=p.get("g")||"";if(sggSel.selectedIndex<0)sggSel.value=""}
+    sortSel.value=p.get("o")||(q.value.trim()?"rel":"uses"); if(sortSel.selectedIndex<0)sortSel.value="uses";
+    syncToggles(); $("clearQ").hidden=!q.value;
+  }
+  function syncToggles(){
+    [].forEach.call(document.querySelectorAll(".tg"),function(b){b.setAttribute("aria-pressed",String(!!F[b.getAttribute("data-f")]))});
+    $("favN").textContent=favCount()?favCount():"";
+  }
+
+  // ── 이벤트 ──
+  var tmr, hadQuery=false;
+  q.addEventListener("input",function(){
+    $("clearQ").hidden=!q.value;
+    var has=!!q.value.trim();
+    if(has&&!hadQuery&&sortSel.value==="uses")sortSel.value="rel";
+    if(!has&&hadQuery&&sortSel.value==="rel")sortSel.value="uses";
+    hadQuery=has;
+    clearTimeout(tmr);tmr=setTimeout(function(){run(true)},160);
+  });
+  q.addEventListener("keydown",function(e){if(e.key==="Enter"){clearTimeout(tmr);run();q.blur()}});
+  $("clearQ").addEventListener("click",function(){q.value="";hadQuery=false;if(sortSel.value==="rel")sortSel.value="uses";this.hidden=true;run();q.focus()});
+  sortSel.addEventListener("change",function(){run()});
+  regSel.addEventListener("change",function(){buildSgg();run()});
+  sggSel.addEventListener("change",function(){run()});
+  $("cats").addEventListener("click",function(e){var b=e.target.closest(".chip");if(!b)return;cat=b.getAttribute("data-c");sub="";run()});
+  $("subs").addEventListener("click",function(e){var b=e.target.closest(".chip");if(!b)return;sub=b.getAttribute("data-s");run()});
+  document.querySelector(".toggles").addEventListener("click",function(e){
+    var b=e.target.closest(".tg");if(!b)return;var k=b.getAttribute("data-f");F[k]=!F[k];syncToggles();run();
+  });
+  $("reset").addEventListener("click",function(){
+    q.value="";hadQuery=false;cat="";sub="";regSel.value="";buildSgg();sortSel.value="uses";
+    F={rest:true,auto:false,comm:false,fresh:false,fav:false};syncToggles();$("clearQ").hidden=true;run();
+  });
+  $("share").addEventListener("click",function(){writeHash();copy(location.href,"이 검색 조건의 링크를 복사했어요")});
+  $("moreList").addEventListener("click",more);
+  if("IntersectionObserver" in window){
+    new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting&&!$("moreList").hidden&&shown<200)more()})},{rootMargin:"600px"}).observe($("moreList"));
+  }
+  var byId={};
+  $("list").addEventListener("click",function(e){
+    var li=e.target.closest(".item"); if(!li)return; var r=byId[li.getAttribute("data-id")]; if(!r)return;
+    var star=e.target.closest("[data-star]");
+    if(star){
+      if(FAV[r[0]])delete FAV[r[0]];else FAV[r[0]]=1;
+      saveFav();star.setAttribute("aria-pressed",String(!!FAV[r[0]]));syncToggles();
+      toast(FAV[r[0]]?"즐겨찾기에 담았어요":"즐겨찾기에서 뺐어요");
+      return;
+    }
+    var mb=e.target.closest("[data-more]");
+    if(mb){
+      var open=mb.getAttribute("aria-expanded")==="true", d=li.querySelector(".detail");
+      if(open){if(d)d.remove()}else li.insertAdjacentHTML("beforeend",detail(r));
+      mb.setAttribute("aria-expanded",String(!open));mb.textContent=open?"자세히":"접기";
+      return;
+    }
+    var kw=e.target.closest("[data-kw]");
+    if(kw){q.value=kw.getAttribute("data-kw");hadQuery=true;if(sortSel.value==="uses")sortSel.value="rel";$("clearQ").hidden=false;cat="";sub="";run();return}
+    if(e.target.closest("[data-copy]")){copy(portal(r[0]),"포털 링크를 복사했어요")}
+  });
+  window.addEventListener("hashchange",function(){if(hashLock||!D.length)return;readHash();hadQuery=!!q.value.trim();run(true)});
+  window.addEventListener("storage",function(e){if(e.key==="pubapi-fav"){FAV=loadFav();syncToggles();if(F.fav)run(true)}});
+
+  // ── 불러오기 ──
+  fetch("data/meta.json",{cache:"no-cache"}).then(function(r){return r.json()}).catch(function(){return {}}).then(function(m){
+    META=m||{};
+    if(META.source_date){
+      $("srcLine").textContent="원본 "+META.source_date+" 기준, 매달 자동 갱신.";
+      freshFrom=daysBefore(META.source_date,FRESH_DAYS);
+    }
+    return fetch("data/apis.json"+(META.source_date?"?v="+META.source_date:"")).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()});
+  }).then(function(rows){
+    D=rows;
+    if(!freshFrom){var mx="";D.forEach(function(r){if(r[11]>mx)mx=r[11]});freshFrom=daysBefore(mx,FRESH_DAYS)}
+    H=D.map(function(r){return [r[1].toLowerCase(),(r[13]||"").toLowerCase(),r[2].toLowerCase(),(r[3]+" "+r[4]).toLowerCase(),(r[12]||"").toLowerCase()]});
+    D.forEach(function(r){byId[r[0]]=r});
+    $("total").textContent=fmt(D.length);
+    buildReg(); readHash(); hadQuery=!!q.value.trim();
+    run(true);
+  }).catch(function(){
+    $("list").innerHTML='<li class="empty"><b>목록을 불러오지 못했어요</b>잠시 뒤 새로고침해 주세요.</li>';
+  });
+})();
+</script>
+</body>
+</html>
