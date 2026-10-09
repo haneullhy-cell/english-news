@@ -1,0 +1,53 @@
+name: 공공데이터 API 찾기 목록 갱신
+
+on:
+  schedule:
+    # 원본 파일은 한 달에 한 번 올라오지만 날짜가 들쭉날쭉해서 매주 확인합니다.
+    # 21:10 UTC 일요일 = 한국시간 월요일 06:10
+    - cron: "10 21 * * 0"
+  workflow_dispatch:   # GitHub에서 수동 실행 버튼
+    inputs:
+      force:
+        description: "같은 원본이어도 다시 만들기"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write      # 만든 목록을 저장소에 커밋하기 위해 필요
+
+concurrency:
+  group: public-api-data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: 저장소 가져오기
+        uses: actions/checkout@v4
+
+      - name: 파이썬 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 필요한 것 설치
+        run: pip install "requests>=2.31.0"
+
+      - name: 포털에서 목록 받아 정리하기
+        run: python build_public_api.py ${{ inputs.force && '--force' || '' }}
+
+      - name: 바뀐 목록 저장하기
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/public-api/data/
+          if git diff --staged --quiet; then
+            echo "바뀐 것이 없습니다."
+            exit 0
+          fi
+          git commit -m "공공데이터 API 찾기: 목록 갱신 $(jq -r .source_date docs/public-api/data/meta.json) 기준"
+          git pull --rebase
+          git push
